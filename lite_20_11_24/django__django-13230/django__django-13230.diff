@@ -1,0 +1,201 @@
+diff --git a/django/contrib/syndication/views.py b/django/contrib/syndication/views.py
+index 68ffb0bfe0..a09cc5fe74 100644
+--- a/django/contrib/syndication/views.py
++++ b/django/contrib/syndication/views.py
+@@ -214,6 +214,7 @@ class Feed:
+                 author_link=author_link,
+                 categories=self._get_dynamic_attr('item_categories', item),
+                 item_copyright=self._get_dynamic_attr('item_copyright', item),
++                comments=self._get_dynamic_attr('item_comments', item),
+                 **self.item_extra_kwargs(item)
+             )
+         return feed
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..383c29469d
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,109 @@
++from django.conf import settings
++import unittest
++
++# Configure Django settings
++settings.configure(
++    DEBUG=True,
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    },
++    INSTALLED_APPS=[
++        'django.contrib.contenttypes',
++        'django.contrib.auth',
++        'django.contrib.sites',
++    ],
++    SITE_ID=1,
++)
++
++import django
++django.setup()
++
++# Run migrations
++from django.core.management import call_command
++call_command('migrate')
++
++from django.contrib.syndication import views
++from django.test import TestCase
++from django.utils import feedgenerator
++from django.contrib.sites.models import Site
++from django.test import RequestFactory
++
++class TestFeedEdgeCases(unittest.TestCase):
++    def setUp(self):
++        Site.objects.get_or_create(id=1, defaults={'domain': 'example.com', 'name': 'example.com'})
++        self.factory = RequestFactory()
++
++    def test_feed_with_empty_comments(self):
++        """Test feed with empty comments URL"""
++        class EmptyCommentsFeed(views.Feed):
++            title = "Test Feed"
++            link = "/feed/"
++            description = "Test Feed Description"
++
++            def items(self):
++                return [{'title': 'Test Item', 'comments': ''}]
++
++            def item_title(self, item):
++                return item['title']
++
++            def item_link(self, item):
++                return '/item/1/'
++
++            def item_comments(self, item):
++                return item['comments']
++
++        feed = EmptyCommentsFeed()
++        request = self.factory.get('/feed/')
++        feedgen = feed.get_feed(None, request)
++        self.assertEqual(feedgen.items[0]['comments'], '')
++
++    def test_feed_with_none_comments(self):
++        """Test feed with None comments URL"""
++        class NoneCommentsFeed(views.Feed):
++            title = "Test Feed"
++            link = "/feed/"
++            description = "Test Feed Description"
++
++            def items(self):
++                return [{'title': 'Test Item', 'comments': None}]
++
++            def item_title(self, item):
++                return item['title']
++
++            def item_link(self, item):
++                return '/item/1/'
++
++            def item_comments(self, item):
++                return item['comments']
++
++        feed = NoneCommentsFeed()
++        request = self.factory.get('/feed/')
++        feedgen = feed.get_feed(None, request)
++        self.assertIsNone(feedgen.items[0]['comments'])
++
++    def test_feed_without_comments_method(self):
++        """Test feed without item_comments method"""
++        class NoCommentsFeed(views.Feed):
++            title = "Test Feed"
++            link = "/feed/"
++            description = "Test Feed Description"
++
++            def items(self):
++                return [{'title': 'Test Item'}]
++
++            def item_title(self, item):
++                return item['title']
++
++            def item_link(self, item):
++                return '/item/1/'
++
++        feed = NoCommentsFeed()
++        request = self.factory.get('/feed/')
++        feedgen = feed.get_feed(None, request)
++        self.assertIsNone(feedgen.items[0]['comments'])
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..0577091098
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,66 @@
++from django.conf import settings
++import unittest
++
++# Configure Django settings
++settings.configure(
++    DEBUG=True,
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    },
++    INSTALLED_APPS=[
++        'django.contrib.contenttypes',
++        'django.contrib.auth',
++        'django.contrib.sites',
++    ],
++    SITE_ID=1,
++)
++
++import django
++django.setup()
++
++from django.contrib.syndication import views
++from django.test import TestCase
++from django.utils import feedgenerator
++from django.contrib.sites.models import Site
++from django.test import RequestFactory
++
++# Run migrations
++from django.core.management import call_command
++call_command('migrate')
++
++class TestFeed(views.Feed):
++    title = "Test Feed"
++    link = "/feed/"
++    description = "Test Feed Description"
++
++    def items(self):
++        return [{'title': 'Test Item', 'comments': 'http://example.com/comments/1/'}]
++
++    def item_title(self, item):
++        return item['title']
++
++    def item_link(self, item):
++        return '/item/1/'
++
++    def item_comments(self, item):
++        return item['comments']
++
++class FeedTest(unittest.TestCase):
++    def setUp(self):
++        # Get or create a test site
++        Site.objects.get_or_create(id=1, defaults={'domain': 'example.com', 'name': 'example.com'})
++        self.factory = RequestFactory()
++
++    def test_feed_with_comments(self):
++        feed = TestFeed()
++        request = self.factory.get('/feed/')
++        feedgen = feed.get_feed(None, request)
++        
++        # Check that the comments URL is included in the feed items
++        self.assertEqual(feedgen.items[0]['comments'], 'http://example.com/comments/1/')
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+\ No newline at end of file

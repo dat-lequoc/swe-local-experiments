@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-12113",
+  "model_patch": "diff --git a/django/db/backends/sqlite3/base.py b/django/db/backends/sqlite3/base.py\nindex a3ae1f048e..063e88610c 100644\n--- a/django/db/backends/sqlite3/base.py\n+++ b/django/db/backends/sqlite3/base.py\n@@ -202,6 +202,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):\n     @async_unsafe\n     def get_new_connection(self, conn_params):\n         conn = Database.connect(**conn_params)\n+        # Configure SQLite for better concurrent access\n+        conn.execute('PRAGMA journal_mode=WAL')  # Use Write-Ahead Logging\n+        conn.execute('PRAGMA busy_timeout=5000')  # Set busy timeout to 5 seconds\n         conn.create_function(\"django_date_extract\", 2, _sqlite_datetime_extract)\n         conn.create_function(\"django_date_trunc\", 2, _sqlite_date_trunc)\n         conn.create_function('django_datetime_cast_date', 3, _sqlite_datetime_cast_date)\n",
+  "model_name_or_path": "KortixAI"
+}
