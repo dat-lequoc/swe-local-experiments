@@ -1,0 +1,135 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 8ea6c05ef9..b48717eb1c 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -271,11 +271,46 @@ class ModelBase(type):
+ 
+                 # Add fields from abstract base class if it wasn't overridden.
+                 for field in parent_fields:
+-                    if (field.name not in field_names and
+-                            field.name not in new_class.__dict__ and
+-                            field.name not in inherited_attributes):
++                    field_name = field.name
++                    # Check if the field is redefined in the child class
++                    if field_name in new_class.__dict__:
++                        child_field = new_class.__dict__[field_name]
++                        if hasattr(child_field, 'choices'):
++                            # Create a new field instance with updated choices
++                            from django.db.models.fields import CharField
++                            if isinstance(child_field, CharField):
++                                choices = None
++                                if hasattr(new_class, field_name + '_choice'):
++                                    choices = getattr(new_class, field_name + '_choice')
++                                elif child_field.choices:
++                                    choices = child_field.choices
++                                
++                                if choices:
++                                    new_field = CharField(
++                                        max_length=child_field.max_length,
++                                        choices=choices,
++                                        default=child_field.default if child_field.default != NOT_PROVIDED else None,
++                                        null=child_field.null,
++                                        blank=child_field.blank,
++                                        db_column=child_field.db_column,
++                                        db_index=child_field.db_index,
++                                    )
++                                    new_field.contribute_to_class(new_class, field_name)
++                                    new_class._meta.local_fields = [f for f in new_class._meta.local_fields if f.name != field_name]
++                                    new_class._meta.local_fields.append(new_field)
++                    elif field_name not in field_names and field_name not in inherited_attributes:
+                         new_field = copy.deepcopy(field)
+-                        new_class.add_to_class(field.name, new_field)
++                        # Update choices if defined in child class
++                        if hasattr(new_class, field_name + '_choice'):
++                            choices = getattr(new_class, field_name + '_choice')
++                            new_field.choices = choices
++                            if hasattr(new_field, '_choices'):
++                                new_field._choices = None
++                            new_field.flatchoices = choices
++                            # Ensure the field knows about its choices
++                            if hasattr(new_field, 'set_attributes_from_name'):
++                                new_field.set_attributes_from_name(field_name)
++                        new_class.add_to_class(field_name, new_field)
+                         # Replace parent links defined on this base by the new
+                         # field. It will be appropriately resolved if required.
+                         if field.one_to_one:
+@@ -945,9 +980,22 @@ class Model(metaclass=ModelBase):
+ 
+     def _get_FIELD_display(self, field):
+         value = getattr(self, field.attname)
+-        choices_dict = dict(make_hashable(field.flatchoices))
+-        # force_str() to coerce lazy strings.
+-        return force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
++        
++        # Get choices from the field itself first
++        choices = None
++        if field.choices:
++            choices = field.choices
++        
++        # If no choices on field, try class attribute
++        if not choices and hasattr(self.__class__, field.name + '_choice'):
++            choices = getattr(self.__class__, field.name + '_choice')
++        
++        if not choices:
++            return force_str(value, strings_only=True)
++        
++        # Convert choices to dict and get display value
++        choices_dict = dict(choices)
++        return force_str(choices_dict.get(value, value), strings_only=True)
+ 
+     def _get_next_or_previous_by_FIELD(self, field, is_next, **kwargs):
+         if not self.pk:
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..7453eb195d
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,47 @@
++from django.conf import settings
++from django.db import models
++
++# Configure Django settings
++settings.configure(
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    },
++    INSTALLED_APPS=['django.contrib.contenttypes', 'django.contrib.auth'],
++)
++
++import django
++django.setup()
++
++# Test models
++class A(models.Model):
++    foo_choice = [('A', 'output1'), ('B', 'output2')]
++    field_foo = models.CharField(max_length=254, choices=foo_choice)
++    class Meta:
++        abstract = True
++        app_label = 'testapp'
++
++class B(A):
++    foo_choice = [('A', 'output1'), ('B', 'output2'), ('C', 'output3')]
++    field_foo = models.CharField(max_length=254, choices=foo_choice)
++    class Meta:
++        app_label = 'testapp'
++
++def test_choices_inheritance():
++    b = B()
++    b.field_foo = 'C'
++    result = b.get_field_foo_display()
++    print(f'Test result for value "C": {result == "output3"} (got "{result}", expected "output3")')
++    
++    b.field_foo = 'A'
++    result = b.get_field_foo_display()
++    print(f'Test result for value "A": {result == "output1"} (got "{result}", expected "output1")')
++    
++    b.field_foo = 'B'
++    result = b.get_field_foo_display()
++    print(f'Test result for value "B": {result == "output2"} (got "{result}", expected "output2")')
++
++if __name__ == '__main__':
++    test_choices_inheritance()
+\ No newline at end of file

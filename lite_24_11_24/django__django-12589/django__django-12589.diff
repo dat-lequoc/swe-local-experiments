@@ -1,0 +1,242 @@
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 63ca817355..8e5a02dce1 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -119,7 +119,12 @@ class SQLCompiler:
+                 continue
+             cols = expr.get_group_by_cols()
+             for col in cols:
+-                expressions.append(col)
++                if hasattr(col, 'as_sql'):
++                    # If it's a subquery or complex expression, use the full SQL
++                    sql, params = self.compile(col)
++                    expressions.append(RawSQL(sql, params))
++                else:
++                    expressions.append(col)
+         for expr, (sql, params, is_ref) in order_by:
+             # Skip References to the select clause, as all expressions in the
+             # select clause are already part of the group by.
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..9d8fcd08dd
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,96 @@
++import os
++import django
++from django.conf import settings
++
++# Configure Django settings
++if not settings.configured:
++    settings.configure(
++        DATABASES={
++            'default': {
++                'ENGINE': 'django.db.backends.sqlite3',
++                'NAME': ':memory:',
++            }
++        },
++        INSTALLED_APPS=[
++            'django.contrib.contenttypes',
++            'django.contrib.auth',
++            'test_app',
++        ],
++        MIDDLEWARE=[],
++        ROOT_URLCONF=[],
++    )
++    django.setup()
++
++from django.db.models import Q, OuterRef, Subquery, Count, F, Value
++from django.test import TestCase
++from test_app.models import A, B, AB, C
++
++class EdgeCaseTests(TestCase):
++    def setUp(self):
++        # Create test data
++        self.a1 = A.objects.create()
++        self.a2 = A.objects.create()
++        self.b1 = B.objects.create()
++        self.b2 = B.objects.create()
++        
++        # Create AB relationships with different statuses
++        self.ab1 = AB.objects.create(a=self.a1, b=self.b1, status=1)
++        self.ab2 = AB.objects.create(a=self.a2, b=self.b2, status=2)
++        
++        # Create C objects with different statuses
++        self.c1 = C.objects.create(a=self.a1, status=3)
++        self.c2 = C.objects.create(a=self.a2, status=4)
++
++    def test_multiple_status_fields(self):
++        print("Testing multiple status fields...")
++        ab_query = AB.objects.filter(a=OuterRef("pk"), b=self.b1.pk)
++        filter_conditions = Q(pk=self.a1.pk) | Q(ab_a__b=self.b1.pk)
++        
++        try:
++            query = A.objects.filter(filter_conditions).annotate(
++                status=Subquery(ab_query.values("status")),
++                c_count=Count("c"),
++            )
++            result = query.values("status").annotate(total_count=Count("status"))
++            print("Result:", list(result))
++            print("Test passed")
++        except Exception as e:
++            print("Test failed:", str(e))
++
++    def test_complex_subquery(self):
++        print("\nTesting complex subquery...")
++        ab_query = AB.objects.filter(
++            a=OuterRef("pk"), 
++            b=self.b1.pk
++        ).values("status").annotate(
++            doubled_status=F("status") * 2
++        )
++        
++        try:
++            query = A.objects.filter(
++                Q(pk=self.a1.pk) | Q(ab_a__b=self.b1.pk)
++            ).annotate(
++                status=Subquery(ab_query.values("doubled_status")),
++                c_count=Count("c"),
++            )
++            result = query.values("status").annotate(total_count=Count("status"))
++            print("Result:", list(result))
++            print("Test passed")
++        except Exception as e:
++            print("Test failed:", str(e))
++
++if __name__ == '__main__':
++    # Create all tables
++    from django.db import connection
++    with connection.schema_editor() as schema_editor:
++        for Model in [A, B, AB, C]:
++            try:
++                schema_editor.create_model(Model)
++            except Exception as e:
++                print(f"Error creating table for {Model.__name__}: {e}")
++    
++    # Run the tests
++    test = EdgeCaseTests()
++    test.setUp()
++    test.test_multiple_status_fields()
++    test.test_complex_subquery()
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..24cf1a76de
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,67 @@
++import os
++import django
++from django.conf import settings
++
++# Configure Django settings before importing models
++if not settings.configured:
++    settings.configure(
++        DATABASES={
++            'default': {
++                'ENGINE': 'django.db.backends.sqlite3',
++                'NAME': ':memory:',
++            }
++        },
++        INSTALLED_APPS=[
++            'django.contrib.contenttypes',
++            'django.contrib.auth',
++            'test_app',
++        ],
++        MIDDLEWARE=[],
++        ROOT_URLCONF=[],
++    )
++    django.setup()
++
++from django.db.models import Q, OuterRef, Subquery, Count
++from django.test import TestCase
++from test_app.models import A, B, AB, C
++
++class GroupByTest(TestCase):
++    def setUp(self):
++        # Create test data
++        self.a1 = A.objects.create()
++        self.b1 = B.objects.create()
++        self.ab1 = AB.objects.create(a=self.a1, b=self.b1, status=1)
++        self.c1 = C.objects.create(a=self.a1, status=2)
++
++    def test_group_by_with_subquery(self):
++        ab_query = AB.objects.filter(a=OuterRef("pk"), b=1)
++        filter_conditions = Q(pk=1) | Q(ab_a__b=1)
++        query = A.objects.filter(filter_conditions).annotate(
++            status=Subquery(ab_query.values("status")),
++            c_count=Count("c"),
++        )
++        try:
++            result = query.values("status").annotate(total_count=Count("status"))
++            print("Query executed successfully")
++            print("Result:", list(result))
++            print("Test passed")
++        except Exception as e:
++            print("Test failed:", str(e))
++
++if __name__ == '__main__':
++    from django.core.management import call_command
++    from django.db import connection
++    
++    # Create all tables
++    with connection.schema_editor() as schema_editor:
++        from test_app.models import A, B, AB, C
++        for Model in [A, B, AB, C]:
++            try:
++                schema_editor.create_model(Model)
++            except Exception as e:
++                print(f"Error creating table for {Model.__name__}: {e}")
++    
++    # Run the test
++    test = GroupByTest()
++    test.setUp()
++    test.test_group_by_with_subquery()
+\ No newline at end of file
+diff --git a/test_app/__init__.py b/test_app/__init__.py
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/test_app/models.py b/test_app/models.py
+new file mode 100644
+index 0000000000..75a05bc7ea
+--- /dev/null
++++ b/test_app/models.py
+@@ -0,0 +1,16 @@
++from django.db import models
++
++class A(models.Model):
++    bs = models.ManyToManyField('B', related_name="a", through="AB")
++
++class B(models.Model):
++    pass
++
++class AB(models.Model):
++    a = models.ForeignKey(A, on_delete=models.CASCADE, related_name="ab_a")
++    b = models.ForeignKey(B, on_delete=models.CASCADE, related_name="ab_b")
++    status = models.IntegerField()
++
++class C(models.Model):
++    a = models.ForeignKey(A, null=True, blank=True, on_delete=models.SET_NULL, related_name="c")
++    status = models.IntegerField()
+\ No newline at end of file
+diff --git a/test_settings.py b/test_settings.py
+new file mode 100644
+index 0000000000..6e46e7fd1b
+--- /dev/null
++++ b/test_settings.py
+@@ -0,0 +1,14 @@
++DATABASES = {
++    'default': {
++        'ENGINE': 'django.db.backends.sqlite3',
++        'NAME': ':memory:',
++    }
++}
++
++INSTALLED_APPS = [
++    'django.contrib.contenttypes',
++    'django.contrib.auth',
++    'test_app',
++]
++
++SECRET_KEY = 'dummy'
+\ No newline at end of file

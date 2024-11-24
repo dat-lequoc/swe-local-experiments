@@ -1,0 +1,10 @@
+{
+  "workspace_state": {
+    "checklist_of_tasks": "Status of tasks:\n1. [ ] Explore `/testbed` and find relevant files.\n2. [ ] Analyze PR description and issue details.\n3. [ ] Examine related files and understand code patterns, relevant functions.\n4. [ ] Analyze root cause with related files.\n5. [ ] Consider multiple possible solutions, propose solutions, and pick the best one.\n6. [ ] Implement the fix directly to the code base, updating related parts of the code accordingly.\n7. [ ] Create 'reproduce_error.py' and 'edge_cases.py' to test if the fix is working and to handle edge cases.\n8. [ ] Review modified files and identify any dependent code that needs updates.\n9. [ ] Use <REVIEW> to inspect the code for consistency and correctness.\n10. [ ] Use <CRITICAL> to evaluate your changes for effectiveness and absence of regressions.\n11. [ ] Report findings or submit the fix."
+  },
+  "workspace": {
+    "file_tree": {},
+    "open_files": {},
+    "terminal_session": []
+  }
+}

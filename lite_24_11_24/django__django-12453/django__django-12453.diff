@@ -1,0 +1,321 @@
+diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py
+index c50fc90171..5cf1f5b3c2 100644
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -5,7 +5,7 @@ from io import StringIO
+ from django.apps import apps
+ from django.conf import settings
+ from django.core import serializers
+-from django.db import router
++from django.db import router, transaction
+ 
+ # The prefix to put on the default database name when creating
+ # the test database.
+@@ -126,8 +126,9 @@ class BaseDatabaseCreation:
+         the serialize_db_to_string() method.
+         """
+         data = StringIO(data)
+-        for obj in serializers.deserialize("json", data, using=self.connection.alias):
+-            obj.save()
++        with transaction.atomic(using=self.connection.alias):
++            for obj in serializers.deserialize("json", data, using=self.connection.alias):
++                obj.save()
+ 
+     def _get_database_display_str(self, verbosity, database_name):
+         """
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..d06ffee6af
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,122 @@
++import os
++import django
++from django.conf import settings
++
++# Configure Django settings
++if not settings.configured:
++    settings.configure(
++        DEBUG=True,
++        DATABASES={
++            'default': {
++                'ENGINE': 'django.db.backends.sqlite3',
++                'NAME': ':memory:',
++            }
++        },
++        INSTALLED_APPS=[
++            'django.contrib.contenttypes',
++            'django.contrib.auth',
++            'test_app',
++        ],
++        DEFAULT_AUTO_FIELD='django.db.models.AutoField',
++    )
++    django.setup()
++    
++    # Create the test database tables
++    from django.core.management import call_command
++    call_command('migrate', verbosity=0, interactive=False, run_syncdb=True)
++
++from django.db import models, transaction, connection, DEFAULT_DB_ALIAS
++from django.test import TransactionTestCase
++from django.test.testcases import connections
++from django.core import serializers
++from test_app.models import Author, Book
++
++class EdgeCaseTests(TransactionTestCase):
++    serialized_rollback = True
++
++    def setUp(self):
++        super().setUp()
++        self.connection = connections[DEFAULT_DB_ALIAS]
++
++    def test_multiple_books_single_author(self):
++        """Test restoring multiple books linked to the same author."""
++        try:
++            # Create test data
++            author = Author.objects.create(name='Multiple Books Author')
++            books = [
++                Book.objects.create(title=f'Book {i}', author=author)
++                for i in range(3)
++            ]
++
++            # Manually serialize test data
++            test_objects = list(Author.objects.all()) + list(Book.objects.all())
++            serialized_data = serializers.serialize('json', test_objects)
++
++            # Delete all data
++            Book.objects.all().delete()
++            Author.objects.all().delete()
++
++            # Restore data
++            self.connection.creation.deserialize_db_from_string(serialized_data)
++
++            # Verify restoration
++            self.assertEqual(Author.objects.count(), 1)
++            self.assertEqual(Book.objects.count(), 3)
++            print("Multiple books test passed!")
++            return True
++        except Exception as e:
++            print(f"Multiple books test failed: {str(e)}")
++            return False
++
++    def test_circular_dependency(self):
++        """Test handling of circular dependencies in serialization."""
++        try:
++            # Create test data with specific IDs to force ordering
++            author1 = Author.objects.create(name='Author 1')
++            author2 = Author.objects.create(name='Author 2')
++            book1 = Book.objects.create(title='Book 1', author=author2)
++            book2 = Book.objects.create(title='Book 2', author=author1)
++
++            # Manually serialize test data
++            test_objects = list(Author.objects.all()) + list(Book.objects.all())
++            serialized_data = serializers.serialize('json', test_objects)
++
++            # Delete all data
++            Book.objects.all().delete()
++            Author.objects.all().delete()
++
++            # Restore data
++            self.connection.creation.deserialize_db_from_string(serialized_data)
++
++            # Verify restoration
++            self.assertEqual(Author.objects.count(), 2)
++            self.assertEqual(Book.objects.count(), 2)
++            print("Circular dependency test passed!")
++            return True
++        except Exception as e:
++            print(f"Circular dependency test failed: {str(e)}")
++            return False
++
++if __name__ == '__main__':
++    try:
++        # Create and run test instances
++        test = EdgeCaseTests('test_multiple_books_single_author')
++        test._pre_setup()
++        test.setUp()
++        success1 = test.test_multiple_books_single_author()
++        test.tearDown()
++        test._post_teardown()
++
++        test = EdgeCaseTests('test_circular_dependency')
++        test._pre_setup()
++        test.setUp()
++        success2 = test.test_circular_dependency()
++        test.tearDown()
++        test._post_teardown()
++
++        if not (success1 and success2):
++            exit(1)
++        print("\nAll edge case tests completed successfully!")
++    except Exception as e:
++        print(f"\nTests failed with error: {str(e)}")
++        exit(1)
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..d76e44d0d2
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,142 @@
++import os
++import django
++from django.conf import settings
++
++# Configure Django settings
++if not settings.configured:
++    settings.configure(
++        DEBUG=True,
++        DATABASES={
++            'default': {
++                'ENGINE': 'django.db.backends.sqlite3',
++                'NAME': ':memory:',
++            }
++        },
++        INSTALLED_APPS=[
++            'django.contrib.contenttypes',
++            'django.contrib.auth',
++            'test_app',
++        ],
++        DEFAULT_AUTO_FIELD='django.db.models.AutoField',
++    )
++    django.setup()
++    
++    # Create the test database tables
++    from django.core.management import call_command
++    call_command('migrate', verbosity=0, interactive=False, run_syncdb=True)
++
++from django.db import models, transaction, connection, DEFAULT_DB_ALIAS
++from django.test import TransactionTestCase
++from django.test.testcases import connections
++from django.apps import apps
++
++# Import test models
++from test_app.models import Author, Book
++
++def create_tables():
++    """Create the database tables for our models."""
++    with connection.schema_editor() as schema_editor:
++        schema_editor.create_model(Author)
++        schema_editor.create_model(Book)
++
++class SerializedRollbackTest(TransactionTestCase):
++    serialized_rollback = True
++
++    @classmethod
++    def setUpClass(cls):
++        super().setUpClass()
++        # Create tables only if they don't exist
++        try:
++            create_tables()
++        except Exception as e:
++            if 'already exists' not in str(e):
++                raise
++
++    def setUp(self):
++        super().setUp()
++        # Create test data
++        self.author = Author.objects.create(name='Test Author')
++        self.book = Book.objects.create(title='Test Book', author=self.author)
++        
++        # Store the serialized database state
++        self.connection = connections[DEFAULT_DB_ALIAS]
++        # Manually serialize our test data
++        from django.core import serializers
++        test_objects = list(Author.objects.all()) + list(Book.objects.all())
++        serialized_data = serializers.serialize('json', test_objects)
++        self.connection._test_serialized_contents = serialized_data
++
++    def test_serialized_rollback(self):
++        """Test that serialized rollback correctly restores objects with foreign key relationships."""
++        try:
++            print("\nInitial state:")
++            print(f"Authors: {Author.objects.count()}")
++            print(f"Books: {Book.objects.count()}")
++            
++            # Verify initial state
++            self.assertEqual(Author.objects.count(), 1)
++            self.assertEqual(Book.objects.count(), 1)
++
++            # Store serialized data
++            serialized_data = self.connection._test_serialized_contents
++            print("\nSerialized data:", serialized_data)
++
++            # Delete all data
++            Book.objects.all().delete()
++            Author.objects.all().delete()
++
++            print("\nAfter deletion:")
++            print(f"Authors: {Author.objects.count()}")
++            print(f"Books: {Book.objects.count()}")
++
++            # Verify data is deleted
++            self.assertEqual(Author.objects.count(), 0)
++            self.assertEqual(Book.objects.count(), 0)
++
++            # Restore the serialized data
++            print("\nRestoring data...")
++            self.connection.creation.deserialize_db_from_string(serialized_data)
++
++            print("\nAfter restoration:")
++            print(f"Authors: {Author.objects.count()}")
++            print(f"Books: {Book.objects.count()}")
++
++            # Verify data is restored correctly
++            self.assertEqual(Author.objects.count(), 1, "Author object was not restored")
++            self.assertEqual(Book.objects.count(), 1, "Book object was not restored")
++            
++            restored_book = Book.objects.first()
++            if restored_book:
++                print(f"\nRestored book: {restored_book.title}")
++                print(f"Restored author: {restored_book.author.name}")
++            else:
++                print("\nNo book was restored")
++
++            print("Test completed successfully!")
++            return True
++        except Exception as e:
++            print(f"Test failed: {str(e)}")
++            return False
++
++if __name__ == '__main__':
++    try:
++        # Create and set up the test instance
++        test = SerializedRollbackTest('test_serialized_rollback')
++        test.setUpClass()
++        test._pre_setup()
++        test.setUp()
++        
++        # Run the test
++        success = test.test_serialized_rollback()
++        
++        # Clean up
++        test.tearDown()
++        test._post_teardown()
++        test.tearDownClass()
++        
++        if not success:
++            exit(1)
++        print("\nTest completed successfully!")
++    except Exception as e:
++        print(f"\nTest failed with error: {str(e)}")
++        exit(1)
+\ No newline at end of file
+diff --git a/test_app/__init__.py b/test_app/__init__.py
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/test_app/models.py b/test_app/models.py
+new file mode 100644
+index 0000000000..e3de8b9bd0
+--- /dev/null
++++ b/test_app/models.py
+@@ -0,0 +1,8 @@
++from django.db import models
++
++class Author(models.Model):
++    name = models.CharField(max_length=100)
++
++class Book(models.Model):
++    title = models.CharField(max_length=100)
++    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+\ No newline at end of file

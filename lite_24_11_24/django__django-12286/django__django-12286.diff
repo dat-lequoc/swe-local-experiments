@@ -1,0 +1,133 @@
+diff --git a/django/core/checks/translation.py b/django/core/checks/translation.py
+index 138ed07ff8..df65532c7d 100644
+--- a/django/core/checks/translation.py
++++ b/django/core/checks/translation.py
+@@ -55,7 +55,12 @@ def check_setting_languages_bidi(app_configs, **kwargs):
+ @register(Tags.translation)
+ def check_language_settings_consistent(app_configs, **kwargs):
+     """Error if language settings are not consistent with each other."""
+-    available_tags = {i for i, _ in settings.LANGUAGES} | {'en-us'}
+-    if settings.LANGUAGE_CODE not in available_tags:
++    from django.utils.translation.trans_real import get_supported_language_variant
++    try:
++        if settings.LANGUAGE_CODE:
++            get_supported_language_variant(settings.LANGUAGE_CODE.lower())
++        else:
++            return [E004]
++    except LookupError:
+         return [E004]
+     return []
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..a3fe7e8ac2
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,50 @@
++from django.conf import settings
++from django.test import TestCase, override_settings
++from django.core.checks.translation import check_language_settings_consistent
++
++class TranslationEdgeCasesTest(TestCase):
++    def test_edge_cases(self):
++        """Test edge cases for language code validation."""
++        # Test empty language code
++        with override_settings(LANGUAGE_CODE='', LANGUAGES=[('en', 'English')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(len(errors), 1, "E004 should be raised for empty language code")
++
++        # Test None language code
++        with override_settings(LANGUAGE_CODE=None, LANGUAGES=[('en', 'English')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(len(errors), 1, "E004 should be raised for None language code")
++
++        # Test multiple-part language code with base available
++        with override_settings(LANGUAGE_CODE='zh-hans-cn', LANGUAGES=[('zh-hans', 'Simplified Chinese')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(errors, [], "E004 should not be raised when base language is available")
++
++        # Test case sensitivity
++        with override_settings(LANGUAGE_CODE='DE-AT', LANGUAGES=[('de', 'German')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(errors, [], "E004 should not be raised when base language is available (case insensitive)")
++
++if __name__ == '__main__':
++    import django
++    settings.configure(
++        DATABASES={'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }},
++        INSTALLED_APPS=['django.contrib.contenttypes', 'django.contrib.auth'],
++        LANGUAGE_CODE='en-us',
++        LANGUAGES=[('en', 'English'), ('de', 'German'), ('zh-hans', 'Simplified Chinese')],
++        SECRET_KEY='dummy-key-for-tests',
++    )
++    django.setup()
++    
++    import unittest
++    suite = unittest.TestLoader().loadTestsFromTestCase(TranslationEdgeCasesTest)
++    result = unittest.TextTestRunner(verbosity=2).run(suite)
++    if not result.wasSuccessful():
++        print("Edge case tests failed!")
++        exit(1)
++    else:
++        print("All edge case tests passed!")
++        exit(0)
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..2c400479b9
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,50 @@
++from django.conf import settings
++from django.test import TestCase, override_settings
++
++class TranslationCheckTest(TestCase):
++    def test_language_code_check(self):
++        """Test that sublanguages are accepted when base language is available."""
++        from django.core.checks import run_checks
++        from django.core.checks.translation import check_language_settings_consistent
++
++        # Test with de-at when de is available
++        with override_settings(LANGUAGE_CODE='de-at', LANGUAGES=[('de', 'German')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(errors, [], "E004 should not be raised when base language is available")
++
++        # Test with es-ar (which is available by default)
++        with override_settings(LANGUAGE_CODE='es-ar', LANGUAGES=[('es-ar', 'Argentinian Spanish')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(errors, [], "E004 should not be raised for available sublanguage")
++
++        # Test with invalid language
++        with override_settings(LANGUAGE_CODE='invalid-lang', LANGUAGES=[('en', 'English')]):
++            errors = check_language_settings_consistent(None)
++            self.assertEqual(len(errors), 1, "E004 should be raised for invalid language")
++            self.assertEqual(errors[0].id, 'translation.E004')
++
++if __name__ == '__main__':
++    import django
++    from django.conf import settings
++    settings.configure(
++        DATABASES={'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }},
++        INSTALLED_APPS=['django.contrib.contenttypes', 'django.contrib.auth'],
++        LANGUAGE_CODE='en-us',
++        LANGUAGES=[('en', 'English'), ('de', 'German'), ('es-ar', 'Argentinian Spanish')],
++        SECRET_KEY='dummy-key-for-tests',
++    )
++    django.setup()
++    
++    from django.test.runner import DiscoverRunner
++    import unittest
++    suite = unittest.TestLoader().loadTestsFromTestCase(TranslationCheckTest)
++    result = unittest.TextTestRunner(verbosity=2).run(suite)
++    if not result.wasSuccessful():
++        print("Tests failed!")
++        exit(1)
++    else:
++        print("All tests passed!")
++        exit(0)
+\ No newline at end of file

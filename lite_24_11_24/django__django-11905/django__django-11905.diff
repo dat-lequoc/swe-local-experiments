@@ -1,0 +1,154 @@
+diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py
+index 9344979c56..3973a9e66b 100644
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -462,6 +462,14 @@ class IsNull(BuiltinLookup):
+     lookup_name = 'isnull'
+     prepare_rhs = False
+ 
++    def get_prep_lookup(self):
++        if not isinstance(self.rhs, bool):
++            raise ValueError(
++                'The __isnull lookup requires a boolean value. '
++                'Got %r of type %s.' % (self.rhs, type(self.rhs).__name__)
++            )
++        return self.rhs
++
+     def as_sql(self, compiler, connection):
+         sql, params = compiler.compile(self.lhs)
+         if self.rhs:
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..41a617d653
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,77 @@
++from django.db.models.lookups import IsNull
++from django.db.models.fields.related_lookups import RelatedIsNull
++from django.core.exceptions import ValidationError
++
++def test_edge_cases():
++    print("Testing edge cases for IsNull lookup...")
++    
++    # Test various non-boolean values
++    test_values = [
++        (1, "integer 1"),
++        (0, "integer 0"),
++        ("true", "string 'true'"),
++        ("false", "string 'false'"),
++        ("", "empty string"),
++        (None, "None"),
++        ([], "empty list"),
++        ({}, "empty dict"),
++        (1.0, "float 1.0"),
++        (0.0, "float 0.0"),
++    ]
++
++    success = True
++    for value, desc in test_values:
++        try:
++            lookup = IsNull(None, value)
++            print(f"[FAIL] {desc} was incorrectly accepted")
++            success = False
++        except ValidationError as e:
++            if "requires a boolean value" in str(e):
++                print(f"[PASS] {desc} correctly rejected with proper error message")
++            else:
++                print(f"[FAIL] {desc} rejected with wrong error message: {e}")
++                success = False
++        except Exception as e:
++            print(f"[FAIL] {desc} caused unexpected error: {e}")
++            success = False
++
++    # Test RelatedIsNull with non-boolean values
++    print("\nTesting RelatedIsNull edge cases...")
++    for value, desc in test_values:
++        try:
++            lookup = RelatedIsNull(None, value)
++            print(f"[FAIL] RelatedIsNull: {desc} was incorrectly accepted")
++            success = False
++        except ValidationError as e:
++            if "requires a boolean value" in str(e):
++                print(f"[PASS] RelatedIsNull: {desc} correctly rejected with proper error message")
++            else:
++                print(f"[FAIL] RelatedIsNull: {desc} rejected with wrong error message: {e}")
++                success = False
++        except Exception as e:
++            print(f"[FAIL] RelatedIsNull: {desc} caused unexpected error: {e}")
++            success = False
++
++    # Test valid boolean values
++    try:
++        lookup = IsNull(None, True)
++        print("[PASS] True value accepted")
++    except Exception as e:
++        print(f"[FAIL] True value caused error: {e}")
++        success = False
++
++    try:
++        lookup = IsNull(None, False)
++        print("[PASS] False value accepted")
++    except Exception as e:
++        print(f"[FAIL] False value caused error: {e}")
++        success = False
++
++    if success:
++        print("\nAll edge cases passed successfully!")
++    else:
++        print("\nSome edge cases failed!")
++        raise Exception("Edge cases test failed")
++
++if __name__ == "__main__":
++    test_edge_cases()
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..84ead431e3
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,44 @@
++from django.db.models.lookups import IsNull
++from django.db.models.fields.related_lookups import RelatedIsNull
++from django.core.exceptions import ValidationError
++
++def test_isnull_validation():
++    print("Testing IsNull lookup validation...")
++    
++    # Test cases with valid boolean values
++    try:
++        lookup = IsNull(None, True)
++        assert lookup.rhs is True
++        print("[PASS] True value accepted")
++    except Exception as e:
++        print("[FAIL] True value test failed:", str(e))
++
++    try:
++        lookup = IsNull(None, False)
++        assert lookup.rhs is False
++        print("[PASS] False value accepted")
++    except Exception as e:
++        print("[FAIL] False value test failed:", str(e))
++
++    # Test cases with invalid values
++    invalid_values = [1, 0, "true", "false", "", None, [], {}]
++    for val in invalid_values:
++        try:
++            lookup = IsNull(None, val)
++            print(f"[FAIL] Invalid value {val} was incorrectly accepted")
++        except ValidationError:
++            print(f"[PASS] Invalid value {val} correctly rejected")
++        except Exception as e:
++            print(f"[FAIL] Unexpected error with {val}:", str(e))
++
++    # Test RelatedIsNull
++    print("\nTesting RelatedIsNull lookup validation...")
++    try:
++        lookup = RelatedIsNull(None, True)
++        assert lookup.rhs is True
++        print("[PASS] RelatedIsNull accepts True")
++    except Exception as e:
++        print("[FAIL] RelatedIsNull True test failed:", str(e))
++
++if __name__ == "__main__":
++    test_isnull_validation()
+\ No newline at end of file

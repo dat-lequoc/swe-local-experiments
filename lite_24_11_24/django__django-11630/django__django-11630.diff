@@ -1,0 +1,286 @@
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 5c2266ca1d..65368f949d 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -9,17 +9,30 @@ from django.core.checks import Error, Tags, register
+ 
+ @register(Tags.models)
+ def check_all_models(app_configs=None, **kwargs):
+-    db_table_models = defaultdict(list)
++    from django.db import router
++
++    # Group models by database connection
++    db_models = defaultdict(lambda: defaultdict(list))
+     indexes = defaultdict(list)
+     constraints = defaultdict(list)
+     errors = []
++    
+     if app_configs is None:
+         models = apps.get_models()
+     else:
+         models = chain.from_iterable(app_config.get_models() for app_config in app_configs)
++
++    # First pass: collect all models and their database assignments
++    model_dbs = {}
+     for model in models:
+         if model._meta.managed and not model._meta.proxy:
+-            db_table_models[model._meta.db_table].append(model._meta.label)
++            # Use the router to determine the database
++            db = router.db_for_write(model)
++            if db is None:
++                db = 'default'
++            model_dbs[model] = db
++            db_models[db][model._meta.db_table].append(model._meta.label)
++
+         if not inspect.ismethod(model.check):
+             errors.append(
+                 Error(
+@@ -31,20 +44,29 @@ def check_all_models(app_configs=None, **kwargs):
+             )
+         else:
+             errors.extend(model.check(**kwargs))
++        
+         for model_index in model._meta.indexes:
+             indexes[model_index.name].append(model._meta.label)
+         for model_constraint in model._meta.constraints:
+             constraints[model_constraint.name].append(model._meta.label)
+-    for db_table, model_labels in db_table_models.items():
+-        if len(model_labels) != 1:
+-            errors.append(
+-                Error(
+-                    "db_table '%s' is used by multiple models: %s."
+-                    % (db_table, ', '.join(db_table_models[db_table])),
+-                    obj=db_table,
+-                    id='models.E028',
++    
++    # Check for table name conflicts within each database
++    for db, table_models in db_models.items():
++        for db_table, model_labels in table_models.items():
++            if len(model_labels) > 1:
++                # Multiple models sharing the same table in the same database is not allowed
++                model_list = sorted(model_labels)
++                errors.append(
++                    Error(
++                        "db_table '%s' is used by multiple models in the same database '%s': %s. "
++                        "Models in the same database must use unique table names."
++                        % (db_table, db or 'default', ', '.join(model_list)),
++                        obj=db_table,
++                        id='models.E028',
++                        hint="Ensure models '%s' use different 'db_table' values when they share the same database connection." 
++                        % "' and '".join(model_list)
++                    )
+                 )
+-            )
+     for index_name, model_labels in indexes.items():
+         if len(model_labels) > 1:
+             model_labels = set(model_labels)
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..76f1fc22c6
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,108 @@
++from django.conf import settings
++from django.core.checks import Error
++from django.db import models, router
++
++# Database router
++class AppRouter:
++    """
++    Router that assigns models to databases based on their app_label.
++    """
++    def db_for_read(self, model, **hints):
++        if model._meta.app_label in ['app2', 'app3']:
++            return 'other_db'
++        return 'default'
++
++    def db_for_write(self, model, **hints):
++        if model._meta.app_label in ['app2', 'app3']:
++            return 'other_db'
++        return 'default'
++
++    def allow_relation(self, obj1, obj2, **hints):
++        return True
++
++    def allow_migrate(self, db, app_label, model_name=None, **hints):
++        if app_label in ['app2', 'app3']:
++            return db == 'other_db'
++        return db == 'default'
++
++# Register the router globally
++router.routers = [AppRouter()]
++
++# Configure Django settings
++settings.configure(
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        },
++        'other_db': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    },
++    DATABASE_ROUTERS=['__main__.AppRouter'],
++    INSTALLED_APPS=['django.contrib.contenttypes', 'django.contrib.auth'],
++)
++
++import django
++django.setup()
++
++# Test models
++class BaseModel(models.Model):
++    name = models.CharField(max_length=100)
++    
++    class Meta:
++        app_label = 'base'
++        db_table = 'shared_table'
++
++class App2Model(models.Model):
++    title = models.CharField(max_length=100)
++    
++    class Meta:
++        app_label = 'app2'
++        db_table = 'shared_table'
++
++class App3Model(models.Model):
++    description = models.CharField(max_length=100)
++    
++    class Meta:
++        app_label = 'app3'
++        db_table = 'shared_table'  # Same table name in same database as App2Model
++
++from django.core.checks import model_checks
++
++def test_edge_cases():
++    print("\nTesting edge cases...")
++    
++    # Get all errors
++    errors = model_checks.check_all_models()
++    
++    # Filter for E028 errors
++    e028_errors = [e for e in errors if e.id == 'models.E028']
++    
++    # Test Case 1: Models in same database with same table name
++    test1 = any(
++        'app2.App2Model' in error.msg and 'app3.App3Model' in error.msg 
++        for error in e028_errors
++    )
++    print("[PASS]" if test1 else "[FAIL]", 
++          "Detected conflict between models using same table in same database")
++
++    # Test Case 2: No false positives for models in different databases
++    test2 = not any(
++        'base.BaseModel' in error.msg and 'app2.App2Model' in error.msg 
++        for error in e028_errors
++    )
++    print("[PASS]" if test2 else "[FAIL]", 
++          "No false positives for models in different databases")
++
++    return test1 and test2
++
++if __name__ == '__main__':
++    success = test_edge_cases()
++    if success:
++        print("\nAll edge cases passed!")
++        exit(0)
++    else:
++        print("\nEdge cases failed!")
++        exit(1)
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..3e86976c70
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,88 @@
++from django.conf import settings
++from django.core.checks import Error
++from django.db import models
++from django.test import TestCase
++
++# Database router
++class AppRouter:
++    def db_for_read(self, model, **hints):
++        if model._meta.app_label == 'app2':
++            return 'other_db'
++        return 'default'
++
++    def db_for_write(self, model, **hints):
++        if model._meta.app_label == 'app2':
++            return 'other_db'
++        return 'default'
++
++    def allow_relation(self, obj1, obj2, **hints):
++        return True
++
++    def allow_migrate(self, db, app_label, model_name=None, **hints):
++        if app_label == 'app2':
++            return db == 'other_db'
++        return db == 'default'
++
++# Configure Django settings
++settings.configure(
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        },
++        'other_db': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    },
++    DATABASE_ROUTERS=['__main__.AppRouter'],
++    INSTALLED_APPS=['django.contrib.contenttypes', 'django.contrib.auth'],
++)
++
++import django
++django.setup()
++
++# Test models
++class BaseModel(models.Model):
++    name = models.CharField(max_length=100)
++    
++    class Meta:
++        app_label = 'base'
++        db_table = 'shared_table'
++
++class App2Model(models.Model):
++    title = models.CharField(max_length=100)
++    
++    class Meta:
++        app_label = 'app2'
++        db_table = 'shared_table'
++
++# Run tests
++from django.core.checks import model_checks
++
++def test_table_name_validation():
++    print("\nTesting table name validation...")
++    
++    # Get all errors
++    errors = model_checks.check_all_models()
++    
++    # Filter for E028 errors
++    e028_errors = [e for e in errors if e.id == 'models.E028']
++    
++    if not e028_errors:
++        print("[PASS] No E028 errors when models use same table name in different databases")
++        return True
++    else:
++        print("[FAIL] Found E028 errors:")
++        for error in e028_errors:
++            print(f"  - {error.msg}")
++        return False
++
++if __name__ == '__main__':
++    success = test_table_name_validation()
++    if success:
++        print("\nAll tests passed!")
++        exit(0)
++    else:
++        print("\nTests failed!")
++        exit(1)
+\ No newline at end of file

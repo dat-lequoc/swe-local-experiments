@@ -1,0 +1,108 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 7d226955d5..f28efd1c23 100644
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -90,7 +90,13 @@ class DeconstructableSerializer(BaseSerializer):
+ 
+     @staticmethod
+     def _serialize_path(path):
+-        module, name = path.rsplit(".", 1)
++        module, *name_parts = path.rsplit(".", 1)
++        name = name_parts[0]
++        
++        # Check if this is an inner class by looking for multiple dots after the module
++        if '.' in module and not module.startswith('django.'):
++            return path, {"import %s" % module.split('.')[0]}
++        
+         if module == "django.db.models":
+             imports = {"from django.db import models"}
+             name = "models.%s" % name
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..b7316461ae
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,48 @@
++import os
++import django
++from django.conf import settings
++from django.db import models
++from django.db.migrations.writer import MigrationWriter
++from django.db.migrations import Migration
++from django.db.migrations.operations.fields import AddField
++
++# Configure Django settings
++if not settings.configured:
++    settings.configure(
++        INSTALLED_APPS=['django.contrib.contenttypes', 'django.contrib.auth'],
++        DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
++    )
++    django.setup()
++
++# Import models from test_app
++from test_app.models import Outer, A, Thing
++
++def test_inner_class_serialization():
++    # Test case 1: Regular inner class
++    operations = [
++        AddField(
++            model_name='A',
++            name='field',
++            field=Outer.Inner(max_length=20),
++        ),
++    ]
++    
++    migration = Migration('test_migration', 'test_app')
++    migration.operations = operations
++    
++    # Write the migration
++    writer = MigrationWriter(migration)
++    migration_string = writer.as_string()
++    
++    print("=== Generated Migration ===")
++    print(migration_string)
++    
++    # Verify the output contains the correct path
++    if 'test_app.models.Outer.Inner' in migration_string:
++        print("\nSUCCESS: Inner class path is correctly preserved")
++    else:
++        print("\nFAILURE: Inner class path is not correctly preserved")
++        print("Expected 'test_app.models.Outer.Inner' in the output")
++
++if __name__ == '__main__':
++    test_inner_class_serialization()
+\ No newline at end of file
+diff --git a/test_app/__init__.py b/test_app/__init__.py
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/test_app/models.py b/test_app/models.py
+new file mode 100644
+index 0000000000..47e3d5eeff
+--- /dev/null
++++ b/test_app/models.py
+@@ -0,0 +1,24 @@
++from django.db import models
++
++class Outer(object):
++    class Inner(models.CharField):
++        def __init__(self, *args, **kwargs):
++            super().__init__(*args, **kwargs)
++
++class A(models.Model):
++    field = Outer.Inner(max_length=20)
++    
++    class Meta:
++        app_label = 'test_app'
++
++import enum
++class Thing(models.Model):
++    @enum.unique
++    class State(enum.Enum):
++        on = 'on'
++        off = 'off'
++    
++    state = models.CharField(max_length=10, choices=[(s.value, s.name) for s in State])
++    
++    class Meta:
++        app_label = 'test_app'
+\ No newline at end of file

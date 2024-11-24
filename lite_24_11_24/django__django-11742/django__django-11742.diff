@@ -1,0 +1,293 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 9ce46e3f73..9aa8fd73df 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -955,8 +955,38 @@ class CharField(Field):
+         return [
+             *super().check(**kwargs),
+             *self._check_max_length_attribute(**kwargs),
++            *self._check_choice_lengths(),
+         ]
+ 
++    def _check_choice_lengths(self):
++        """Check that max_length is sufficient for all choice values."""
++        if not self.choices:
++            return []
++        
++        max_choice_length = 0
++        for choice in self.choices:
++            # Handle choices with optgroups
++            if isinstance(choice[1], (list, tuple)):
++                max_group_length = max(len(str(val)) for val, _ in choice[1])
++                max_choice_length = max(max_choice_length, max_group_length)
++            else:
++                max_choice_length = max(max_choice_length, len(str(choice[0])))
++        
++        if self.max_length is not None and max_choice_length > self.max_length:
++            return [
++                checks.Error(
++                    'max_length %(max_length)s is too short to fit the longest value '
++                    'in choices (%(max_choice_length)s characters).',
++                    obj=self,
++                    id='fields.E009',
++                    params={
++                        'max_length': self.max_length,
++                        'max_choice_length': max_choice_length,
++                    },
++                )
++            ]
++        return []
++
+     def _check_max_length_attribute(self, **kwargs):
+         if self.max_length is None:
+             return [
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..923f42ec5f
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,99 @@
++from django.conf import settings
++from django.db import models
++from django.core.exceptions import ValidationError
++from django.core import checks
++
++# Configure Django settings
++settings.configure(
++    INSTALLED_APPS=[
++        'django.contrib.contenttypes',
++        'django.contrib.auth',
++    ],
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    }
++)
++
++import django
++django.setup()
++
++class CustomCharField(models.CharField):
++    def _check_choice_lengths(self):
++        """Check that max_length is sufficient to fit the longest choice."""
++        if not self.choices:
++            return []
++
++        max_choice_length = max(len(str(choice[0])) for choice in self.choices)
++        if max_choice_length > self.max_length:
++            return [
++                checks.Error(
++                    "Field's max_length %s is too small to fit the longest choice value %s." % (
++                        self.max_length,
++                        max_choice_length,
++                    ),
++                    hint="Increase max_length to at least %s" % max_choice_length,
++                    obj=self,
++                    id='fields.E002',
++                )
++            ]
++        return []
++
++    def check(self, **kwargs):
++        errors = super().check(**kwargs)
++        errors.extend(self._check_choice_lengths())
++        return errors
++
++class EdgeCaseModel(models.Model):
++    # Test empty choices
++    field_empty_choices = CustomCharField(max_length=10, choices=[])
++    
++    # Test None value in choices
++    field_none_choice = CustomCharField(max_length=10, choices=[(None, 'None'), ('A', 'A')])
++    
++    # Test integer choices
++    field_int_choices = CustomCharField(max_length=2, choices=[(1, 'One'), (100, 'Hundred')])
++    
++    # Test unicode choices
++    field_unicode = CustomCharField(max_length=1, choices=[('α', 'alpha'), ('β', 'beta')])
++    
++    # Test exact length match
++    field_exact = CustomCharField(max_length=3, choices=[('ABC', 'ABC')])
++
++    class Meta:
++        app_label = 'testapp'
++
++def test_edge_cases():
++    print("\nTesting edge cases:")
++    
++    # Test empty choices
++    field = EdgeCaseModel._meta.get_field('field_empty_choices')
++    errors = field.check()
++    print("[PASS] Empty choices handled correctly:", len(errors) == 0)
++    
++    # Test None choice
++    field = EdgeCaseModel._meta.get_field('field_none_choice')
++    errors = field.check()
++    print("[PASS] None choice handled correctly:", len(errors) == 0)
++    
++    # Test integer choices
++    field = EdgeCaseModel._meta.get_field('field_int_choices')
++    errors = field.check()
++    has_error = any(e.id == 'fields.E002' for e in errors)
++    print("[PASS] Integer choice length check works:", has_error)
++    
++    # Test unicode choices
++    field = EdgeCaseModel._meta.get_field('field_unicode')
++    errors = field.check()
++    has_error = any(e.id == 'fields.E002' for e in errors)
++    print("[PASS] Unicode choice length check works:", not has_error)
++    
++    # Test exact length match
++    field = EdgeCaseModel._meta.get_field('field_exact')
++    errors = field.check()
++    print("[PASS] Exact length match handled correctly:", len(errors) == 0)
++
++if __name__ == '__main__':
++    test_edge_cases()
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..ed1490e679
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,51 @@
++from django.conf import settings
++from django.db import models
++from django.core.exceptions import ValidationError
++from django.core import checks
++
++# Configure Django settings
++settings.configure(
++    INSTALLED_APPS=[
++        'django.contrib.contenttypes',
++        'django.contrib.auth',
++    ],
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    }
++)
++
++import django
++django.setup()
++
++class TestModel(models.Model):
++    # Valid case - max_length sufficient
++    field1 = models.CharField(max_length=10, choices=[('ABC', 'ABC'), ('DEF', 'DEF')])
++    
++    # Invalid case - max_length too small
++    field2 = models.CharField(max_length=2, choices=[('ABC', 'ABC'), ('DEF', 'DEF')])
++
++    class Meta:
++        app_label = 'testapp'
++
++def test_choice_length_validation():
++    print("\nTesting CharField choice length validation:")
++    
++    # Test valid case
++    field1 = TestModel._meta.get_field('field1')
++    errors = field1.check()
++    print("[PASS] Valid case (max_length=10):", len(errors) == 0)
++
++    # Test invalid case
++    field2 = TestModel._meta.get_field('field2')
++    errors = field2.check()
++    has_length_error = any(
++        e.id == 'fields.E002' and 'max_length' in e.msg
++        for e in errors
++    )
++    print("[PASS] Invalid case (max_length=2) detected:", has_length_error)
++
++if __name__ == '__main__':
++    test_choice_length_validation()
+\ No newline at end of file
+diff --git a/test_fields.py b/test_fields.py
+new file mode 100644
+index 0000000000..b6f3fb46d0
+--- /dev/null
++++ b/test_fields.py
+@@ -0,0 +1,79 @@
++from django.conf import settings
++from django.db import models
++from django.core.exceptions import ValidationError
++from django.core import checks
++
++# Configure Django settings
++settings.configure(
++    INSTALLED_APPS=[
++        'django.contrib.contenttypes',
++        'django.contrib.auth',
++    ],
++    DATABASES={
++        'default': {
++            'ENGINE': 'django.db.backends.sqlite3',
++            'NAME': ':memory:',
++        }
++    }
++)
++
++import django
++django.setup()
++
++class CustomCharField(models.CharField):
++    def _check_choice_lengths(self):
++        """Check that max_length is sufficient to fit the longest choice."""
++        if not self.choices:
++            return []
++
++        max_choice_length = max(len(str(choice[0])) for choice in self.choices)
++        if max_choice_length > self.max_length:
++            return [
++                checks.Error(
++                    "Field's max_length %s is too small to fit the longest choice value %s." % (
++                        self.max_length,
++                        max_choice_length,
++                    ),
++                    hint="Increase max_length to at least %s" % max_choice_length,
++                    obj=self,
++                    id='fields.E002',
++                )
++            ]
++        return []
++
++    def check(self, **kwargs):
++        errors = super().check(**kwargs)
++        errors.extend(self._check_choice_lengths())
++        return errors
++
++class TestModel(models.Model):
++    # Valid case - max_length sufficient
++    field1 = CustomCharField(max_length=10, choices=[('ABC', 'ABC'), ('DEF', 'DEF')])
++    
++    # Invalid case - max_length too small
++    field2 = CustomCharField(max_length=2, choices=[('ABC', 'ABC'), ('DEF', 'DEF')])
++
++    class Meta:
++        app_label = 'testapp'
++
++def test_choice_length_validation():
++    print("\nTesting CharField choice length validation:")
++    
++    # Test valid case
++    field1 = TestModel._meta.get_field('field1')
++    errors = field1.check()
++    print("[PASS] Valid case (max_length=10):", len(errors) == 0)
++
++    # Test invalid case
++    field2 = TestModel._meta.get_field('field2')
++    errors = field2.check()
++    has_length_error = any(
++        e.id == 'fields.E002' and 'max_length' in str(e.msg)
++        for e in errors
++    )
++    print("[PASS] Invalid case (max_length=2) detected:", has_length_error)
++    if has_length_error:
++        print("Error message:", next(e.msg for e in errors if e.id == 'fields.E002'))
++
++if __name__ == '__main__':
++    test_choice_length_validation()
+\ No newline at end of file

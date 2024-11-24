@@ -1,0 +1,211 @@
+diff --git a/django/contrib/admin/utils.py b/django/contrib/admin/utils.py
+index e4ddc8f017..718ab84f20 100644
+--- a/django/contrib/admin/utils.py
++++ b/django/contrib/admin/utils.py
+@@ -379,6 +379,7 @@ def help_text_for_field(name, model):
+ 
+ def display_for_field(value, field, empty_value_display):
+     from django.contrib.admin.templatetags.admin_list import _boolean_icon
++    from django.db.models import JSONField
+ 
+     if getattr(field, 'flatchoices', None):
+         return dict(field.flatchoices).get(value, empty_value_display)
+@@ -388,6 +389,10 @@ def display_for_field(value, field, empty_value_display):
+         return _boolean_icon(value)
+     elif value is None:
+         return empty_value_display
++    elif isinstance(field, JSONField):
++        if value is None:
++            return empty_value_display
++        return field.formfield().prepare_value(value)
+     elif isinstance(field, models.DateTimeField):
+         return formats.localize(timezone.template_localtime(value))
+     elif isinstance(field, (models.DateField, models.TimeField)):
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..2163564f40
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,83 @@
++import os
++import django
++from django.conf import settings
++from django.contrib.admin.utils import display_for_field
++from django.db.models import JSONField
++from decimal import Decimal
++import datetime
++
++# Configure Django settings
++if not settings.configured:
++    settings.configure(
++        DEBUG=True,
++        DATABASES={
++            'default': {
++                'ENGINE': 'django.db.backends.sqlite3',
++                'NAME': ':memory:',
++            }
++        },
++        INSTALLED_APPS=[
++            'django.contrib.admin',
++            'django.contrib.contenttypes',
++            'django.contrib.auth',
++        ],
++    )
++    django.setup()
++
++def run_edge_case_tests():
++    json_field = JSONField()
++    
++    # Complex test cases with edge cases
++    test_cases = [
++        # Very large nested structure
++        ({"a": {"b": {"c": {"d": [1,2,3,4,5]}}}}, '{"a": {"b": {"c": {"d": [1, 2, 3, 4, 5]}}}}'),
++        
++        # Mixed types
++        ({"number": 42, "string": "text", "bool": True, "null": None}, 
++         '{"number": 42, "string": "text", "bool": true, "null": null}'),
++        
++        # Special characters
++        ({"special": "!@#$%^&*()_+-=[]{}\\|;:'\",.<>?/~`"}, 
++         '{"special": "!@#$%^&*()_+-=[]{}\\\\|;:\'\\",.<>?/~`"}'),
++        
++        # Unicode characters
++        ({"unicode": "Hello 世界"}, '{"unicode": "Hello 世界"}'),
++        
++        # Very long string
++        ({"long": "x" * 1000}, '{"long": "' + "x" * 1000 + '"}'),
++        
++        # Numbers
++        ({"numbers": [0, -1, 1.5, 1e-10, float('inf')]},
++         '{"numbers": [0, -1, 1.5, 1e-10, Infinity]}'),
++    ]
++    
++    failed_tests = []
++    passed_tests = []
++    
++    for value, expected in test_cases:
++        try:
++            result = display_for_field(value, json_field, "")
++            if result == expected:
++                passed_tests.append(f"[PASS] Edge case passed for type: {type(value)}")
++            else:
++                failed_tests.append(
++                    f"[FAIL] Edge case failed.\nValue: {value}\nExpected: {expected}\nGot: {result}")
++        except Exception as e:
++            failed_tests.append(f"[ERROR] Edge case error: {str(e)}\nValue: {value}")
++    
++    print("\n=== Edge Case Test Results ===")
++    for result in passed_tests:
++        print(result)
++    
++    if failed_tests:
++        print("\n=== Failed Edge Cases ===")
++        for result in failed_tests:
++            print(result)
++        print("\nSome edge cases failed!")
++        return False
++    else:
++        print("\nAll edge cases passed successfully!")
++        return True
++
++if __name__ == "__main__":
++    run_edge_case_tests()
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..43dce479da
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,68 @@
++import os
++import django
++from django.conf import settings
++from django.contrib.admin.utils import display_for_field
++from django.db.models import JSONField
++
++# Configure Django settings
++if not settings.configured:
++    settings.configure(
++        DEBUG=True,
++        DATABASES={
++            'default': {
++                'ENGINE': 'django.db.backends.sqlite3',
++                'NAME': ':memory:',
++            }
++        },
++        INSTALLED_APPS=[
++            'django.contrib.admin',
++            'django.contrib.contenttypes',
++            'django.contrib.auth',
++        ],
++    )
++    django.setup()
++
++def run_tests():
++    # Create a JSONField instance
++    json_field = JSONField()
++    
++    test_cases = [
++        ({"foo": "bar"}, '{"foo": "bar"}'),  # Basic JSON object
++        (["a", "b", "c"], '["a", "b", "c"]'),  # JSON array
++        ({"nested": {"key": "value"}}, '{"nested": {"key": "value"}}'),  # Nested JSON
++        (None, ""),  # None value
++        ({}, "{}"),  # Empty object
++        ([], "[]"),  # Empty array
++        ({"special": "quotes\"here"}, '{"special": "quotes\\"here"}'),  # Special characters
++    ]
++    
++    failed_tests = []
++    passed_tests = []
++    
++    for value, expected in test_cases:
++        try:
++            result = display_for_field(value, json_field, "")
++            if result == expected:
++                passed_tests.append(f"[PASS] Test passed for value {value}")
++            else:
++                failed_tests.append(f"[FAIL] Test failed for value {value}. Expected: {expected}, Got: {result}")
++        except Exception as e:
++            failed_tests.append(f"[ERROR] Test error for value {value}: {str(e)}")
++    
++    # Print results
++    print("\n=== Test Results ===")
++    for result in passed_tests:
++        print(result)
++    
++    if failed_tests:
++        print("\n=== Failed Tests ===")
++        for result in failed_tests:
++            print(result)
++        print("\nSome tests failed!")
++        return False
++    else:
++        print("\nAll tests passed successfully!")
++        return True
++
++if __name__ == "__main__":
++    run_tests()
+\ No newline at end of file
+diff --git a/test_app/__init__.py b/test_app/__init__.py
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/test_settings.py b/test_settings.py
+new file mode 100644
+index 0000000000..3aec1fe0df
+--- /dev/null
++++ b/test_settings.py
+@@ -0,0 +1,13 @@
++SECRET_KEY = 'dummy-key-for-tests'
++INSTALLED_APPS = [
++    'django.contrib.contenttypes',
++    'django.contrib.auth',
++    'django.contrib.admin',
++    'test_app',
++]
++DATABASES = {
++    'default': {
++        'ENGINE': 'django.db.backends.sqlite3',
++        'NAME': ':memory:',
++    }
++}
+\ No newline at end of file

@@ -1,0 +1,317 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..005232b79d 100644
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -120,9 +120,9 @@ class EnumSerializer(BaseSerializer):
+     def serialize(self):
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
+-        imports = {'import %s' % module, *v_imports}
+-        return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
++        name = self.value.name  # Use name instead of value
++        imports = {'import %s' % module}
++        return "%s.%s['%s']" % (module, enum_class.__name__, name), imports
+ 
+ 
+ class FloatSerializer(BaseSimpleSerializer):
+diff --git a/edge_cases.py b/edge_cases.py
+new file mode 100644
+index 0000000000..482b2e12fd
+--- /dev/null
++++ b/edge_cases.py
+@@ -0,0 +1,71 @@
++import os
++import django
++from enum import Enum
++
++# Configure Django settings
++os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'test_settings')
++django.setup()
++
++from django.utils.translation import gettext_lazy as _
++from django.db.migrations.serializer import serializer_factory
++
++def test_edge_cases():
++    # Test Case 1: Special characters in value
++    class StatusWithSpecialChars(Enum):
++        GOOD = _('Good!')
++        BAD = _('Bad@#$%')
++        
++        def __str__(self):
++            return self.name
++    
++    serializer = serializer_factory(StatusWithSpecialChars.GOOD)
++    success1 = "['GOOD']" in str(serializer.serialize()[0])
++    print("\nTest 1: Special characters in value")
++    print(f"Result: [PASS] Uses name instead of value with special chars") if success1 else print(f"Result: [FAIL] Special chars test failed")
++    
++    # Test Case 2: Empty string value
++    class StatusWithEmpty(Enum):
++        EMPTY = _('')
++        SPACE = _(' ')
++        
++        def __str__(self):
++            return self.name
++    
++    serializer = serializer_factory(StatusWithEmpty.EMPTY)
++    success2 = "['EMPTY']" in str(serializer.serialize()[0])
++    print("\nTest 2: Empty string value")
++    print(f"Result: [PASS] Uses name instead of empty value") if success2 else print(f"Result: [FAIL] Empty value test failed")
++    
++    # Test Case 3: Long values
++    class StatusWithLongValue(Enum):
++        VERY_LONG = _('This is a very long value that could potentially cause issues')
++        
++        def __str__(self):
++            return self.name
++    
++    serializer = serializer_factory(StatusWithLongValue.VERY_LONG)
++    success3 = "['VERY_LONG']" in str(serializer.serialize()[0])
++    print("\nTest 3: Long string value")
++    print(f"Result: [PASS] Uses name instead of long value") if success3 else print(f"Result: [FAIL] Long value test failed")
++    
++    # Test Case 4: Numeric values
++    class StatusWithNumbers(Enum):
++        ONE = _('1')  # Using string representation of numbers
++        TWO = _('2')
++        
++        def __str__(self):
++            return self.name
++    
++    serializer = serializer_factory(StatusWithNumbers.ONE)
++    success4 = "['ONE']" in str(serializer.serialize()[0])
++    print("\nTest 4: Numeric values")
++    print(f"Result: [PASS] Uses name instead of numeric value") if success4 else print(f"Result: [FAIL] Numeric value test failed")
++    
++    return all([success1, success2, success3, success4])
++
++if __name__ == '__main__':
++    print("Testing edge cases for Enum serialization:")
++    print("----------------------------------------")
++    
++    success = test_edge_cases()
++    print("\nOverall Result:", "[PASS]" if success else "[FAIL]")
+\ No newline at end of file
+diff --git a/reproduce_error.py b/reproduce_error.py
+new file mode 100644
+index 0000000000..c925793220
+--- /dev/null
++++ b/reproduce_error.py
+@@ -0,0 +1,48 @@
++from enum import Enum
++from django.utils.translation import gettext_lazy as _
++from django.db.migrations.serializer import serializer_factory
++
++def demonstrate_fix():
++    # Define an enum with translated values
++    class Status(Enum):
++        GOOD = _('Good')
++        BAD = _('Bad')
++        def __str__(self):
++            return self.name
++
++    print("\nDemonstrating the fix for Enum serialization:")
++    print("--------------------------------------------")
++    
++    # Show original enum properties
++    print(f"Enum name: {Status.GOOD.name}")  # Should be 'GOOD'
++    print(f"Enum value: {Status.GOOD.value}")  # Will be translated 'Good'
++    
++    # Test serialization
++    serializer = serializer_factory(Status.GOOD)
++    serialized, imports = serializer.serialize()
++    
++    print("\nSerialization result:")
++    print(f"Serialized: {serialized}")
++    print(f"Imports: {imports}")
++    
++    # Verify the fix
++    if "['GOOD']" in serialized and "('Good')" not in serialized:
++        print("\nSuccess: Serialization uses enum name instead of value!")
++        return True
++    else:
++        print("\nFailure: Serialization is not using enum name!")
++        return False
++
++if __name__ == '__main__':
++    import os
++    import django
++    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'test_settings')
++    django.setup()
++    
++    success = demonstrate_fix()
++    if success:
++        print("\nReproduction test passed successfully!")
++        exit(0)
++    else:
++        print("\nReproduction test failed!")
++        exit(1)
+\ No newline at end of file
+diff --git a/test_app/__init__.py b/test_app/__init__.py
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/test_app/models.py b/test_app/models.py
+new file mode 100644
+index 0000000000..d8274ce78b
+--- /dev/null
++++ b/test_app/models.py
+@@ -0,0 +1,12 @@
++from django.db import models
++from enum import Enum
++from django.utils.translation import gettext_lazy as _
++
++class Status(Enum):
++    GOOD = _('Good')
++    BAD = _('Bad')
++    def __str__(self):
++        return self.name
++
++class Item(models.Model):
++    status = models.CharField(default=Status.GOOD, max_length=128)
+\ No newline at end of file
+diff --git a/test_app/tests.py b/test_app/tests.py
+new file mode 100644
+index 0000000000..ea98a659a1
+--- /dev/null
++++ b/test_app/tests.py
+@@ -0,0 +1,45 @@
++from django.test import TestCase, override_settings
++from django.db.migrations.serializer import serializer_factory
++from .models import Status, Item
++
++class TestEnumSerialization(TestCase):
++    def test_enum_serialization_basics(self):
++        """Test basic enum properties and serialization"""
++        # Test basic enum properties
++        self.assertEqual(Status.GOOD.name, 'GOOD')
++        self.assertEqual(str(Status.GOOD.value), 'Good')
++        self.assertEqual(Status['GOOD'], Status.GOOD)
++
++        # Test serialization
++        serializer = serializer_factory(Status.GOOD)
++        serialized, imports = serializer.serialize()
++        
++        # Verify the serialization uses the name instead of value
++        self.assertIn("['GOOD']", serialized)
++        self.assertNotIn("('Good')", serialized)
++        self.assertTrue(any('import' in imp for imp in imports))
++
++    @override_settings(LANGUAGE_CODE='es')
++    def test_enum_serialization_with_translation(self):
++        """Test enum serialization with different language settings"""
++        # Test serialization remains consistent even with different language
++        serializer = serializer_factory(Status.GOOD)
++        serialized, imports = serializer.serialize()
++        
++        # Should still use name regardless of translation
++        self.assertIn("['GOOD']", serialized)
++        self.assertNotIn("('Good')", serialized)
++
++    def test_enum_serialization_edge_cases(self):
++        """Test enum serialization edge cases"""
++        # Test BAD status serialization
++        serializer = serializer_factory(Status.BAD)
++        serialized, imports = serializer.serialize()
++        self.assertIn("['BAD']", serialized)
++        
++        # Verify imports are correct
++        self.assertTrue(any('import' in imp for imp in imports))
++        
++        # Test accessing by name vs value
++        self.assertEqual(Status['BAD'], Status.BAD)
++        self.assertNotEqual(str(Status.BAD.value), Status.BAD.name)
+\ No newline at end of file
+diff --git a/test_enum_serialization.py b/test_enum_serialization.py
+new file mode 100644
+index 0000000000..be7c9828a9
+--- /dev/null
++++ b/test_enum_serialization.py
+@@ -0,0 +1,65 @@
++from django.test import TestCase, override_settings
++from enum import Enum
++from django.utils.translation import gettext_lazy as _
++from django.db import models
++from django.db.migrations.serializer import serializer_factory
++
++class TestEnumSerialization(TestCase):
++    def setUp(self):
++        class Status(Enum):
++            GOOD = _('Good')
++            BAD = _('Bad')
++            def __str__(self):
++                return self.name
++        self.Status = Status
++
++        class Item(models.Model):
++            status = models.CharField(default=Status.GOOD, max_length=128)
++        self.Item = Item
++
++    def test_enum_serialization_basics(self):
++        """Test basic enum properties and serialization"""
++        Status = self.Status
++        
++        # Test basic enum properties
++        self.assertEqual(Status.GOOD.name, 'GOOD')
++        self.assertEqual(str(Status.GOOD.value), 'Good')
++        self.assertEqual(Status['GOOD'], Status.GOOD)
++
++        # Test serialization
++        serializer = serializer_factory(Status.GOOD)
++        serialized, imports = serializer.serialize()
++        
++        # Verify the serialization uses the name instead of value
++        self.assertIn("['GOOD']", serialized)
++        self.assertNotIn("('Good')", serialized)
++        self.assertTrue(any('import' in imp for imp in imports))
++
++    @override_settings(LANGUAGE_CODE='es')
++    def test_enum_serialization_with_translation(self):
++        """Test enum serialization with different language settings"""
++        Status = self.Status
++        
++        # Test serialization remains consistent even with different language
++        serializer = serializer_factory(Status.GOOD)
++        serialized, imports = serializer.serialize()
++        
++        # Should still use name regardless of translation
++        self.assertIn("['GOOD']", serialized)
++        self.assertNotIn("('Good')", serialized)
++
++    def test_enum_serialization_edge_cases(self):
++        """Test enum serialization edge cases"""
++        Status = self.Status
++        
++        # Test BAD status serialization
++        serializer = serializer_factory(Status.BAD)
++        serialized, imports = serializer.serialize()
++        self.assertIn("['BAD']", serialized)
++        
++        # Verify imports are correct
++        self.assertTrue(any('import' in imp for imp in imports))
++        
++        # Test accessing by name vs value
++        self.assertEqual(Status['BAD'], Status.BAD)
++        self.assertNotEqual(str(Status.BAD.value), Status.BAD.name)
+\ No newline at end of file
+diff --git a/test_settings.py b/test_settings.py
+new file mode 100644
+index 0000000000..f838e3ef9d
+--- /dev/null
++++ b/test_settings.py
+@@ -0,0 +1,14 @@
++SECRET_KEY = 'dummy'
++INSTALLED_APPS = [
++    'django.contrib.contenttypes',
++    'django.contrib.auth',
++    'test_app',
++]
++DATABASES = {
++    'default': {
++        'ENGINE': 'django.db.backends.sqlite3',
++        'NAME': ':memory:',
++    }
++}
++USE_I18N = True
++LANGUAGE_CODE = 'en-us'
+\ No newline at end of file
