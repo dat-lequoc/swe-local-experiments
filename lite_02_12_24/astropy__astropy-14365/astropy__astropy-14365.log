@@ -1,0 +1,9 @@
+🖇 AgentOps: [34mSession Replay: https://app.agentops.ai/drilldown?session_id=f826fc16-47b7-4610-9a24-d2559363f997[0m
+🖇 AgentOps: Session Stats - Duration: 0.6s | Cost: $0.00 | LLMs: 0 | Tools: 0 | Actions: 0 | Errors: 0
+🖇 AgentOps: [34mSession Replay: https://app.agentops.ai/drilldown?session_id=f826fc16-47b7-4610-9a24-d2559363f997[0m
+Traceback (most recent call last):
+  File "/root/AI-SWE-Bench-Sota-SWE/agent/agent_state2.py", line 11, in <module>
+    agentops.init(os.environ['OPENROUTER_API_KEY'])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'OPENROUTER_API_KEY'
