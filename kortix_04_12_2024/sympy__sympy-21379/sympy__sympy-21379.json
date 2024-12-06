@@ -1,0 +1,5 @@
+{
+  "instance_id": "sympy__sympy-21379",
+  "model_patch": "diff --git a/sympy/core/tests/test_subs.py b/sympy/core/tests/test_subs.py\nindex 8a3d81d158..7210528b11 100644\n--- a/sympy/core/tests/test_subs.py\n+++ b/sympy/core/tests/test_subs.py\n@@ -862,3 +862,13 @@ def test_issue_19558():\n \n     assert e.subs(x, oo) == AccumBounds(-oo, oo)\n     assert (sin(x) + cos(x)).subs(x, oo) == AccumBounds(-2, 2)\n+\n+def test_hyperbolic_piecewise_subs():\n+    from sympy import exp, sinh, Piecewise, symbols\n+    from sympy.core.cache import clear_cache\n+    x, y, z = symbols('x y z', real=True)\n+    clear_cache()\n+    expr = exp(sinh(Piecewise((x, y > x), (y, True)) / z))\n+    assert expr.subs({1: 1.0}) == expr  # Should not raise PolynomialError\n+    expr = exp(sinh(Piecewise((x, y > x), (y, True)) / z))\n+    assert expr.subs({1: 1.0}) == expr  # Second call should also work\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

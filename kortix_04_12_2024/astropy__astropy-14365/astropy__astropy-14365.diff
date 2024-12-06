@@ -1,0 +1,74 @@
+diff --git a/astropy/io/ascii/qdp.py b/astropy/io/ascii/qdp.py
+index 83a4f004aa..ac89de64b2 100644
+--- a/astropy/io/ascii/qdp.py
++++ b/astropy/io/ascii/qdp.py
+@@ -60,7 +60,7 @@ def _line_type(line, delimiter=None):
+     ValueError: Unrecognized QDP line...
+     """
+     _decimal_re = r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
+-    _command_re = r"READ [TS]ERR(\s+[0-9]+)+"
++    _command_re = r"(?i)READ [TS]ERR(\s+[0-9]+)+"
+ 
+     sep = delimiter
+     if delimiter is None:
+@@ -639,4 +639,4 @@ class QDP(basic.Basic):
+     def write(self, table):
+         self._check_multidim_table(table)
+         lines = _write_table_qdp(table, err_specs=self.err_specs)
+-        return lines
++        return lines
+\ No newline at end of file
+diff --git a/astropy/io/ascii/tests/data/lowercase.qdp b/astropy/io/ascii/tests/data/lowercase.qdp
+new file mode 100644
+index 0000000000..b5750561d5
+--- /dev/null
++++ b/astropy/io/ascii/tests/data/lowercase.qdp
+@@ -0,0 +1,2 @@
++read serr 1 2
++1 0.5 1 0.5
+diff --git a/astropy/io/ascii/tests/test_qdp.py b/astropy/io/ascii/tests/test_qdp.py
+index ef24e6f6a3..522b73972d 100644
+--- a/astropy/io/ascii/tests/test_qdp.py
++++ b/astropy/io/ascii/tests/test_qdp.py
+@@ -233,6 +233,23 @@ def test_read_write_simple_specify_name(tmp_path):
+     assert np.all(t2["a"] == t1["a"])
+ 
+ 
++def test_lowercase_commands(tmp_path):
++    """Test that QDP commands are case-insensitive."""
++    example_qdp = """
++    ! Test lowercase commands
++    read serr 1 2
++    1 0.5 1 0.5
++    """
++    test_file = tmp_path / "test.qdp"
++    with open(test_file, "w") as fp:
++        print(example_qdp, file=fp)
++    
++    t = Table.read(test_file, format="ascii.qdp", names=["a", "b"])
++    assert np.allclose(t["a"], [1])
++    assert np.allclose(t["a_err"], [0.5])
++    assert np.allclose(t["b"], [1])
++    assert np.allclose(t["b_err"], [0.5])
++
+ def test_get_lines_from_qdp(tmp_path):
+     test_file = str(tmp_path / "test.qdp")
+     text_string = "A\nB"
+@@ -244,4 +261,4 @@ def test_get_lines_from_qdp(tmp_path):
+     for i, line in enumerate(["A", "B"]):
+         assert file_output[i] == line
+         assert list_output[i] == line
+-        assert text_output[i] == line
++        assert text_output[i] == line
+\ No newline at end of file
+diff --git a/pyproject.toml b/pyproject.toml
+index 287a356a08..f2ee6c47cc 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.30",

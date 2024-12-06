@@ -1,0 +1,109 @@
+diff --git a/astropy/nddata/mixins/ndarithmetic.py b/astropy/nddata/mixins/ndarithmetic.py
+index 4153dfccb2..40e4dcf767 100644
+--- a/astropy/nddata/mixins/ndarithmetic.py
++++ b/astropy/nddata/mixins/ndarithmetic.py
+@@ -487,7 +487,7 @@ class NDArithmeticMixin:
+         Calculate the resulting mask.
+ 
+         This is implemented as the piecewise ``or`` operation if both have a
+-        mask.
++        mask. If only one operand has a mask, that mask is propagated to the result.
+ 
+         Parameters
+         ----------
+@@ -512,19 +512,21 @@ class NDArithmeticMixin:
+             If neither had a mask ``None`` is returned. Otherwise
+             ``handle_mask`` must create (and copy) the returned mask.
+         """
+-        # If only one mask is present we need not bother about any type checks
+-        if (
+-            self.mask is None and operand is not None and operand.mask is None
+-        ) or handle_mask is None:
++        # If neither has a mask or handle_mask is None, return None
++        if ((self.mask is None and operand is not None and operand.mask is None) 
++                or handle_mask is None):
+             return None
+-        elif self.mask is None and operand is not None:
+-            # Make a copy so there is no reference in the result.
++            
++        # If only one operand has a mask, return a copy of that mask
++        if self.mask is None and operand is not None:
+             return deepcopy(operand.mask)
+         elif operand is None:
+             return deepcopy(self.mask)
+-        else:
+-            # Now lets calculate the resulting mask (operation enforces copy)
+-            return handle_mask(self.mask, operand.mask, **kwds)
++        elif operand.mask is None:
++            return deepcopy(self.mask)
++            
++        # Both have masks, apply the handle_mask operation
++        return handle_mask(self.mask, operand.mask, **kwds)
+ 
+     def _arithmetic_wcs(self, operation, operand, compare_wcs, **kwds):
+         """
+@@ -747,4 +749,4 @@ class NDArithmeticMixin:
+             )
+ 
+         # Return a new class based on the result
+-        return cls(result, **init_kwds)
++        return cls(result, **init_kwds)
+\ No newline at end of file
+diff --git a/astropy/nddata/tests/test_nddata.py b/astropy/nddata/tests/test_nddata.py
+index 033b555fa0..2c977ce140 100644
+--- a/astropy/nddata/tests/test_nddata.py
++++ b/astropy/nddata/tests/test_nddata.py
+@@ -214,6 +214,35 @@ def test_nddata_init_data_masked_quantity():
+     np.testing.assert_array_equal(nd.mask, np.array(m))
+ 
+ 
++def test_mask_propagation_with_none():
++    """Test mask propagation when one operand has no mask."""
++    from astropy.nddata import NDDataRef
++    array = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
++    mask = np.array([[0, 1, 64], [8, 0, 1], [2, 1, 0]])
++    
++    nref_nomask = NDDataRef(array)
++    nref_mask = NDDataRef(array, mask=mask)
++    
++    # Test no mask * no mask
++    result1 = nref_nomask.multiply(1., handle_mask=np.bitwise_or)
++    assert result1.mask is None
++    
++    # Test no mask * no mask (two NDDataRef)
++    result2 = nref_nomask.multiply(nref_nomask, handle_mask=np.bitwise_or)
++    assert result2.mask is None
++    
++    # Test mask * no mask (scalar)
++    result3 = nref_mask.multiply(1., handle_mask=np.bitwise_or)
++    assert_array_equal(result3.mask, mask)
++    
++    # Test mask * mask
++    result4 = nref_mask.multiply(nref_mask, handle_mask=np.bitwise_or)
++    assert_array_equal(result4.mask, mask)
++    
++    # Test mask * no mask (NDDataRef)
++    result5 = nref_mask.multiply(nref_nomask, handle_mask=np.bitwise_or)
++    assert_array_equal(result5.mask, mask)
++
+ def test_nddata_init_data_nddata():
+     nd1 = NDData(np.array([1]))
+     nd2 = NDData(nd1)
+@@ -706,4 +735,4 @@ def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
+             # min/max data value. We've created the uncertainties to have the same value
+             # as the data array, so we can just check for equality:
+             if method in ext_methods and propagate_uncertainties:
+-                assert np.ma.all(np.ma.equal(astropy_method, nddata_method))
++                assert np.ma.all(np.ma.equal(astropy_method, nddata_method))
+\ No newline at end of file
+diff --git a/pyproject.toml b/pyproject.toml
+index 15bb49f22b..dc9c3c5f37 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "cython==0.29.34",
+             "oldest-supported-numpy",

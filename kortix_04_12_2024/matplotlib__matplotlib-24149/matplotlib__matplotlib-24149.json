@@ -1,0 +1,5 @@
+{
+  "instance_id": "matplotlib__matplotlib-24149",
+  "model_patch": "diff --git a/lib/matplotlib/cbook/__init__.py b/lib/matplotlib/cbook/__init__.py\nindex 34c6ddb861..43f85fc076 100644\n--- a/lib/matplotlib/cbook/__init__.py\n+++ b/lib/matplotlib/cbook/__init__.py\n@@ -1746,7 +1746,13 @@ def _safe_first_finite(obj, *, skip_nonfinite=True):\n         raise RuntimeError(\"matplotlib does not \"\n                            \"support generators as input\")\n     else:\n-        return next(val for val in obj if safe_isfinite(val))\n+        try:\n+            return next(val for val in obj if safe_isfinite(val))\n+        except StopIteration:\n+            # If no finite values found, return the first value\n+            if not skip_nonfinite:\n+                return next(iter(obj))\n+            raise\n \n \n def sanitize_sequence(data):\n@@ -2362,4 +2368,4 @@ def _auto_format_str(fmt, value):\n     try:\n         return fmt % (value,)\n     except (TypeError, ValueError):\n-        return fmt.format(value)\n+        return fmt.format(value)\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

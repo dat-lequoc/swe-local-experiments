@@ -1,0 +1,10 @@
+{
+  "instance_id": "sympy__sympy-21171",
+  "test_result": {
+    "apply_patch_output": "",
+    "test_output": "",
+    "report": {
+      "empty_generation": true
+    }
+  }
+}

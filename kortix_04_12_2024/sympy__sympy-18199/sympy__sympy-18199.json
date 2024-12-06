@@ -1,0 +1,5 @@
+{
+  "instance_id": "sympy__sympy-18199",
+  "model_patch": "diff --git a/sympy/ntheory/residue_ntheory.py b/sympy/ntheory/residue_ntheory.py\nindex 9a3052d4c3..06fd0442f2 100644\n--- a/sympy/ntheory/residue_ntheory.py\n+++ b/sympy/ntheory/residue_ntheory.py\n@@ -765,9 +765,16 @@ def nthroot_mod(a, n, p, all_roots=False):\n     [8, 11]\n     >>> nthroot_mod(68, 3, 109)\n     23\n+    >>> nthroot_mod(17*17, 5, 17, True)  # doctest: +SKIP\n+    [0]\n     \"\"\"\n     from sympy.core.numbers import igcdex\n     a, n, p = as_int(a), as_int(n), as_int(p)\n+    a = a % p\n+    if a == 0:\n+        if all_roots:\n+            return [0]\n+        return 0\n     if n == 2:\n         return sqrt_mod(a, p, all_roots)\n     # see Hackman \"Elementary Number Theory\" (2009), page 76\n@@ -1299,4 +1306,4 @@ def discrete_log(n, a, b, order=None, prime_order=None):\n             return _discrete_log_shanks_steps(n, a, b, order)\n         return _discrete_log_pollard_rho(n, a, b, order)\n \n-    return _discrete_log_pohlig_hellman(n, a, b, order)\n+    return _discrete_log_pohlig_hellman(n, a, b, order)\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

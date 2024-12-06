@@ -1,0 +1,102 @@
+diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py
+index abdeba8efb..72b4067a61 100644
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -57,10 +57,47 @@ class RST(FixedWidth):
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, header_rows=None, **kwargs):
++        super().__init__(delimiter_pad=None, bookend=False, **kwargs)
++        if header_rows is not None:
++            self.header_rows = header_rows
+ 
+     def write(self, lines):
+-        lines = super().write(lines)
+-        lines = [lines[1]] + lines + [lines[1]]
+-        return lines
++        if hasattr(self, 'header_rows'):
++            # Calculate column widths including header rows
++            widths = []
++            for col in self.cols:
++                widths.append(max(len(str(val)) for val in [col.info.name] + 
++                            [row[col.info.name] for row in self.header_rows] +
++                            [str(v) for v in col.str_vals]))
++            
++            # Create the separator line
++            sep = ' '.join('=' * w for w in widths)
++            
++            # Write header rows
++            lines = [sep]
++            for row in self.header_rows:
++                lines.append(' '.join(str(row.get(col.info.name, '')).ljust(w) 
++                           for col, w in zip(self.cols, widths)))
++                lines.append(sep)
++            
++            # Write column names
++            lines.append(' '.join(col.info.name.ljust(w) 
++                       for col, w in zip(self.cols, widths)))
++            lines.append(sep)
++            
++            # Write data rows
++            for i, col in enumerate(self.cols):
++                for j, val in enumerate(col.str_vals):
++                    if i == 0:
++                        lines.append('')
++                    lines[len(lines) - 1] = (lines[len(lines) - 1] + ' ' + 
++                                           str(val).ljust(widths[i])).strip()
++            
++            lines.append(sep)
++            return lines
++        else:
++            # Original behavior
++            lines = super().write(lines)
++            lines = [lines[1]] + lines + [lines[1]]
++            return lines
+\ No newline at end of file
+diff --git a/astropy/io/ascii/tests/test_rst.py b/astropy/io/ascii/tests/test_rst.py
+index 84d6fed401..20859d012a 100644
+--- a/astropy/io/ascii/tests/test_rst.py
++++ b/astropy/io/ascii/tests/test_rst.py
+@@ -185,3 +185,27 @@ Col1      Col2 Col3 Col4
+ ==== ========= ==== ====
+ """,
+     )
++
++def test_write_with_header_rows():
++    """Write a table with header rows"""
++    from astropy.table import Table
++    import astropy.units as u
++    
++    tbl = Table()
++    tbl['wave'] = [350.0, 950.0] * u.nm
++    tbl['response'] = [0.7, 1.2] * u.count
++    
++    out = StringIO()
++    ascii.write(tbl, out, format='rst', header_rows=[{'wave': 'nm', 'response': 'ct'}])
++    assert_equal_splitlines(
++        out.getvalue(),
++        """\
++===== ========
++  nm      ct
++===== ========
++ wave response
++===== ========
++350.0      0.7
++950.0      1.2
++===== ========
++""")
+\ No newline at end of file
+diff --git a/pyproject.toml b/pyproject.toml
+index 0d1ee66ab9..ec234472e2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.30",

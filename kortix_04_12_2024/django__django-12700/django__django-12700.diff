@@ -1,0 +1,69 @@
+diff --git a/django/views/debug.py b/django/views/debug.py
+index e6b7d4d821..22c7d98c41 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -80,26 +80,44 @@ class SafeExceptionReporterFilter:
+     cleansed_substitute = '********************'
+     hidden_settings = _lazy_re_compile('API|TOKEN|KEY|SECRET|PASS|SIGNATURE', flags=re.I)
+ 
+-    def cleanse_setting(self, key, value):
++    def cleanse_setting(self, key, value, seen=None):
+         """
+-        Cleanse an individual setting key/value of sensitive content. If the
+-        value is a dictionary, recursively cleanse the keys in that dictionary.
++        Cleanse an individual setting key/value of sensitive content.
++        Handles nested data structures while preserving their types.
+         """
++        if seen is None:
++            seen = set()
++            
+         try:
+             if self.hidden_settings.search(key):
+-                cleansed = self.cleansed_substitute
+-            elif isinstance(value, dict):
+-                cleansed = {k: self.cleanse_setting(k, v) for k, v in value.items()}
++                return self.cleansed_substitute
++                
++            # Handle circular references
++            if id(value) in seen:
++                return value
++                
++            # Skip non-container types and strings
++            if isinstance(value, (str, bytes)) or not hasattr(value, '__iter__'):
++                if callable(value):
++                    return CallableSettingWrapper(value)
++                return value
++                
++            # Add current container to seen set
++            seen.add(id(value))
++            
++            if isinstance(value, dict):
++                cleansed = {k: self.cleanse_setting(k, v, seen) for k, v in value.items()}
++            elif isinstance(value, (list, tuple, set)):
++                cleansed = [self.cleanse_setting(key, item, seen) for item in value]
++                if not isinstance(value, list):
++                    cleansed = type(value)(cleansed)
+             else:
+                 cleansed = value
++                
++            return cleansed
+         except TypeError:
+-            # If the key isn't regex-able, just return as-is.
+-            cleansed = value
+-
+-        if callable(cleansed):
+-            cleansed = CallableSettingWrapper(cleansed)
+-
+-        return cleansed
++            # If the key isn't regex-able, just return as-is
++            return value
+ 
+     def get_safe_settings(self):
+         """
+@@ -520,4 +538,4 @@ def default_urlconf(request):
+         'version': get_docs_version(),
+     })
+ 
+-    return HttpResponse(t.render(c), content_type='text/html')
++    return HttpResponse(t.render(c), content_type='text/html')
+\ No newline at end of file

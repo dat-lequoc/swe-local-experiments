@@ -1,0 +1,5 @@
+{
+  "instance_id": "sympy__sympy-19487",
+  "model_patch": "diff --git a/sympy/functions/elementary/complexes.py b/sympy/functions/elementary/complexes.py\nindex 7fda45982b..be717a2f33 100644\n--- a/sympy/functions/elementary/complexes.py\n+++ b/sympy/functions/elementary/complexes.py\n@@ -394,6 +394,9 @@ def _eval_rewrite_as_Heaviside(self, arg, **kwargs):\n         if arg.is_extended_real:\n             return Heaviside(arg, H0=S(1)/2) * 2 - 1\n \n+    def _eval_rewrite_as_Abs(self, arg, **kwargs):\n+        return Piecewise((S.Zero, arg.is_zero), (arg/Abs(arg), True))\n+\n     def _eval_simplify(self, **kwargs):\n         return self.func(self.args[0].factor())  # XXX include doit?\n \n@@ -1213,4 +1216,4 @@ def unpolarify(eq, subs={}, exponents_only=False):\n             return res\n     # Finally, replacing Exp(0) by 1 is always correct.\n     # So is polar_lift(0) -> 0.\n-    return res.subs({exp_polar(0): 1, polar_lift(0): 0})\n+    return res.subs({exp_polar(0): 1, polar_lift(0): 0})\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

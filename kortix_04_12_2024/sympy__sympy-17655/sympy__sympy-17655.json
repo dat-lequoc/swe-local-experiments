@@ -1,0 +1,5 @@
+{
+  "instance_id": "sympy__sympy-17655",
+  "model_patch": "diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py\nindex 7c978c47be..546904bb1c 100644\n--- a/sympy/geometry/point.py\n+++ b/sympy/geometry/point.py\n@@ -283,6 +283,17 @@ def __neg__(self):\n         coords = [-x for x in self.args]\n         return Point(coords, evaluate=False)\n \n+    def __rmul__(self, factor):\n+        \"\"\"Multiply point's coordinates by a factor from the left.\n+        \n+        Examples\n+        ========\n+        >>> from sympy.geometry import Point\n+        >>> 2 * Point(1, 1)\n+        Point2D(2, 2)\n+        \"\"\"\n+        return self.__mul__(factor)\n+\n     def __sub__(self, other):\n         \"\"\"Subtract two points, or subtract a factor from this point's\n         coordinates.\"\"\"\n@@ -1348,4 +1359,4 @@ def z(self):\n         >>> p.z\n         1\n         \"\"\"\n-        return self.args[2]\n+        return self.args[2]\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

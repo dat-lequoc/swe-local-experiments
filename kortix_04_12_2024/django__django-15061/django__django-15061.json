@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-15061",
+  "model_patch": "diff --git a/django/forms/widgets.py b/django/forms/widgets.py\nindex 00c19e2c55..7ce5ea1831 100644\n--- a/django/forms/widgets.py\n+++ b/django/forms/widgets.py\n@@ -801,6 +801,7 @@ class MultiWidget(Widget):\n     You'll probably want to use this class with MultiValueField.\n     \"\"\"\n     template_name = 'django/forms/widgets/multiwidget.html'\n+    add_id_index = True  # Control whether to add index to label HTML ID\n \n     def __init__(self, widgets, attrs=None):\n         if isinstance(widgets, dict):\n@@ -849,7 +850,7 @@ class MultiWidget(Widget):\n         return context\n \n     def id_for_label(self, id_):\n-        if id_:\n+        if id_ and self.add_id_index:\n             id_ += '_0'\n         return id_\n \n@@ -1085,4 +1086,4 @@ class SelectDateWidget(Widget):\n         return not any(\n             ('{}_{}'.format(name, interval) in data)\n             for interval in ('year', 'month', 'day')\n-        )\n+        )\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

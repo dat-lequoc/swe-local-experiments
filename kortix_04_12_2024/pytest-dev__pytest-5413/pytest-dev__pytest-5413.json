@@ -1,0 +1,5 @@
+{
+  "instance_id": "pytest-dev__pytest-5413",
+  "model_patch": "diff --git a/src/_pytest/python_api.py b/src/_pytest/python_api.py\nindex 011181a40..1f5c7efdc 100644\n--- a/src/_pytest/python_api.py\n+++ b/src/_pytest/python_api.py\n@@ -715,6 +715,15 @@ class RaisesContext:\n \n     def __enter__(self):\n         self.excinfo = _pytest._code.ExceptionInfo.for_later()\n+        original_str = self.excinfo.__str__\n+        def custom_str(self):\n+            try:\n+                if hasattr(self, 'value'):\n+                    return str(self.value)\n+            except:\n+                pass\n+            return original_str(self)\n+        self.excinfo.__str__ = custom_str.__get__(self.excinfo, type(self.excinfo))\n         return self.excinfo\n \n     def __exit__(self, *tp):\n@@ -725,4 +734,4 @@ class RaisesContext:\n         suppress_exception = issubclass(self.excinfo.type, self.expected_exception)\n         if self.match_expr is not None and suppress_exception:\n             self.excinfo.match(self.match_expr)\n-        return suppress_exception\n+        return suppress_exception\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

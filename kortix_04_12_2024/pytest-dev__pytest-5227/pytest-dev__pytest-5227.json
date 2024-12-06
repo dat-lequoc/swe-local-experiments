@@ -1,0 +1,5 @@
+{
+  "instance_id": "pytest-dev__pytest-5227",
+  "model_patch": "diff --git a/src/_pytest/logging.py b/src/_pytest/logging.py\nindex 757cb2797..01f354cbc 100644\n--- a/src/_pytest/logging.py\n+++ b/src/_pytest/logging.py\n@@ -15,7 +15,7 @@ from _pytest.compat import dummy_context_manager\n from _pytest.config import create_terminal_writer\n from _pytest.pathlib import Path\n \n-DEFAULT_LOG_FORMAT = \"%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s\"\n+DEFAULT_LOG_FORMAT = \"%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s\"\n DEFAULT_LOG_DATE_FORMAT = \"%H:%M:%S\"\n \n \n@@ -659,4 +659,4 @@ class _LiveLoggingStreamHandler(logging.StreamHandler):\n             if not self._section_name_shown and self._when:\n                 self.stream.section(\"live log \" + self._when, sep=\"-\", bold=True)\n                 self._section_name_shown = True\n-            logging.StreamHandler.emit(self, record)\n+            logging.StreamHandler.emit(self, record)\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

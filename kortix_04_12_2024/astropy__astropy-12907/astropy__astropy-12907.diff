@@ -1,0 +1,43 @@
+diff --git a/astropy/modeling/separable.py b/astropy/modeling/separable.py
+index a308e27297..dd024418e8 100644
+--- a/astropy/modeling/separable.py
++++ b/astropy/modeling/separable.py
+@@ -304,9 +304,17 @@ def _separable(transform):
+     if (transform_matrix := transform._calculate_separability_matrix()) is not NotImplemented:
+         return transform_matrix
+     elif isinstance(transform, CompoundModel):
+-        sepleft = _separable(transform.left)
+-        sepright = _separable(transform.right)
+-        return _operators[transform.op](sepleft, sepright)
++        if transform.op == '&':
++            # Handle & operator specially to preserve independence
++            from scipy.linalg import block_diag
++            left_matrix = _separable(transform.left)
++            right_matrix = _separable(transform.right)
++            return block_diag(left_matrix, right_matrix)
++        else:
++            # For other operators, use existing behavior
++            sepleft = _separable(transform.left)
++            sepright = _separable(transform.right)
++            return _operators[transform.op](sepleft, sepright)
+     elif isinstance(transform, Model):
+         return _coord_matrix(transform, 'left', transform.n_outputs)
+ 
+@@ -314,4 +322,4 @@ def _separable(transform):
+ # Maps modeling operators to a function computing and represents the
+ # relationship of axes as an array of 0-es and 1-s
+ _operators = {'&': _cstack, '|': _cdot, '+': _arith_oper, '-': _arith_oper,
+-              '*': _arith_oper, '/': _arith_oper, '**': _arith_oper}
++              '*': _arith_oper, '/': _arith_oper, '**': _arith_oper}
+\ No newline at end of file
+diff --git a/pyproject.toml b/pyproject.toml
+index 3364d30740..02dddbe713 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.22",

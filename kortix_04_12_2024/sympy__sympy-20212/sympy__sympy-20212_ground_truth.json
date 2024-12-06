@@ -1,0 +1,4 @@
+{
+  "patch": "diff --git a/sympy/core/power.py b/sympy/core/power.py\n--- a/sympy/core/power.py\n+++ b/sympy/core/power.py\n@@ -291,6 +291,8 @@ def __new__(cls, b, e, evaluate=None):\n             ).warn()\n \n         if evaluate:\n+            if b is S.Zero and e is S.NegativeInfinity:\n+                return S.ComplexInfinity\n             if e is S.ComplexInfinity:\n                 return S.NaN\n             if e is S.Zero:\n",
+  "test_patch": "diff --git a/sympy/core/tests/test_power.py b/sympy/core/tests/test_power.py\n--- a/sympy/core/tests/test_power.py\n+++ b/sympy/core/tests/test_power.py\n@@ -266,6 +266,9 @@ def test_zero():\n     assert 0**(2*x*y) == 0**(x*y)\n     assert 0**(-2*x*y) == S.ComplexInfinity**(x*y)\n \n+    #Test issue 19572\n+    assert 0 ** -oo is zoo\n+    assert power(0, -oo) is zoo\n \n def test_pow_as_base_exp():\n     x = Symbol('x')\n"
+}

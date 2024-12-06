@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-14730",
+  "model_patch": "diff --git a/tests/model_fields/test_manytomany.py b/tests/model_fields/test_manytomany.py\nnew file mode 100644\nindex 0000000000..2e5a84310c\n--- /dev/null\n+++ b/tests/model_fields/test_manytomany.py\n@@ -0,0 +1,15 @@\n+from django.core.exceptions import ValidationError\n+from django.db import models\n+from django.test import SimpleTestCase\n+\n+\n+class ManyToManyFieldTests(SimpleTestCase):\n+    def test_related_name_on_symmetrical_field(self):\n+        with self.assertRaisesMessage(ValueError, 'related_name cannot be set on a symmetrical ManyToManyField.'):\n+            class PersonSymmetrical(models.Model):\n+                friends = models.ManyToManyField('self', symmetrical=True, related_name='followers')\n+\n+    def test_related_name_on_self_referential_field(self):\n+        with self.assertRaisesMessage(ValueError, 'related_name cannot be set on a symmetrical ManyToManyField.'):\n+            class PersonSelfRef(models.Model):\n+                friends = models.ManyToManyField('self', related_name='followers')\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

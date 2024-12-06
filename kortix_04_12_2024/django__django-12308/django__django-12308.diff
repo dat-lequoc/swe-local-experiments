@@ -1,0 +1,64 @@
+diff --git a/django/contrib/admin/tests/__init__.py b/django/contrib/admin/tests/__init__.py
+new file mode 100644
+index 0000000000..8b13789179
+--- /dev/null
++++ b/django/contrib/admin/tests/__init__.py
+@@ -0,0 +1 @@
++
+diff --git a/django/contrib/admin/tests/test_utils.py b/django/contrib/admin/tests/test_utils.py
+new file mode 100644
+index 0000000000..cf1399e656
+--- /dev/null
++++ b/django/contrib/admin/tests/test_utils.py
+@@ -0,0 +1,21 @@
++from django.contrib.admin import utils
++from django.db import models
++from django.test import SimpleTestCase
++from django.db.models import JSONField
++
++class DisplayForFieldTests(SimpleTestCase):
++    def test_json_field_display(self):
++        """
++        JSONField values are properly formatted when displayed as readonly.
++        """
++        field = JSONField()
++        tests = [
++            ({'foo': 'bar'}, '{"foo": "bar"}'),
++            (['a', 'b'], '["a", "b"]'),
++            (None, utils.display_for_value(None, '')),
++            ({'nested': {'key': 'value'}}, '{"nested": {"key": "value"}}'),
++        ]
++        for value, expected in tests:
++            with self.subTest(value=value):
++                result = utils.display_for_field(value, field, '')
++                self.assertEqual(result, expected)
+diff --git a/django/contrib/admin/utils.py b/django/contrib/admin/utils.py
+index e4ddc8f017..1cb95ceb62 100644
+--- a/django/contrib/admin/utils.py
++++ b/django/contrib/admin/utils.py
+@@ -379,6 +379,7 @@ def help_text_for_field(name, model):
+ 
+ def display_for_field(value, field, empty_value_display):
+     from django.contrib.admin.templatetags.admin_list import _boolean_icon
++    from django.db.models import JSONField
+ 
+     if getattr(field, 'flatchoices', None):
+         return dict(field.flatchoices).get(value, empty_value_display)
+@@ -398,6 +399,10 @@ def display_for_field(value, field, empty_value_display):
+         return formats.number_format(value)
+     elif isinstance(field, models.FileField) and value:
+         return format_html('<a href="{}">{}</a>', value.url, value)
++    elif isinstance(field, JSONField):
++        if value is None:
++            return empty_value_display
++        return field.formfield().prepare_value(value)
+     else:
+         return display_for_value(value, empty_value_display)
+ 
+@@ -542,4 +547,4 @@ def _get_changed_field_labels_from_form(form, changed_data):
+         except KeyError:
+             verbose_field_name = field_name
+         changed_field_labels.append(str(verbose_field_name))
+-    return changed_field_labels
++    return changed_field_labels
+\ No newline at end of file

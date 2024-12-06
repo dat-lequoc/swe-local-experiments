@@ -1,0 +1,5 @@
+{
+  "instance_id": "pydata__xarray-4094",
+  "model_patch": "diff --git a/xarray/core/dataarray.py b/xarray/core/dataarray.py\nindex b0df8749..af717eee 100644\n--- a/xarray/core/dataarray.py\n+++ b/xarray/core/dataarray.py\n@@ -1961,7 +1961,12 @@ class DataArray(AbstractArray, DataWithCoords):\n         # pull variables out of datarray\n         data_dict = {}\n         for k in variables:\n-            data_dict[k] = self.sel({variable_dim: k}).squeeze(drop=True)\n+            subset = self.sel({variable_dim: k}, drop=True)\n+            if subset.ndim == 0:\n+                # Handle scalar values for single-dimension variables\n+                data_dict[k] = subset.item()\n+            else:\n+                data_dict[k] = subset\n \n         # unstacked dataset\n         return Dataset(data_dict)\n@@ -3825,4 +3830,4 @@ class DataArray(AbstractArray, DataWithCoords):\n \n \n # priority most be higher than Variable to properly work with binary ufuncs\n-ops.inject_all_ops_and_reduce_methods(DataArray, priority=60)\n+ops.inject_all_ops_and_reduce_methods(DataArray, priority=60)\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

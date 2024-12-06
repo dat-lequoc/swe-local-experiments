@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-11905",
+  "model_patch": "diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py\nindex 9344979c56..378b21bf17 100644\n--- a/django/db/models/lookups.py\n+++ b/django/db/models/lookups.py\n@@ -462,6 +462,16 @@ class IsNull(BuiltinLookup):\n     lookup_name = 'isnull'\n     prepare_rhs = False\n \n+    def get_prep_lookup(self):\n+        if self.rhs is None and self.can_use_none_as_rhs:\n+            return self.rhs\n+        if not isinstance(self.rhs, bool):\n+            raise ValueError(\n+                'The __isnull lookup requires a boolean value. '\n+                'Got %r of type %s.' % (self.rhs, type(self.rhs).__name__)\n+            )\n+        return self.rhs\n+\n     def as_sql(self, compiler, connection):\n         sql, params = compiler.compile(self.lhs)\n         if self.rhs:\n@@ -597,4 +607,4 @@ class UUIDEndsWith(UUIDTextMixin, EndsWith):\n \n @UUIDField.register_lookup\n class UUIDIEndsWith(UUIDTextMixin, IEndsWith):\n-    pass\n+    pass\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

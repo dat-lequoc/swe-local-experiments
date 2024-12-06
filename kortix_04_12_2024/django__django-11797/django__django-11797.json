@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-11797",
+  "model_patch": "diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py\nindex 8e55bd092d..d6f0f36156 100644\n--- a/django/db/models/sql/query.py\n+++ b/django/db/models/sql/query.py\n@@ -1028,6 +1028,9 @@ class Query(BaseExpression):\n             if hasattr(resolved, 'external_aliases'):\n                 resolved.external_aliases.update(clone.alias_map)\n             clone.annotations[key] = resolved\n+        # Preserve original group_by when used as subquery\n+        if isinstance(self.group_by, tuple):\n+            clone.group_by = self.group_by\n         # Outer query's aliases are considered external.\n         clone.external_aliases.update(\n             alias for alias, table in query.alias_map.items()\n@@ -2354,4 +2357,4 @@ class JoinPromoter:\n             # and again we could safely demote to INNER.\n         query.promote_joins(to_promote)\n         query.demote_joins(to_demote)\n-        return to_demote\n+        return to_demote\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

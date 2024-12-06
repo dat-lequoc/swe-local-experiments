@@ -1,0 +1,57 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index ee45bb941e..5e45ef8c46 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -763,8 +763,11 @@ class Field(RegisterLookupMixin):
+             if not getattr(cls, self.attname, None):
+                 setattr(cls, self.attname, self.descriptor_class(self))
+         if self.choices is not None:
+-            setattr(cls, 'get_%s_display' % self.name,
+-                    partialmethod(cls._get_FIELD_display, field=self))
++            display_method_name = 'get_%s_display' % self.name
++            # Only add the display method if it's not already defined
++            if not hasattr(cls, display_method_name):
++                setattr(cls, display_method_name,
++                        partialmethod(cls._get_FIELD_display, field=self))
+ 
+     def get_filter_kwargs_for_object(self, obj):
+         """
+@@ -2418,4 +2421,4 @@ class SmallAutoField(AutoFieldMixin, SmallIntegerField):
+         return 'SmallAutoField'
+ 
+     def rel_db_type(self, connection):
+-        return SmallIntegerField().db_type(connection=connection)
++        return SmallIntegerField().db_type(connection=connection)
+\ No newline at end of file
+diff --git a/tests/model_fields/tests.py b/tests/model_fields/tests.py
+index 0d6e930b06..57ada3f461 100644
+--- a/tests/model_fields/tests.py
++++ b/tests/model_fields/tests.py
+@@ -162,6 +162,20 @@ class GetFieldDisplayTests(SimpleTestCase):
+         self.assertEqual(Whiz(c='').get_c_display(), '')        # Empty value
+         self.assertEqual(WhizDelayed(c=0).get_c_display(), 'Other')  # Delayed choices
+ 
++    def test_custom_display_method(self):
++        """
++        Custom display methods can override the default get_FOO_display() method.
++        """
++        class CustomDisplayModel(models.Model):
++            field = models.CharField(choices=[('a', 'A'), ('b', 'B')])
++            def get_field_display(self):
++                return 'Custom Display'
++            class Meta:
++                app_label = 'model_fields'
++        
++        obj = CustomDisplayModel(field='a')
++        self.assertEqual(obj.get_field_display(), 'Custom Display')
++
+     def test_get_FIELD_display_translated(self):
+         """A translated display value is coerced to str."""
+         val = Whiz(c=5).get_c_display()
+@@ -299,4 +313,4 @@ class GetChoicesLimitChoicesToTests(TestCase):
+         self.assertChoicesEqual(
+             field.get_choices(include_blank=False, limit_choices_to={}),
+             [self.bar1, self.bar2],
+-        )
++        )
+\ No newline at end of file

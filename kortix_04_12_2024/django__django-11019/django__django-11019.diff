@@ -1,0 +1,129 @@
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 02aa32b207..22b995e44e 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -117,37 +117,52 @@ class Media:
+     @staticmethod
+     def merge(list_1, list_2):
+         """
+-        Merge two lists while trying to keep the relative order of the elements.
+-        Warn if the lists have the same two elements in a different relative
+-        order.
++        Merge lists while trying to keep the relative order of the elements.
++        Warn if there's a genuine circular dependency between files.
+ 
+         For static assets it can be important to have them included in the DOM
+         in a certain order. In JavaScript you may not be able to reference a
+         global or in CSS you might want to override a style.
+         """
+-        # Start with a copy of list_1.
+-        combined_list = list(list_1)
+-        last_insert_index = len(list_1)
+-        # Walk list_2 in reverse, inserting each element into combined_list if
+-        # it doesn't already exist.
+-        for path in reversed(list_2):
+-            try:
+-                # Does path already exist in the list?
+-                index = combined_list.index(path)
+-            except ValueError:
+-                # Add path to combined_list since it doesn't exist.
+-                combined_list.insert(last_insert_index, path)
++        combined = list(list_1)
++        positions = {path: i for i, path in enumerate(combined)}
++        
++        # Track seen conflicts to avoid duplicate warnings
++        seen_conflicts = set()
++        
++        # Track dependencies to avoid false positives
++        dependencies = {}
++        
++        for path in list_2:
++            if path in positions:
++                current_pos = positions[path]
++                # Check for actual circular dependencies
++                for i, existing in enumerate(combined[current_pos + 1:], start=current_pos + 1):
++                    if existing in list_2:
++                        # Get positions in list_2
++                        path_idx = list_2.index(path)
++                        existing_idx = list_2.index(existing)
++                        
++                        # Only warn if this creates a genuine circular dependency
++                        if existing_idx < path_idx:
++                            # Ensure consistent warning message order
++                            first, second = sorted([existing, path])
++                            conflict_key = (first, second)
++                            if conflict_key not in seen_conflicts:
++                                seen_conflicts.add(conflict_key)
++                                warnings.warn(
++                                    'Detected circular Media file dependencies:\n%s and %s' % 
++                                    (first, second),
++                                    MediaOrderConflictWarning,
++                                )
++                    # Track dependency
++                    if existing_idx > path_idx:
++                        dependencies.setdefault(path, []).append(existing)
+             else:
+-                if index > last_insert_index:
+-                    warnings.warn(
+-                        'Detected duplicate Media files in an opposite order:\n'
+-                        '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
+-                        MediaOrderConflictWarning,
+-                    )
+-                # path already exists in the list. Update last_insert_index so
+-                # that the following elements are inserted in front of this one.
+-                last_insert_index = index
+-        return combined_list
++                combined.append(path)
++                positions[path] = len(combined) - 1
++                
++        return combined
+ 
+     def __add__(self, other):
+         combined = Media()
+@@ -1080,4 +1095,4 @@ class SelectDateWidget(Widget):
+         return not any(
+             ('{}_{}'.format(name, interval) in data)
+             for interval in ('year', 'month', 'day')
+-        )
++        )
+\ No newline at end of file
+diff --git a/tests/forms_tests/tests/test_media.py b/tests/forms_tests/tests/test_media.py
+index 8cb484a15e..c82e2e1cfc 100644
+--- a/tests/forms_tests/tests/test_media.py
++++ b/tests/forms_tests/tests/test_media.py
+@@ -538,9 +538,27 @@ class FormsMediaTestCase(SimpleTestCase):
+                 self.assertEqual(Media.merge(list1, list2), expected)
+ 
+     def test_merge_warning(self):
+-        msg = 'Detected duplicate Media files in an opposite order:\n1\n2'
++        msg = 'Detected circular Media file dependencies:\n1 and 2'
+         with self.assertWarnsMessage(RuntimeWarning, msg):
+             self.assertEqual(Media.merge([1, 2], [2, 1]), [1, 2])
++            
++    def test_merge_with_dependencies(self):
++        """Test merging media with dependencies is handled correctly."""
++        # text-editor-extras.js depends on text-editor.js
++        list1 = ['color-picker.js']
++        list2 = ['text-editor.js']
++        list3 = ['text-editor.js', 'text-editor-extras.js', 'color-picker.js']
++        
++        # Merge first two lists
++        merged = Media.merge(list1, list2)
++        # Merge with third list
++        final = Media.merge(merged, list3)
++        
++        # Verify correct ordering
++        self.assertEqual(
++            final,
++            ['text-editor.js', 'text-editor-extras.js', 'color-picker.js']
++        )
+ 
+     def test_merge_js_three_way(self):
+         """
+@@ -570,4 +588,4 @@ class FormsMediaTestCase(SimpleTestCase):
+         # ...but merging succeeds as the relative ordering of a.css and b.css
+         # was never specified.
+         merged = widget3 + form1 + form2
+-        self.assertEqual(merged._css, {'screen': ['a.css', 'b.css'], 'all': ['c.css']})
++        self.assertEqual(merged._css, {'screen': ['a.css', 'b.css'], 'all': ['c.css']})
+\ No newline at end of file

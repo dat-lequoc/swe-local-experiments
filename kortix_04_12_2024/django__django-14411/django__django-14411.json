@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-14411",
+  "model_patch": "diff --git a/django/contrib/auth/templates/auth/widgets/read_only_password_hash.html b/django/contrib/auth/templates/auth/widgets/read_only_password_hash.html\nindex a2a12c6f10..77e8c546f2 100644\n--- a/django/contrib/auth/templates/auth/widgets/read_only_password_hash.html\n+++ b/django/contrib/auth/templates/auth/widgets/read_only_password_hash.html\n@@ -2,4 +2,4 @@\n {% for entry in summary %}\n <strong>{{ entry.label }}</strong>{% if entry.value %}: {{ entry.value }}{% endif %}\n {% endfor %}\n-</div>\n+</div>\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

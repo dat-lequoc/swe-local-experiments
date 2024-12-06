@@ -1,0 +1,5 @@
+{
+  "instance_id": "matplotlib__matplotlib-25332",
+  "model_patch": "diff --git a/lib/matplotlib/tests/test_pickle_align.py b/lib/matplotlib/tests/test_pickle_align.py\nnew file mode 100644\nindex 0000000000..2d63b51446\n--- /dev/null\n+++ b/lib/matplotlib/tests/test_pickle_align.py\n@@ -0,0 +1,20 @@\n+import pickle\n+import matplotlib.pyplot as plt\n+import pytest\n+\n+def test_pickle_aligned_figure():\n+    \"\"\"Test that a figure with aligned labels can be pickled.\"\"\"\n+    fig = plt.figure()\n+    ax1 = fig.add_subplot(211)\n+    ax2 = fig.add_subplot(212)\n+    time = [0, 1, 2, 3, 4]\n+    speed = [40000, 4300, 4500, 4700, 4800]\n+    acc = [10, 11, 12, 13, 14]\n+    ax1.plot(time, speed)\n+    ax1.set_ylabel('speed')\n+    ax2.plot(time, acc)\n+    ax2.set_ylabel('acc')\n+    \n+    fig.align_labels()\n+    # This should not raise an error\n+    pickle.dumps(fig)\n",
+  "model_name_or_path": "KortixAI"
+}

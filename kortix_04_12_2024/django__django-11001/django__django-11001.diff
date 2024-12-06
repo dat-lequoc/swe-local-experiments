@@ -1,0 +1,68 @@
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 7649c39262..2b9e40053d 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -353,7 +353,9 @@ class SQLCompiler:
+             # not taken into account so we strip it. When this entire method
+             # is refactored into expressions, then we can check each part as we
+             # generate it.
+-            without_ordering = self.ordering_parts.search(sql).group(1)
++            # Normalize SQL to handle multiline expressions
++            sql_normalized = ' '.join(sql.split())
++            without_ordering = self.ordering_parts.search(sql_normalized).group(1)
+             params_hash = make_hashable(params)
+             if (without_ordering, params_hash) in seen:
+                 continue
+@@ -366,7 +368,9 @@ class SQLCompiler:
+         if self.query.distinct and not self.query.distinct_fields:
+             select_sql = [t[1] for t in select]
+             for expr, (sql, params, is_ref) in order_by:
+-                without_ordering = self.ordering_parts.search(sql).group(1)
++                # Normalize SQL to handle multiline expressions
++            sql_normalized = ' '.join(sql.split())
++            without_ordering = self.ordering_parts.search(sql_normalized).group(1)
+                 if not is_ref and (without_ordering, params) not in select_sql:
+                     extra_select.append((expr, (without_ordering, params), None))
+         return extra_select
+@@ -1504,4 +1508,4 @@ def cursor_iter(cursor, sentinel, col_count, itersize):
+         for rows in iter((lambda: cursor.fetchmany(itersize)), sentinel):
+             yield rows if col_count is None else [r[:col_count] for r in rows]
+     finally:
+-        cursor.close()
++        cursor.close()
+\ No newline at end of file
+diff --git a/tests/queries/tests.py b/tests/queries/tests.py
+index bce514c0bf..470845be9c 100644
+--- a/tests/queries/tests.py
++++ b/tests/queries/tests.py
+@@ -622,6 +622,23 @@ class Queries1Tests(TestCase):
+             Tag.objects.filter(parent=self.t1, name='t3').order_by('name'),
+             ['<Tag: t3>']
+         )
++        
++    def test_multiline_rawsql_ordering(self):
++        """Test that multiline RawSQL expressions in order_by work correctly."""
++        qs = Tag.objects.all().order_by(
++            RawSQL('''
++                CASE WHEN name = 't1'
++                     THEN 1
++                     ELSE 2 END''', []).desc(),
++            RawSQL('''
++                CASE WHEN name = 't2'
++                     THEN 1
++                     ELSE 2 END''', []).desc()
++        )
++        # Both order by clauses should be present in the query
++        sql = str(qs.query)
++        self.assertIn("CASE WHEN name = 't1'", sql)
++        self.assertIn("CASE WHEN name = 't2'", sql)
+         self.assertQuerysetEqual(
+             Tag.objects.exclude(parent=self.t1, name='t3').order_by('name'),
+             ['<Tag: t1>', '<Tag: t2>', '<Tag: t4>', '<Tag: t5>']
+@@ -3927,4 +3944,4 @@ class Ticket23622Tests(TestCase):
+             set(Ticket23605A.objects.filter(qx).values_list('pk', flat=True)),
+             set(Ticket23605A.objects.filter(qy).values_list('pk', flat=True))
+         )
+-        self.assertSequenceEqual(Ticket23605A.objects.filter(qx), [a2])
++        self.assertSequenceEqual(Ticket23605A.objects.filter(qx), [a2])
+\ No newline at end of file

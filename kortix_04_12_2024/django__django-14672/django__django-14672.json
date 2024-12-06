@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-14672",
+  "model_patch": "diff --git a/django/db/models/fields/reverse_related.py b/django/db/models/fields/reverse_related.py\nindex ccc2223a5f..546b3afb76 100644\n--- a/django/db/models/fields/reverse_related.py\n+++ b/django/db/models/fields/reverse_related.py\n@@ -310,7 +310,7 @@ class ManyToManyRel(ForeignObjectRel):\n     def identity(self):\n         return super().identity + (\n             self.through,\n-            self.through_fields,\n+            make_hashable(self.through_fields) if self.through_fields is not None else None,\n             self.db_constraint,\n         )\n \n@@ -327,4 +327,4 @@ class ManyToManyRel(ForeignObjectRel):\n                 rel = getattr(field, 'remote_field', None)\n                 if rel and rel.model == self.model:\n                     break\n-        return field.foreign_related_fields[0]\n+        return field.foreign_related_fields[0]\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

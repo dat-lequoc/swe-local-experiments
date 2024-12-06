@@ -1,0 +1,28 @@
+diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py
+index 9344979c56..378b21bf17 100644
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -462,6 +462,16 @@ class IsNull(BuiltinLookup):
+     lookup_name = 'isnull'
+     prepare_rhs = False
+ 
++    def get_prep_lookup(self):
++        if self.rhs is None and self.can_use_none_as_rhs:
++            return self.rhs
++        if not isinstance(self.rhs, bool):
++            raise ValueError(
++                'The __isnull lookup requires a boolean value. '
++                'Got %r of type %s.' % (self.rhs, type(self.rhs).__name__)
++            )
++        return self.rhs
++
+     def as_sql(self, compiler, connection):
+         sql, params = compiler.compile(self.lhs)
+         if self.rhs:
+@@ -597,4 +607,4 @@ class UUIDEndsWith(UUIDTextMixin, EndsWith):
+ 
+ @UUIDField.register_lookup
+ class UUIDIEndsWith(UUIDTextMixin, IEndsWith):
+-    pass
++    pass
+\ No newline at end of file

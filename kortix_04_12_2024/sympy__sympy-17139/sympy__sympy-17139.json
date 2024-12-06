@@ -1,0 +1,5 @@
+{
+  "instance_id": "sympy__sympy-17139",
+  "model_patch": "diff --git a/sympy/simplify/fu.py b/sympy/simplify/fu.py\nindex ad1130ef96..d279915249 100644\n--- a/sympy/simplify/fu.py\n+++ b/sympy/simplify/fu.py\n@@ -501,6 +501,10 @@ def _f(rv):\n         if not (rv.is_Pow and rv.base.func == f):\n             return rv\n \n+        # Skip transformation for non-real exponents\n+        if rv.exp.is_real is False:\n+            return rv\n+            \n         if (rv.exp < 0) == True:\n             return rv\n         if (rv.exp > max) == True:\n@@ -2212,4 +2216,4 @@ def sincos_to_sum(expr):\n     if not expr.has(cos, sin):\n         return expr\n     else:\n-        return TR8(expand_mul(TRpower(expr)))\n+        return TR8(expand_mul(TRpower(expr)))\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

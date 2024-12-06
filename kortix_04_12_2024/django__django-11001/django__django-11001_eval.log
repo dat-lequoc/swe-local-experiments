@@ -1,0 +1,563 @@
+=== Evaluation for Instance django__django-11001 ===
+
+=== Patch Application Output ===
+APPLY_PATCH_PASS
+/tmp/patch.diff:41: trailing whitespace.
+        
+Checking patch django/db/models/sql/compiler.py...
+Checking patch tests/queries/tests.py...
+Applied patch django/db/models/sql/compiler.py cleanly.
+Applied patch tests/queries/tests.py cleanly.
+warning: 1 line adds whitespace errors.
+
+
+=== Test Output ===
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=2
++++ CONDA_SHLVL=2
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_1=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_1=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=3
+++ CONDA_SHLVL=3
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_2=/opt/miniconda3
+++ CONDA_PREFIX_2=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
++ locale-gen
++ export LANG=en_US.UTF-8
++ LANG=en_US.UTF-8
++ export LANGUAGE=en_US:en
++ LANGUAGE=en_US:en
++ export LC_ALL=en_US.UTF-8
++ LC_ALL=en_US.UTF-8
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
++ git show
++ git diff ef082ebb84f00e38af4e8880d04e8365c2766d34
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=4
++++ CONDA_SHLVL=4
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_3=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_3=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''5'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_4='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''5'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_4='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=5
+++ CONDA_SHLVL=5
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_4=/opt/miniconda3
+++ CONDA_PREFIX_4=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
++ git checkout ef082ebb84f00e38af4e8880d04e8365c2766d34 tests/expressions/tests.py
+Updated 0 paths from 1b6d22c787
++ git apply -v -
+Checking patch tests/expressions/tests.py...
+Applied patch tests/expressions/tests.py cleanly.
++ ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1 expressions.tests
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Traceback (most recent call last):
+  File "/testbed/django/db/migrations/executor.py", line 246, in apply_migration
+    self.record_migration(migration)
+  File "/testbed/django/db/migrations/executor.py", line 261, in record_migration
+    self.recorder.record_applied(migration.app_label, migration.name)
+  File "/testbed/django/db/migrations/recorder.py", line 86, in record_applied
+    self.migration_qs.create(app=app, name=name)
+  File "/testbed/django/db/models/query.py", line 421, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/testbed/django/db/models/base.py", line 741, in save
+    force_update=force_update, update_fields=update_fields)
+  File "/testbed/django/db/models/base.py", line 779, in save_base
+    force_update, using, update_fields,
+  File "/testbed/django/db/models/base.py", line 870, in _save_table
+    result = self._do_insert(cls._base_manager, using, fields, update_pk, raw)
+  File "/testbed/django/db/models/base.py", line 908, in _do_insert
+    using=using, raw=raw)
+  File "/testbed/django/db/models/manager.py", line 82, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/testbed/django/db/models/query.py", line 1175, in _insert
+    return query.get_compiler(using=using).execute_sql(return_id)
+  File "/testbed/django/db/models/sql/query.py", line 282, in get_compiler
+    return connection.ops.compiler(self.compiler)(self, connection, using)
+  File "/testbed/django/db/backends/base/operations.py", line 330, in compiler
+    self._cache = import_module(self.compiler_module)
+  File "/opt/miniconda3/envs/testbed/lib/python3.6/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 994, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 665, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 674, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 781, in get_code
+  File "<frozen importlib._bootstrap_external>", line 741, in source_to_code
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/testbed/django/db/models/sql/compiler.py", line 372
+    sql_normalized = ' '.join(sql.split())
+                 ^
+IndentationError: expected an indented block
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "./tests/runtests.py", line 521, in <module>
+    getattr(options, 'test_name_patterns', None),
+  File "./tests/runtests.py", line 299, in django_tests
+    extra_tests=extra_tests,
+  File "/testbed/django/test/runner.py", line 648, in run_tests
+    old_config = self.setup_databases(aliases=databases)
+  File "/testbed/django/test/runner.py", line 573, in setup_databases
+    self.parallel, **kwargs
+  File "/testbed/django/test/utils.py", line 173, in setup_databases
+    serialize=connection.settings_dict.get('TEST', {}).get('SERIALIZE', True),
+  File "/testbed/django/db/backends/base/creation.py", line 72, in create_test_db
+    run_syncdb=True,
+  File "/testbed/django/core/management/__init__.py", line 148, in call_command
+    return command.execute(*args, **defaults)
+  File "/testbed/django/core/management/base.py", line 369, in execute
+    output = self.handle(*args, **options)
+  File "/testbed/django/core/management/base.py", line 83, in wrapped
+    res = handle_func(*args, **kwargs)
+  File "/testbed/django/core/management/commands/migrate.py", line 233, in handle
+    fake_initial=fake_initial,
+  File "/testbed/django/db/migrations/executor.py", line 117, in migrate
+    state = self._migrate_all_forwards(state, plan, full_plan, fake=fake, fake_initial=fake_initial)
+  File "/testbed/django/db/migrations/executor.py", line 147, in _migrate_all_forwards
+    state = self.apply_migration(state, migration, fake=fake, fake_initial=fake_initial)
+  File "/testbed/django/db/migrations/executor.py", line 247, in apply_migration
+    migration_recorded = True
+  File "/testbed/django/db/backends/sqlite3/schema.py", line 34, in __exit__
+    self.connection.check_constraints()
+  File "/testbed/django/db/backends/sqlite3/base.py", line 302, in check_constraints
+    violations = self.cursor().execute('PRAGMA foreign_key_check').fetchall()
+  File "/testbed/django/db/backends/utils.py", line 68, in execute
+    return self._execute_with_wrappers(sql, params, many=False, executor=self._execute)
+  File "/testbed/django/db/backends/utils.py", line 77, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/testbed/django/db/backends/utils.py", line 80, in _execute
+    self.db.validate_no_broken_transaction()
+  File "/testbed/django/db/backends/base/base.py", line 438, in validate_no_broken_transaction
+    "An error occurred in the current transaction. You can't "
+django.db.transaction.TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.
++ git checkout ef082ebb84f00e38af4e8880d04e8365c2766d34 tests/expressions/tests.py
+Updated 1 path from 1b6d22c787
+Generating locales (this might take a while)...
+  en_US.UTF-8... done
+Generation complete.
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   django/db/models/sql/compiler.py
+	modified:   tests/queries/tests.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+commit ef082ebb84f00e38af4e8880d04e8365c2766d34
+Author: Mykola Kokalko <jajcee@gmail.com>
+Date:   Thu May 2 10:42:10 2019 +0200
+
+    Fixed #29529 -- Allowed models.fields.FilePathField to accept a callable path.
+
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..4d7eb11151 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1709,7 +1709,7 @@ class FilePathField(Field):
+ 
+     def formfield(self, **kwargs):
+         return super().formfield(**{
+-            'path': self.path,
++            'path': self.path() if callable(self.path) else self.path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/docs/ref/models/fields.txt b/docs/ref/models/fields.txt
+index e352e8b007..fbcba2bd66 100644
+--- a/docs/ref/models/fields.txt
++++ b/docs/ref/models/fields.txt
+@@ -868,6 +868,23 @@ directory on the filesystem. Has three special arguments, of which the first is
+     Required. The absolute filesystem path to a directory from which this
+     :class:`FilePathField` should get its choices. Example: ``"/home/images"``.
+ 
++    ``path`` may also be a callable, such as a function to dynamically set the
++    path at runtime. Example::
++
++        import os
++        from django.conf import settings
++        from django.db import models
++
++        def images_path():
++            return os.path.join(settings.LOCAL_FILE_DIR, 'images')
++
++        class MyModel(models.Model):
++            file = models.FilePathField(path=images_path)
++
++    .. versionchanged:: 3.0
++
++        ``path`` can now be a callable.
++
+ .. attribute:: FilePathField.match
+ 
+     Optional. A regular expression, as a string, that :class:`FilePathField`
+diff --git a/docs/releases/3.0.txt b/docs/releases/3.0.txt
+index b78d4bd6ab..966644385b 100644
+--- a/docs/releases/3.0.txt
++++ b/docs/releases/3.0.txt
+@@ -206,6 +206,8 @@ Models
+ 
+ * ``connection.queries`` now shows ``COPY … TO`` statements on PostgreSQL.
+ 
++* :class:`~django.db.models.FilePathField` now accepts a callable ``path``.
++
+ Requests and Responses
+ ~~~~~~~~~~~~~~~~~~~~~~
+ 
+diff --git a/tests/model_fields/test_filepathfield.py b/tests/model_fields/test_filepathfield.py
+index d5d43ff6f6..362d12d0db 100644
+--- a/tests/model_fields/test_filepathfield.py
++++ b/tests/model_fields/test_filepathfield.py
+@@ -10,3 +10,13 @@ class FilePathFieldTests(SimpleTestCase):
+         field = FilePathField(path=path)
+         self.assertEqual(field.path, path)
+         self.assertEqual(field.formfield().path, path)
++
++    def test_callable_path(self):
++        path = os.path.dirname(__file__)
++
++        def generate_path():
++            return path
++
++        field = FilePathField(path=generate_path)
++        self.assertEqual(field.path(), path)
++        self.assertEqual(field.formfield().path, path)
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 7649c39262..2b9e40053d 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -353,7 +353,9 @@ class SQLCompiler:
+             # not taken into account so we strip it. When this entire method
+             # is refactored into expressions, then we can check each part as we
+             # generate it.
+-            without_ordering = self.ordering_parts.search(sql).group(1)
++            # Normalize SQL to handle multiline expressions
++            sql_normalized = ' '.join(sql.split())
++            without_ordering = self.ordering_parts.search(sql_normalized).group(1)
+             params_hash = make_hashable(params)
+             if (without_ordering, params_hash) in seen:
+                 continue
+@@ -366,7 +368,9 @@ class SQLCompiler:
+         if self.query.distinct and not self.query.distinct_fields:
+             select_sql = [t[1] for t in select]
+             for expr, (sql, params, is_ref) in order_by:
+-                without_ordering = self.ordering_parts.search(sql).group(1)
++                # Normalize SQL to handle multiline expressions
++            sql_normalized = ' '.join(sql.split())
++            without_ordering = self.ordering_parts.search(sql_normalized).group(1)
+                 if not is_ref and (without_ordering, params) not in select_sql:
+                     extra_select.append((expr, (without_ordering, params), None))
+         return extra_select
+@@ -1504,4 +1508,4 @@ def cursor_iter(cursor, sentinel, col_count, itersize):
+         for rows in iter((lambda: cursor.fetchmany(itersize)), sentinel):
+             yield rows if col_count is None else [r[:col_count] for r in rows]
+     finally:
+-        cursor.close()
++        cursor.close()
+\ No newline at end of file
+diff --git a/tests/queries/tests.py b/tests/queries/tests.py
+index bce514c0bf..470845be9c 100644
+--- a/tests/queries/tests.py
++++ b/tests/queries/tests.py
+@@ -622,6 +622,23 @@ class Queries1Tests(TestCase):
+             Tag.objects.filter(parent=self.t1, name='t3').order_by('name'),
+             ['<Tag: t3>']
+         )
++        
++    def test_multiline_rawsql_ordering(self):
++        """Test that multiline RawSQL expressions in order_by work correctly."""
++        qs = Tag.objects.all().order_by(
++            RawSQL('''
++                CASE WHEN name = 't1'
++                     THEN 1
++                     ELSE 2 END''', []).desc(),
++            RawSQL('''
++                CASE WHEN name = 't2'
++                     THEN 1
++                     ELSE 2 END''', []).desc()
++        )
++        # Both order by clauses should be present in the query
++        sql = str(qs.query)
++        self.assertIn("CASE WHEN name = 't1'", sql)
++        self.assertIn("CASE WHEN name = 't2'", sql)
+         self.assertQuerysetEqual(
+             Tag.objects.exclude(parent=self.t1, name='t3').order_by('name'),
+             ['<Tag: t1>', '<Tag: t2>', '<Tag: t4>', '<Tag: t5>']
+@@ -3927,4 +3944,4 @@ class Ticket23622Tests(TestCase):
+             set(Ticket23605A.objects.filter(qx).values_list('pk', flat=True)),
+             set(Ticket23605A.objects.filter(qy).values_list('pk', flat=True))
+         )
+-        self.assertSequenceEqual(Ticket23605A.objects.filter(qx), [a2])
++        self.assertSequenceEqual(Ticket23605A.objects.filter(qx), [a2])
+\ No newline at end of file
+Obtaining file:///testbed
+Requirement already satisfied: pytz in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from Django==3.0.dev20190502091156) (2024.1)
+Requirement already satisfied: sqlparse in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from Django==3.0.dev20190502091156) (0.4.4)
+Installing collected packages: Django
+  Attempting uninstall: Django
+    Found existing installation: Django 3.0.dev20190502091156
+    Uninstalling Django-3.0.dev20190502091156:
+      Successfully uninstalled Django-3.0.dev20190502091156
+  Running setup.py develop for Django
+Successfully installed Django-3.0.dev20190502091156
+Testing against Django installed in '/testbed/django'
+Importing application expressions
+Skipping setup of unused database(s): other.
+Operations to perform:
+  Synchronize unmigrated apps: auth, contenttypes, expressions, messages, sessions, staticfiles
+  Apply all migrations: admin, sites
+Synchronizing apps without migrations:
+  Creating tables...
+    Creating table django_content_type
+    Creating table auth_permission
+    Creating table auth_group
+    Creating table auth_user
+    Creating table django_session
+    Creating table expressions_employee
+    Creating table expressions_remoteemployee
+    Creating table expressions_company
+    Creating table expressions_number
+    Creating table expressions_ExPeRiMeNt
+    Creating table expressions_result
+    Creating table expressions_time
+    Creating table expressions_simulationrun
+    Creating table expressions_uuidpk
+    Creating table expressions_uuid
+    Running deferred SQL...
+Running migrations:
+  Applying admin.0001_initial...
+

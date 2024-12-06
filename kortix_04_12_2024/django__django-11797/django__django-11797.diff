@@ -1,0 +1,21 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 8e55bd092d..d6f0f36156 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1028,6 +1028,9 @@ class Query(BaseExpression):
+             if hasattr(resolved, 'external_aliases'):
+                 resolved.external_aliases.update(clone.alias_map)
+             clone.annotations[key] = resolved
++        # Preserve original group_by when used as subquery
++        if isinstance(self.group_by, tuple):
++            clone.group_by = self.group_by
+         # Outer query's aliases are considered external.
+         clone.external_aliases.update(
+             alias for alias, table in query.alias_map.items()
+@@ -2354,4 +2357,4 @@ class JoinPromoter:
+             # and again we could safely demote to INNER.
+         query.promote_joins(to_promote)
+         query.demote_joins(to_demote)
+-        return to_demote
++        return to_demote
+\ No newline at end of file

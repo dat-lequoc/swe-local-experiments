@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-15498",
+  "model_patch": "diff --git a/django/http/request.py b/django/http/request.py\nindex 0b64b1b2b9..34967da280 100644\n--- a/django/http/request.py\n+++ b/django/http/request.py\n@@ -434,7 +434,11 @@ class HttpHeaders(CaseInsensitiveMapping):\n \n     def __getitem__(self, key):\n         \"\"\"Allow header lookup using underscores in place of hyphens.\"\"\"\n-        return super().__getitem__(key.replace(\"_\", \"-\"))\n+        try:\n+            value = super().__getitem__(key.replace(\"_\", \"-\"))\n+            return value if value else None\n+        except KeyError:\n+            return None\n \n     @classmethod\n     def parse_header_name(cls, header):\n@@ -709,4 +713,4 @@ def validate_host(host, allowed_hosts):\n \n \n def parse_accept_header(header):\n-    return [MediaType(token) for token in header.split(\",\") if token.strip()]\n+    return [MediaType(token) for token in header.split(\",\") if token.strip()]\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

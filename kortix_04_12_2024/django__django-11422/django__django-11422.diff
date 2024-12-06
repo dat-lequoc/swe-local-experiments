@@ -1,0 +1,85 @@
+diff --git a/django/utils/autoreload.py b/django/utils/autoreload.py
+index 7ca0d68fae..71421a2c24 100644
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -579,10 +579,14 @@ def run_with_reloader(main_func, *args, **kwargs):
+     try:
+         if os.environ.get(DJANGO_AUTORELOAD_ENV) == 'true':
+             reloader = get_reloader()
++            # Add the main script to watched files
++            main_script = Path(sys.argv[0]).resolve()
++            if main_script.exists():
++                reloader.watch_file(main_script)
+             logger.info('Watching for file changes with %s', reloader.__class__.__name__)
+             start_django(reloader, main_func, *args, **kwargs)
+         else:
+             exit_code = restart_with_reloader()
+             sys.exit(exit_code)
+     except KeyboardInterrupt:
+-        pass
++        pass
+\ No newline at end of file
+diff --git a/tests/utils_tests/test_autoreload.py b/tests/utils_tests/test_autoreload.py
+index 42bcd0a50b..7958c881e8 100644
+--- a/tests/utils_tests/test_autoreload.py
++++ b/tests/utils_tests/test_autoreload.py
+@@ -192,6 +192,52 @@ class GetReloaderTests(SimpleTestCase):
+ 
+ 
+ class RunWithReloaderTests(SimpleTestCase):
++    @classmethod
++    def setUpClass(cls):
++        super().setUpClass()
++        from django.conf import settings
++        if not settings.configured:
++            settings.configure(
++                DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3'}},
++                SECRET_KEY='dummy',
++            )
++    @classmethod
++    def setUpClass(cls):
++        super().setUpClass()
++        from django.conf import settings
++        if not settings.configured:
++            settings.configure()
++
++    @mock.patch.dict(os.environ, {autoreload.DJANGO_AUTORELOAD_ENV: 'true'})
++    @mock.patch('django.utils.autoreload.get_reloader')
++    def test_watches_entry_point_script(self, mocked_get_reloader):
++        script_path = Path(__file__).resolve()
++        mock_reloader = mock.MagicMock()
++        mocked_get_reloader.return_value = mock_reloader
++        with mock.patch('sys.argv', [str(script_path)]):
++            autoreload.run_with_reloader(lambda: None)
++        mock_reloader.watch_file.assert_called_once_with(script_path)
++
++    @mock.patch.dict(os.environ, {autoreload.DJANGO_AUTORELOAD_ENV: 'true'})
++    @mock.patch('django.utils.autoreload.get_reloader')
++    def test_watches_entry_point_script(self, mocked_get_reloader):
++        script_path = Path(__file__).resolve()
++        mock_reloader = mock.MagicMock()
++        mocked_get_reloader.return_value = mock_reloader
++        with mock.patch('sys.argv', [str(script_path)]):
++            autoreload.run_with_reloader(lambda: None)
++        mock_reloader.watch_file.assert_called_once_with(script_path)
++
++    @mock.patch.dict(os.environ, {autoreload.DJANGO_AUTORELOAD_ENV: 'true'})
++    @mock.patch('django.utils.autoreload.get_reloader')
++    def test_watches_entry_point_script(self, mocked_get_reloader):
++        script_path = Path(__file__).resolve()
++        mock_reloader = mock.MagicMock()
++        mocked_get_reloader.return_value = mock_reloader
++        with mock.patch('sys.argv', [str(script_path)]):
++            autoreload.run_with_reloader(lambda: None)
++        mock_reloader.watch_file.assert_called_once_with(script_path)
++
+     @mock.patch.dict(os.environ, {autoreload.DJANGO_AUTORELOAD_ENV: 'true'})
+     @mock.patch('django.utils.autoreload.get_reloader')
+     def test_swallows_keyboard_interrupt(self, mocked_get_reloader):
+@@ -641,4 +687,4 @@ class StatReloaderTests(ReloaderTests, IntegrationTests):
+         with mock.patch.object(self.reloader, 'watched_files', return_value=[self.existing_file, self.existing_file]):
+             snapshot = list(self.reloader.snapshot_files())
+             self.assertEqual(len(snapshot), 1)
+-            self.assertEqual(snapshot[0][0], self.existing_file)
++            self.assertEqual(snapshot[0][0], self.existing_file)
+\ No newline at end of file

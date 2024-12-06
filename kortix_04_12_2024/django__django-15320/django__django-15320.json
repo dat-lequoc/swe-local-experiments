@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-15320",
+  "model_patch": "diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py\nindex 6f26dff0e0..8c01ee0aef 100644\n--- a/django/db/models/expressions.py\n+++ b/django/db/models/expressions.py\n@@ -1150,6 +1150,7 @@ class Subquery(BaseExpression, Combinable):\n     def __init__(self, queryset, output_field=None, **extra):\n         # Allow the usage of both QuerySet and sql.Query objects.\n         self.query = getattr(queryset, 'query', queryset)\n+        self.query.subquery = True\n         self.extra = extra\n         super().__init__(output_field)\n \n@@ -1488,4 +1489,4 @@ class ValueRange(WindowFrame):\n     frame_type = 'RANGE'\n \n     def window_frame_start_end(self, connection, start, end):\n-        return connection.ops.window_frame_range_start_end(start, end)\n+        return connection.ops.window_frame_range_start_end(start, end)\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

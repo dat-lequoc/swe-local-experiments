@@ -1,0 +1,60 @@
+diff --git a/django/conf/global_settings.py b/django/conf/global_settings.py
+index acee9887d2..9ba30e5b26 100644
+--- a/django/conf/global_settings.py
++++ b/django/conf/global_settings.py
+@@ -304,7 +304,7 @@ FILE_UPLOAD_TEMP_DIR = None
+ 
+ # The numeric mode to set newly-uploaded files to. The value should be a mode
+ # you'd pass directly to os.chmod; see https://docs.python.org/library/os.html#files-and-directories.
+-FILE_UPLOAD_PERMISSIONS = None
++FILE_UPLOAD_PERMISSIONS = 0o644
+ 
+ # The numeric mode to assign to newly-created directories, when uploading files.
+ # The value should be a mode as you'd pass to os.chmod;
+@@ -631,4 +631,4 @@ SECURE_HSTS_PRELOAD = False
+ SECURE_HSTS_SECONDS = 0
+ SECURE_REDIRECT_EXEMPT = []
+ SECURE_SSL_HOST = None
+-SECURE_SSL_REDIRECT = False
++SECURE_SSL_REDIRECT = False
+\ No newline at end of file
+diff --git a/tests/file_storage/tests.py b/tests/file_storage/tests.py
+index 434869554c..ffa7c12037 100644
+--- a/tests/file_storage/tests.py
++++ b/tests/file_storage/tests.py
+@@ -488,6 +488,28 @@ class FileStorageTests(SimpleTestCase):
+         with self.assertRaises(OSError):
+             self.storage.save('error.file', f1)
+ 
++    def test_file_permissions_for_both_upload_types(self):
++        """
++        File storage should set consistent permissions for both upload types.
++        """
++        # Test small file (MemoryUploadedFile)
++        small_file = SimpleUploadedFile('small.txt', b'small contents')
++        small_name = self.storage.save('small.txt', small_file)
++        small_path = self.storage.path(small_name)
++        small_mode = os.stat(small_path).st_mode & 0o777
++        self.assertEqual(small_mode, 0o644)
++        self.storage.delete(small_name)
++
++        # Test large file (TemporaryUploadedFile)
++        large_file = TemporaryUploadedFile('large.txt', 'text/plain', 0, 'utf-8')
++        large_file.write(b'large contents')
++        large_file.seek(0)
++        large_name = self.storage.save('large.txt', large_file)
++        large_path = self.storage.path(large_name)
++        large_mode = os.stat(large_path).st_mode & 0o777
++        self.assertEqual(large_mode, 0o644)
++        self.storage.delete(large_name)
++
+     def test_delete_no_name(self):
+         """
+         Calling delete with an empty name should not try to remove the base
+@@ -995,4 +1017,4 @@ class FileLikeObjectTestCase(LiveServerTestCase):
+ 
+         remote_file = urlopen(self.live_server_url + '/')
+         with self.storage.open(stored_filename) as stored_file:
+-            self.assertEqual(stored_file.read(), remote_file.read())
++            self.assertEqual(stored_file.read(), remote_file.read())
+\ No newline at end of file

@@ -1,0 +1,98 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..54f6e4eb49 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1668,6 +1668,37 @@ class FilePathField(Field):
+         kwargs.setdefault('max_length', 100)
+         super().__init__(verbose_name, name, **kwargs)
+ 
++    def get_path(self):
++        """Resolve the path at runtime."""
++        path = self.path
++        if callable(path):
++            path = path()
++        if path is None:
++            return ''
++        return os.path.abspath(path)</old_string>
++        </replacement>
++        <replacement>
++            <old_string>    def formfield(self, **kwargs):
++        return super().formfield(**{
++            'path': self.get_path(),
++            'match': self.match,
++            'recursive': self.recursive,
++            'form_class': forms.FilePathField,
++            'allow_files': self.allow_files,
++            'allow_folders': self.allow_folders,
++            **kwargs,
++        })</old_string>
++            <new_string>    def formfield(self, **kwargs):
++        return super().formfield(**{
++            'path': self.get_path(),
++            'match': self.match,
++            'recursive': self.recursive,
++            'form_class': forms.FilePathField,
++            'allow_files': self.allow_files,
++            'allow_folders': self.allow_folders,
++            **kwargs,
++        })
++
+     def check(self, **kwargs):
+         return [
+             *super().check(**kwargs),
+@@ -1709,7 +1740,7 @@ class FilePathField(Field):
+ 
+     def formfield(self, **kwargs):
+         return super().formfield(**{
+-            'path': self.path,
++            'path': self.get_path(),
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+@@ -2365,4 +2396,4 @@ class UUIDField(Field):
+         return super().formfield(**{
+             'form_class': forms.UUIDField,
+             **kwargs,
+-        })
++        })
+\ No newline at end of file
+diff --git a/tests/model_fields/test_filepathfield.py b/tests/model_fields/test_filepathfield.py
+new file mode 100644
+index 0000000000..61ba38306c
+--- /dev/null
++++ b/tests/model_fields/test_filepathfield.py
+@@ -0,0 +1,34 @@
++import os
++from django.core.exceptions import ValidationError
++from django.db import models
++from django.test import SimpleTestCase
++from django.test.utils import override_settings
++
++class FilePathFieldTests(SimpleTestCase):
++    def test_filepathfield_callable_path(self):
++        def get_path():
++            return os.path.dirname(__file__)
++
++        class TestModel(models.Model):
++            path = models.FilePathField(path=get_path)
++
++            class Meta:
++                app_label = 'model_fields'
++
++        field = TestModel._meta.get_field('path')
++        self.assertEqual(field.path, get_path)
++        self.assertEqual(field.get_path(), os.path.abspath(os.path.dirname(__file__)))
++
++    def test_filepathfield_callable_path_validation(self):
++        def get_invalid_path():
++            return '/invalid/path/does/not/exist'
++
++        class TestModel(models.Model):
++            path = models.FilePathField(path=get_invalid_path)
++
++            class Meta:
++                app_label = 'model_fields'
++
++        field = TestModel._meta.get_field('path')
++        self.assertEqual(field.path, get_invalid_path)
++        self.assertEqual(field.get_path(), os.path.abspath('/invalid/path/does/not/exist'))

@@ -1,0 +1,39 @@
+{
+  "workspace": {
+    "open_folders": {
+      "/testbed": 1,
+      "/testbed/testing": "3",
+      "/testbed/src": "3"
+    },
+    "open_files": [
+      "/testbed/tox.ini",
+      "/testbed/src/_pytest/mark/__init__.py",
+      "/testbed/src/_pytest/mark/structures.py",
+      "/testbed/src/_pytest/skipping.py",
+      "/testbed/testing/test_mark.py",
+      "/testbed/testing/test_dynamic_xfail.py"
+    ],
+    "last_terminal_session": [
+      {
+        "command": "python -m pytest /testbed/testing/test_dynamic_xfail.py -v",
+        "output": "============================= test session starts ==============================\nplatform linux -- Python 3.9.19, pytest-6.0.0rc2.dev33+g7f7a36478, py-1.11.0, pluggy-0.13.1 -- /opt/miniconda3/envs/testbed/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed, configfile: pyproject.toml\ncollecting ... collected 3 items\n\ntesting/test_dynamic_xfail.py::test_dynamic_xfail XFAIL                  [ 33%]\ntesting/test_dynamic_xfail.py::test_dynamic_xfail_with_run_false XFAIL   [ 66%]\ntesting/test_dynamic_xfail.py::test_dynamic_xfail_conditional XFAIL      [100%]\n\n============================== 3 xfailed in 0.03s ==============================",
+        "success": true
+      }
+    ],
+    "latest_failures": [],
+    "implementation_trials": {
+      "A": {
+        "status": "succeeded",
+        "note": "[Dynamic XFail Re-evaluation]\nThe successful approach:\n\n1. Key Changes:\n```python\n@hookimpl(hookwrapper=True)\ndef pytest_runtest_call(item: Item) -> Generator[None, None, None]:\n    # Always re-evaluate xfail marks to catch dynamically added ones\n    item._store[xfailed_key] = xfailed = evaluate_xfail_marks(item)\n\n    if not item.config.option.runxfail:\n        if xfailed and not xfailed.run:\n            xfail(\"[NOTRUN] \" + xfailed.reason)\n\n    yield\n\n    # Re-evaluate after test execution for dynamically added markers\n    if not item.config.option.runxfail:\n        xfailed = evaluate_xfail_marks(item)\n        item._store[xfailed_key] = xfailed\n```\n\nPros:\n- Handles dynamic markers correctly\n- Maintains existing behavior\n- Simple and focused changes\n- Preserves all xfail functionality\n\nCons:\n- Small performance overhead from re-evaluation\n- Slightly more complex state management"
+      },
+      "B": {
+        "status": "not needed",
+        "note": "[Marker State Tracking]\nAlternative approach using explicit state tracking:\nNot needed as Trial A works perfectly."
+      },
+      "C": {
+        "status": "not needed",
+        "note": "[Late Binding XFail]\nAlternative approach with delayed evaluation:\nNot needed as Trial A works perfectly."
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "instance_id": "pallets__flask-4992",
+  "model_patch": "diff --git a/tests/test_config.py b/tests/test_config.py\nindex 76c5d272..17b022b4 100644\n--- a/tests/test_config.py\n+++ b/tests/test_config.py\n@@ -37,6 +37,16 @@ def test_config_from_file():\n     common_object_test(app)\n \n \n+def test_config_from_file_binary_mode(tmp_path):\n+    config_path = tmp_path / \"config.bin\"\n+    config_data = b'{\"SECRET_KEY\": \"devkey\", \"TEST_KEY\": \"foo\"}'\n+    config_path.write_bytes(config_data)\n+    \n+    app = flask.Flask(__name__)\n+    app.config.from_file(str(config_path), load=json.loads, mode=\"rb\")\n+    common_object_test(app)\n+\n+\n def test_from_prefixed_env(monkeypatch):\n     monkeypatch.setenv(\"FLASK_STRING\", \"value\")\n     monkeypatch.setenv(\"FLASK_BOOL\", \"true\")\n@@ -246,4 +256,4 @@ def test_from_pyfile_weird_encoding(tmpdir, encoding):\n     app = flask.Flask(__name__)\n     app.config.from_pyfile(str(f))\n     value = app.config[\"TEST_VALUE\"]\n-    assert value == \"f\u00f6\u00f6\"\n+    assert value == \"f\u00f6\u00f6\"\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-13028",
+  "model_patch": "diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py\nindex ce18098fd2..5f0bca0f97 100644\n--- a/django/db/models/sql/query.py\n+++ b/django/db/models/sql/query.py\n@@ -1124,7 +1124,7 @@ class Query(BaseExpression):\n \n     def check_filterable(self, expression):\n         \"\"\"Raise an error if expression cannot be used in a WHERE clause.\"\"\"\n-        if not getattr(expression, 'filterable', True):\n+        if isinstance(expression, BaseExpression) and not getattr(expression, 'filterable', True):\n             raise NotSupportedError(\n                 expression.__class__.__name__ + ' is disallowed in the filter '\n                 'clause.'\n@@ -2411,4 +2411,4 @@ class JoinPromoter:\n             # and again we could safely demote to INNER.\n         query.promote_joins(to_promote)\n         query.demote_joins(to_demote)\n-        return to_demote\n+        return to_demote\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

@@ -1,0 +1,88 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 7d226955d5..df8480aa66 100644
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -91,6 +91,21 @@ class DeconstructableSerializer(BaseSerializer):
+     @staticmethod
+     def _serialize_path(path):
+         module, name = path.rsplit(".", 1)
++        
++        # Handle inner classes
++        if '.' in name:
++            # For inner classes, import the module but keep the full path
++            parts = path.split('.')
++            # Find the module part (everything before the first class)
++            for i in range(len(parts)):
++                if parts[i][0].isupper():
++                    module = '.'.join(parts[:i])
++                    break
++            else:
++                module = '.'.join(parts[:-1])
++            return path, {"import %s" % module}
++        
++        # Special case for django.db.models
+         if module == "django.db.models":
+             imports = {"from django.db import models"}
+             name = "models.%s" % name
+@@ -337,4 +352,4 @@ def serializer_factory(value):
+         "Cannot serialize: %r\nThere are some values Django cannot serialize into "
+         "migration files.\nFor more, see https://docs.djangoproject.com/en/%s/"
+         "topics/migrations/#migration-serializing" % (value, get_docs_version())
+-    )
++    )
+\ No newline at end of file
+diff --git a/tests/migrations/test_inner_classes.py b/tests/migrations/test_inner_classes.py
+new file mode 100644
+index 0000000000..1cac9e7c12
+--- /dev/null
++++ b/tests/migrations/test_inner_classes.py
+@@ -0,0 +1,28 @@
++from django.db import migrations, models
++from django.test import SimpleTestCase, override_settings
++from django.db.migrations.writer import MigrationWriter
++
++# Configure test settings
++from django.conf import settings
++if not settings.configured:
++    from tests.migrations.test_settings import *
++    settings.configure(**locals())
++
++class OuterClass:
++    class InnerField(models.CharField):
++        pass
++
++class ModelWithInnerField(models.Model):
++    field = OuterClass.InnerField(max_length=20)
++
++class InnerClassSerializationTests(SimpleTestCase):
++    def test_inner_field_serialization(self):
++        """
++        Test that inner field classes are properly serialized with their full path.
++        """
++        field = ModelWithInnerField._meta.get_field('field')
++        string, imports = MigrationWriter.serialize(field)
++        
++        # The serialized string should contain the full path including the outer class
++        self.assertIn('OuterClass.InnerField', string)
++        self.assertIn('import tests.migrations.test_inner_classes', imports)
+\ No newline at end of file
+diff --git a/tests/migrations/test_settings.py b/tests/migrations/test_settings.py
+new file mode 100644
+index 0000000000..3b502c0011
+--- /dev/null
++++ b/tests/migrations/test_settings.py
+@@ -0,0 +1,14 @@
++DATABASES = {
++    'default': {
++        'ENGINE': 'django.db.backends.sqlite3',
++        'NAME': ':memory:',
++    }
++}
++
++INSTALLED_APPS = [
++    'django.contrib.contenttypes',
++    'django.contrib.auth',
++    'tests.migrations',
++]
++
++SECRET_KEY = 'dummy'

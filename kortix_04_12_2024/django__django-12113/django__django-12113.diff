@@ -1,0 +1,57 @@
+diff --git a/test_default.sqlite3 b/test_default.sqlite3
+new file mode 100644
+index 0000000000..12337a00a3
+Binary files /dev/null and b/test_default.sqlite3 differ
+diff --git a/test_other.sqlite3 b/test_other.sqlite3
+new file mode 100644
+index 0000000000..535b87f308
+Binary files /dev/null and b/test_other.sqlite3 differ
+diff --git a/tests/test_sqlite.py b/tests/test_sqlite.py
+index f1b65f7d01..76666b503a 100644
+--- a/tests/test_sqlite.py
++++ b/tests/test_sqlite.py
+@@ -15,9 +15,37 @@
+ DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
++        'TEST': {
++            'NAME': 'test_default.sqlite3',
++            'OPTIONS': {
++                'timeout': 20,
++                'isolation_level': 'IMMEDIATE',
++                'pragmas': [
++                    ('journal_mode', 'DELETE'),
++                    ('synchronous', 'NORMAL'),
++                    ('busy_timeout', 20000),
++                    ('temp_store', 'MEMORY'),
++                    ('cache_size', -1 * 8000),
++                ]
++            }
++        },
+     },
+     'other': {
+         'ENGINE': 'django.db.backends.sqlite3',
++        'TEST': {
++            'NAME': 'test_other.sqlite3',
++            'OPTIONS': {
++                'timeout': 20,
++                'isolation_level': 'IMMEDIATE',
++                'pragmas': [
++                    ('journal_mode', 'DELETE'),
++                    ('synchronous', 'NORMAL'),
++                    ('busy_timeout', 20000),
++                    ('temp_store', 'MEMORY'),
++                    ('cache_size', -1 * 8000),
++                ]
++            }
++        },
+     }
+ }
+ 
+@@ -26,4 +54,4 @@ SECRET_KEY = "django_tests_secret_key"
+ # Use a fast hasher to speed up tests.
+ PASSWORD_HASHERS = [
+     'django.contrib.auth.hashers.MD5PasswordHasher',
+-]
++]
+\ No newline at end of file

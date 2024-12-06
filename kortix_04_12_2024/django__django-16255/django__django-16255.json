@@ -1,0 +1,5 @@
+{
+  "instance_id": "django__django-16255",
+  "model_patch": "diff --git a/django/contrib/sitemaps/__init__.py b/django/contrib/sitemaps/__init__.py\nindex 27756d9d96..8076c09953 100644\n--- a/django/contrib/sitemaps/__init__.py\n+++ b/django/contrib/sitemaps/__init__.py\n@@ -168,7 +168,7 @@ class Sitemap:\n         if callable(self.lastmod):\n             try:\n                 return max([self.lastmod(item) for item in self.items()])\n-            except TypeError:\n+            except (TypeError, ValueError):\n                 return None\n         else:\n             return self.lastmod\n@@ -255,4 +255,4 @@ class GenericSitemap(Sitemap):\n                 .values_list(self.date_field, flat=True)\n                 .first()\n             )\n-        return None\n+        return None\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

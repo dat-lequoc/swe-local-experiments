@@ -1,0 +1,241 @@
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 5c2266ca1d..2e756316dc 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -9,7 +9,14 @@ from django.core.checks import Error, Tags, register
+ 
+ @register(Tags.models)
+ def check_all_models(app_configs=None, **kwargs):
+-    db_table_models = defaultdict(list)
++    from django.db import router
++
++    def get_model_database(model):
++        """Helper to get the database for a model using the router"""
++        return router.db_for_write(model) or 'default'
++
++    # Use nested defaultdict to group by database then table
++    db_table_models = defaultdict(lambda: defaultdict(list))
+     indexes = defaultdict(list)
+     constraints = defaultdict(list)
+     errors = []
+@@ -19,7 +26,8 @@ def check_all_models(app_configs=None, **kwargs):
+         models = chain.from_iterable(app_config.get_models() for app_config in app_configs)
+     for model in models:
+         if model._meta.managed and not model._meta.proxy:
+-            db_table_models[model._meta.db_table].append(model._meta.label)
++            db_name = get_model_database(model)
++            db_table_models[db_name][model._meta.db_table].append(model._meta.label)
+         if not inspect.ismethod(model.check):
+             errors.append(
+                 Error(
+@@ -35,16 +43,17 @@ def check_all_models(app_configs=None, **kwargs):
+             indexes[model_index.name].append(model._meta.label)
+         for model_constraint in model._meta.constraints:
+             constraints[model_constraint.name].append(model._meta.label)
+-    for db_table, model_labels in db_table_models.items():
+-        if len(model_labels) != 1:
+-            errors.append(
+-                Error(
+-                    "db_table '%s' is used by multiple models: %s."
+-                    % (db_table, ', '.join(db_table_models[db_table])),
+-                    obj=db_table,
+-                    id='models.E028',
++    for db_name, tables in db_table_models.items():
++        for db_table, model_labels in tables.items():
++            if len(model_labels) != 1:
++                errors.append(
++                    Error(
++                        "db_table '%s' is used by multiple models in database '%s': %s."
++                        % (db_table, db_name, ', '.join(model_labels)),
++                        obj=db_table,
++                        id='models.E028',
++                    )
+                 )
+-            )
+     for index_name, model_labels in indexes.items():
+         if len(model_labels) > 1:
+             model_labels = set(model_labels)
+@@ -195,4 +204,4 @@ def _check_lazy_references(apps, ignore=None):
+ 
+ @register(Tags.models)
+ def check_lazy_references(app_configs=None, **kwargs):
+-    return _check_lazy_references(apps)
++    return _check_lazy_references(apps)
+\ No newline at end of file
+diff --git a/tests/model_validation/__init__.py b/tests/model_validation/__init__.py
+new file mode 100644
+index 0000000000..8b13789179
+--- /dev/null
++++ b/tests/model_validation/__init__.py
+@@ -0,0 +1 @@
++
+diff --git a/tests/model_validation/test_model_checks.py b/tests/model_validation/test_model_checks.py
+new file mode 100644
+index 0000000000..a4d9f054fb
+--- /dev/null
++++ b/tests/model_validation/test_model_checks.py
+@@ -0,0 +1,163 @@
++from django.core.checks import Error
++from django.db import models
++from django.test import TestCase
++from django.test.utils import override_settings
++from django.core.checks import run_checks
++
++"""Test cases for model table name validation."""
++
++from django.test.utils import override_settings
++from django.core.checks import run_checks
++from django.test import TestCase
++from django.db import models
++
++class TestRouter:
++    """Router for testing table name validation across databases."""
++    def db_for_read(self, model, **hints):
++        if model._meta.app_label == 'model_validation':
++            if model._meta.object_name == 'ModelOne':
++                return 'other_db'
++            elif model._meta.object_name == 'ModelTwo':
++                return 'default'
++        return None
++
++    def db_for_write(self, model, **hints):
++        if model._meta.app_label == 'model_validation':
++            if model._meta.object_name == 'ModelOne':
++                return 'other_db'
++            elif model._meta.object_name == 'ModelTwo':
++                return 'default'
++        return None
++
++    def allow_migrate(self, db, app_label, model_name=None, **hints):
++        return True
++
++class TestRouter:
++    """Router for testing table name validation across databases."""
++    def db_for_read(self, model, **hints):
++        if model._meta.app_label == 'model_validation':
++            return 'other' if model._meta.object_name == 'ModelOne' else 'default'
++        return None
++
++    def db_for_write(self, model, **hints):
++        if model._meta.app_label == 'model_validation':
++            return 'other' if model._meta.object_name == 'ModelOne' else 'default'
++        return None
++
++    def allow_migrate(self, db, app_label, model_name=None, **hints):
++        return True
++
++class TableNameValidationTests(TestCase):
++    databases = {'default', 'other'}
++    
++    def setUp(self):
++        super().setUp()
++        # Clear app registry to avoid model conflicts
++        from django.apps import apps
++        apps.all_models['model_validation'] = {}
++        apps.clear_cache()
++
++    @override_settings(
++        DATABASE_ROUTERS=['model_validation.test_model_checks.TestRouter'],
++        DATABASES={
++            'default': {'ENGINE': 'django.db.backends.sqlite3'},
++            'other': {'ENGINE': 'django.db.backends.sqlite3'},
++        }
++    )
++    def test_same_table_different_db(self):
++        """Test that same table name is allowed in different databases."""
++        class ModelOne(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_table'
++
++        class ModelTwo(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_table'
++
++        errors = run_checks()
++        table_errors = [e for e in errors if e.id == 'models.E028']
++        self.assertEqual(len(table_errors), 0)
++
++    def test_same_table_same_db(self):
++        """Test that same table name is not allowed in the same database."""
++        class ModelThree(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_db_table'
++
++        class ModelFour(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_db_table'
++
++        errors = run_checks()
++        table_errors = [e for e in errors if e.id == 'models.E028']
++        self.assertEqual(len(table_errors), 1)
++        self.assertIn('same_db_table', table_errors[0].msg)
++        self.assertIn('default', table_errors[0].msg)
++
++    @override_settings(
++        DATABASE_ROUTERS=['model_validation.test_model_checks.TestRouter'],
++        DATABASES={
++            'default': {'ENGINE': 'django.db.backends.sqlite3'},
++            'db1': {'ENGINE': 'django.db.backends.sqlite3'},
++            'db2': {'ENGINE': 'django.db.backends.sqlite3'},
++        }
++    )
++    def test_same_table_different_db(self):
++        """Test that same table name is allowed in different databases."""
++        class ModelOne(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_table'
++
++        class ModelTwo(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_table'
++
++        errors = run_checks()
++        table_errors = [e for e in errors if e.id == 'models.E028']
++        self.assertEqual(len(table_errors), 0)
++
++    def test_same_table_same_db(self):
++        """Test that same table name is not allowed in the same database."""
++        class ModelThree(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_db_table'
++
++        class ModelFour(models.Model):
++            class Meta:
++                app_label = 'model_validation'
++                db_table = 'same_db_table'
++
++        errors = run_checks()
++        table_errors = [e for e in errors if e.id == 'models.E028']
++        self.assertEqual(len(table_errors), 1)
++        self.assertIn('same_db_table', table_errors[0].msg)
++        self.assertIn('default', table_errors[0].msg)
++
++    @override_settings(
++        DATABASE_ROUTERS=['model_validation.test_model_checks.TestRouter'],
++        DATABASES={
++            'default': {'ENGINE': 'django.db.backends.sqlite3'},
++            'db1': {'ENGINE': 'django.db.backends.sqlite3'},
++            'db2': {'ENGINE': 'django.db.backends.sqlite3'},
++        }
++    )
++    def test_same_table_different_db(self):
++        """Test that same table name is allowed in different databases."""
++        errors = run_checks()
++        table_errors = [e for e in errors if e.id == 'models.E028']
++        self.assertEqual(len(table_errors), 0)
++
++    def test_same_table_same_db(self):
++        """Test that same table name is not allowed in the same database."""
++        errors = run_checks()
++        table_errors = [e for e in errors if e.id == 'models.E028']
++        self.assertEqual(len(table_errors), 1)
++        self.assertIn('same_db_table', table_errors[0].msg)
++        self.assertIn('default', table_errors[0].msg)
+\ No newline at end of file

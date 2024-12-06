@@ -1,0 +1,54 @@
+diff --git a/django/core/checks/translation.py b/django/core/checks/translation.py
+index 138ed07ff8..d60ddfbb04 100644
+--- a/django/core/checks/translation.py
++++ b/django/core/checks/translation.py
+@@ -54,8 +54,26 @@ def check_setting_languages_bidi(app_configs, **kwargs):
+ 
+ @register(Tags.translation)
+ def check_language_settings_consistent(app_configs, **kwargs):
+-    """Error if language settings are not consistent with each other."""
+-    available_tags = {i for i, _ in settings.LANGUAGES} | {'en-us'}
+-    if settings.LANGUAGE_CODE not in available_tags:
+-        return [E004]
+-    return []
++    """
++    Check that LANGUAGE_CODE is in LANGUAGES or its base language is in LANGUAGES.
++    """
++    if not settings.LANGUAGE_CODE:
++        return []
++    
++    available_langs = {lang_code for lang_code, name in settings.LANGUAGES}
++    
++    # Check full language code
++    if settings.LANGUAGE_CODE in available_langs:
++        return []
++        
++    # Check base language code
++    if '-' in settings.LANGUAGE_CODE:
++        base_lang = settings.LANGUAGE_CODE.split('-')[0]
++        if base_lang in available_langs:
++            return []
++    
++    return [Error(
++        'You have provided a value for the LANGUAGE_CODE setting that is not in '
++        'the LANGUAGES setting.',
++        id='translation.E004',
++    )]
+\ No newline at end of file
+diff --git a/tests/check_framework/test_translation.py b/tests/check_framework/test_translation.py
+index 4cd79d803f..3fc8b20bef 100644
+--- a/tests/check_framework/test_translation.py
++++ b/tests/check_framework/test_translation.py
+@@ -84,3 +84,11 @@ class TranslationCheckTests(SimpleTestCase):
+             self.assertEqual(check_language_settings_consistent(None), [
+                 Error(msg, id='translation.E004'),
+             ])
++
++    def test_language_code_with_base_language(self):
++        """
++        Test that language codes with available base language pass check.
++        For example, 'de-at' should pass when 'de' is available.
++        """
++        with self.settings(LANGUAGE_CODE='de-at', LANGUAGES=[('de', 'German')]):
++            self.assertEqual(check_language_settings_consistent(None), [])
+\ No newline at end of file

@@ -1,0 +1,58 @@
+diff --git a/django/templatetags/static.py b/django/templatetags/static.py
+index 39712aaba0..b36c0f0a60 100644
+--- a/django/templatetags/static.py
++++ b/django/templatetags/static.py
+@@ -100,7 +100,15 @@ class StaticNode(template.Node):
+ 
+     def url(self, context):
+         path = self.path.resolve(context)
+-        return self.handle_simple(path)
++        url = self.handle_simple(path)
++        if url is None:
++            return url
++        if 'request' in context:
++            script_name = context['request'].META.get('SCRIPT_NAME', '')
++            if script_name:
++                script_name = script_name.rstrip('/')
++                return f'{script_name}{url}'
++        return url
+ 
+     def render(self, context):
+         url = self.url(context)
+@@ -164,4 +172,4 @@ def static(path):
+     Given a relative path to a static asset, return the absolute path to the
+     asset.
+     """
+-    return StaticNode.handle_simple(path)
++    return StaticNode.handle_simple(path)
+\ No newline at end of file
+diff --git a/tests/staticfiles_tests/test_templatetags.py b/tests/staticfiles_tests/test_templatetags.py
+index cd3f7d4bfa..d573e123e8 100644
+--- a/tests/staticfiles_tests/test_templatetags.py
++++ b/tests/staticfiles_tests/test_templatetags.py
+@@ -1,4 +1,6 @@
+-from django.test import override_settings
++from django.test import override_settings, RequestFactory
++from django import template
++from django.templatetags.static import StaticNode
+ 
+ from .cases import StaticFilesTestCase
+ 
+@@ -19,3 +21,16 @@ class TestTemplateTag(StaticFilesTestCase):
+         """
+         self.assertStaticRenders('a.html', 'a.html?a=b&amp;c=d')
+         self.assertStaticRenders('a.html', 'a.html?a=b&c=d', autoescape=False)
++
++    def test_template_tag_with_script_name(self):
++        """
++        The {% static %} template tag should respect SCRIPT_NAME from request.META
++        """
++        factory = RequestFactory()
++        request = factory.get('/')
++        request.META['SCRIPT_NAME'] = '/prefix'
++        context = {'request': request}
++        
++        node = StaticNode(None, template.Variable('"test/file.txt"'))
++        url = node.url(template.Context(context))
++        self.assertEqual(url, '/prefix/static/test/file.txt')
+\ No newline at end of file

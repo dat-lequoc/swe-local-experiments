@@ -1,0 +1,5 @@
+{
+  "instance_id": "matplotlib__matplotlib-23562",
+  "model_patch": "diff --git a/lib/mpl_toolkits/mplot3d/art3d.py b/lib/mpl_toolkits/mplot3d/art3d.py\nindex 8fe6e7a9c1..c34c9afd33 100644\n--- a/lib/mpl_toolkits/mplot3d/art3d.py\n+++ b/lib/mpl_toolkits/mplot3d/art3d.py\n@@ -867,7 +867,10 @@ class Poly3DCollection(PolyCollection):\n         self.stale = True\n \n     def get_facecolor(self):\n-        return self._facecolors2d\n+        try:\n+            return self._facecolors2d\n+        except AttributeError:\n+            return self._facecolor3d\n \n     def get_edgecolor(self):\n         return self._edgecolors2d\n@@ -929,4 +932,4 @@ def _zalpha(colors, zs):\n     norm = Normalize(min(zs), max(zs))\n     sats = 1 - norm(zs) * 0.7\n     rgba = np.broadcast_to(mcolors.to_rgba_array(colors), (len(zs), 4))\n-    return np.column_stack([rgba[:, :3], rgba[:, 3] * sats])\n+    return np.column_stack([rgba[:, :3], rgba[:, 3] * sats])\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

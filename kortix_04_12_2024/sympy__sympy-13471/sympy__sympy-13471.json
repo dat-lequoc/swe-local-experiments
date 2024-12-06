@@ -1,0 +1,5 @@
+{
+  "instance_id": "sympy__sympy-13471",
+  "model_patch": "diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py\nindex 7bc96e68eb..1bab3bc51b 100644\n--- a/sympy/core/numbers.py\n+++ b/sympy/core/numbers.py\n@@ -1041,8 +1041,10 @@ def __new__(cls, num, dps=None, prec=None, precision=None):\n             if type(num[1]) is str:\n                 # it's a hexadecimal (coming from a pickled object)\n                 # assume that it is in standard form\n+                # handle Python 2's 'L' suffix for backwards compatibility\n                 num = list(num)\n-                num[1] = long(num[1], 16)\n+                hex_str = num[1].rstrip('L')\n+                num[1] = int(hex_str, 16)\n                 _mpf_ = tuple(num)\n             else:\n                 if len(num) == 4:\n@@ -3868,4 +3870,4 @@ def sympify_complex(a):\n from .mul import Mul\n Mul.identity = One()\n from .add import Add\n-Add.identity = Zero()\n+Add.identity = Zero()\n\\ No newline at end of file\n",
+  "model_name_or_path": "KortixAI"
+}

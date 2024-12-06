@@ -1,0 +1,100 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index d610dc86f0..413a8539ac 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -2,6 +2,7 @@ import collections.abc
+ import copy
+ import datetime
+ import decimal
++import enum
+ import operator
+ import uuid
+ import warnings
+@@ -578,6 +579,8 @@ class Field(RegisterLookupMixin):
+         django.core.exceptions.ValidationError if the data can't be converted.
+         Return the converted value. Subclasses should override this.
+         """
++        if value is not None and isinstance(value, enum.Enum):
++            return value.value
+         return value
+ 
+     @cached_property
+@@ -792,6 +795,8 @@ class Field(RegisterLookupMixin):
+         """Perform preliminary non-db specific value checks and conversions."""
+         if isinstance(value, Promise):
+             value = value._proxy____cast()
++        if value is not None and isinstance(value, enum.Enum):
++            value = value.value
+         return value
+ 
+     def get_db_prep_value(self, value, connection, prepared=False):
+@@ -858,7 +863,12 @@ class Field(RegisterLookupMixin):
+         Return a string value of this field from the passed obj.
+         This is used by the serialization framework.
+         """
+-        return str(self.value_from_object(obj))
++        value = self.value_from_object(obj)
++        if value is not None:
++            if isinstance(value, enum.Enum):
++                return str(value.value)
++            return str(value)
++        return ''
+ 
+     def _get_flatchoices(self):
+         """Flattened version of choices tuple."""
+@@ -2418,4 +2428,4 @@ class SmallAutoField(AutoFieldMixin, SmallIntegerField):
+         return 'SmallAutoField'
+ 
+     def rel_db_type(self, connection):
+-        return SmallIntegerField().db_type(connection=connection)
++        return SmallIntegerField().db_type(connection=connection)
+\ No newline at end of file
+diff --git a/tests/model_fields/test_choices.py b/tests/model_fields/test_choices.py
+new file mode 100644
+index 0000000000..7e32e14a32
+--- /dev/null
++++ b/tests/model_fields/test_choices.py
+@@ -0,0 +1,43 @@
++from django.db import models
++from django.test import SimpleTestCase
++from django.utils.translation import gettext_lazy as _
++
++class TextChoiceEnum(models.TextChoices):
++    A = 'a', _('A')
++    B = 'b', _('B')
++
++class IntegerChoiceEnum(models.IntegerChoices):
++    ONE = 1, _('One')
++    TWO = 2, _('Two')
++
++class ChoiceModel(models.Model):
++    text_choice = models.CharField(max_length=1, choices=TextChoiceEnum.choices)
++    int_choice = models.IntegerField(choices=IntegerChoiceEnum.choices)
++
++    class Meta:
++        app_label = 'model_fields'
++
++class ChoicesTests(SimpleTestCase):
++    def test_text_choice_value_type(self):
++        instance = ChoiceModel(text_choice=TextChoiceEnum.A)
++        self.assertIsInstance(instance.text_choice, str)
++        self.assertEqual(instance.text_choice, 'a')
++        self.assertEqual(str(instance.text_choice), 'a')
++
++    def test_integer_choice_value_type(self):
++        instance = ChoiceModel(int_choice=IntegerChoiceEnum.ONE)
++        self.assertIsInstance(instance.int_choice, int)
++        self.assertEqual(instance.int_choice, 1)
++        self.assertEqual(str(instance.int_choice), '1')
++
++    def test_text_choice_assignment(self):
++        instance = ChoiceModel()
++        instance.text_choice = TextChoiceEnum.B
++        self.assertIsInstance(instance.text_choice, str)
++        self.assertEqual(instance.text_choice, 'b')
++
++    def test_integer_choice_assignment(self):
++        instance = ChoiceModel()
++        instance.int_choice = IntegerChoiceEnum.TWO
++        self.assertIsInstance(instance.int_choice, int)
++        self.assertEqual(instance.int_choice, 2)

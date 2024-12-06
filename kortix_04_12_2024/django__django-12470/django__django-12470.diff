@@ -1,0 +1,68 @@
+diff --git a/tests/model_inheritance/models.py b/tests/model_inheritance/models.py
+index a4f9cfe696..e0ca454278 100644
+--- a/tests/model_inheritance/models.py
++++ b/tests/model_inheritance/models.py
+@@ -181,7 +181,7 @@ class GrandParent(models.Model):
+     place = models.ForeignKey(Place, models.CASCADE, null=True, related_name='+')
+ 
+     class Meta:
+-        unique_together = ('first_name', 'last_name')
++        ordering = ['-id']
+ 
+ 
+ class Parent(GrandParent):
+@@ -193,4 +193,4 @@ class Child(Parent):
+ 
+ 
+ class GrandChild(Child):
+-    pass
++    pass
+\ No newline at end of file
+diff --git a/tests/model_inheritance/test_inheritance.py b/tests/model_inheritance/test_inheritance.py
+new file mode 100644
+index 0000000000..2d6bf4cfd3
+--- /dev/null
++++ b/tests/model_inheritance/test_inheritance.py
+@@ -0,0 +1,41 @@
++from django.test import TestCase
++from .models import Parent, Child, GrandParent, GrandChild
++
++class InheritanceOrderingTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        # Create some test data with unique emails
++        for i in range(5):
++            # Create objects through normal inheritance
++            grandchild = GrandChild.objects.create(
++                first_name=f'First{i}',
++                last_name=f'Last{i}',
++                email=f'grandchild{i}@example.com'
++            )
++
++    def test_child_inherits_parent_ordering(self):
++        """
++        Test that Child model correctly inherits Parent's ordering.
++        """
++        # Create some test data with unique emails
++        for i in range(3):
++            Child.objects.create(
++                first_name=f'First{i}',
++                last_name=f'Last{i}',
++                email=f'child{i}@example.com'
++            )
++        children = list(Child.objects.all())
++        self.assertTrue(all(
++            children[i].pk > children[i + 1].pk
++            for i in range(len(children) - 1)
++        ), "Child objects should be ordered by descending pk")
++
++    def test_grandchild_inherits_ordering(self):
++        """
++        Test that GrandChild model correctly inherits ordering through the inheritance chain.
++        """
++        grandchildren = list(GrandChild.objects.all())
++        self.assertTrue(all(
++            grandchildren[i].pk > grandchildren[i + 1].pk
++            for i in range(len(grandchildren) - 1)
++        ), "GrandChild objects should be ordered by descending pk")
+\ No newline at end of file

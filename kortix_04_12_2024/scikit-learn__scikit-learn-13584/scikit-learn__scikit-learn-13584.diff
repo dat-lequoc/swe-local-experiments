@@ -1,0 +1,107 @@
+diff --git a/sklearn/base.py b/sklearn/base.py
+index 167baaf2b..0de550adf 100644
+--- a/sklearn/base.py
++++ b/sklearn/base.py
+@@ -10,6 +10,7 @@ import platform
+ import inspect
+ 
+ import numpy as np
++from ._config import config_context
+ 
+ from . import __version__
+ from sklearn.utils import _IS_32BIT
+@@ -68,7 +69,9 @@ def clone(estimator, safe=True):
+     for name in new_object_params:
+         param1 = new_object_params[name]
+         param2 = params_set[name]
+-        if param1 is not param2:
++        if ((isinstance(param1, np.ndarray) and isinstance(param2, np.ndarray) and
++             not np.array_equal(param1, param2)) or
++            (not isinstance(param1, np.ndarray) and param1 is not param2)):
+             raise RuntimeError('Cannot clone object %s, as the constructor '
+                                'either does not set or modifies parameter %s' %
+                                (estimator, name))
+@@ -239,8 +242,25 @@ class BaseEstimator:
+         N_CHAR_MAX = 700  # number of non-whitespace or newline chars
+         N_MAX_ELEMENTS_TO_SHOW = 30  # number of elements to show in sequences
+ 
++        def array_repr(arr):
++            # Helper function to properly represent numpy arrays
++            return f"array({np.array2string(arr, separator=', ')})"
++
++        class ArrayAwarePrettyPrinter(_EstimatorPrettyPrinter):
++            def _format_array_or_default(self, val, default):
++                if isinstance(val, np.ndarray) and isinstance(default, np.ndarray):
++                    return not np.array_equal(val, default)
++                elif isinstance(val, np.ndarray) or isinstance(default, np.ndarray):
++                    return True
++                return val != default
++
++            def _repr_array(self, arr):
++                if isinstance(arr, np.ndarray):
++                    return f"array({np.array2string(arr, separator=', ')})"
++                return repr(arr)
++
+         # use ellipsis for sequences with a lot of elements
+-        pp = _EstimatorPrettyPrinter(
++        pp = ArrayAwarePrettyPrinter(
+             compact=True, indent=1, indent_at_name=True,
+             n_max_elements_to_show=N_MAX_ELEMENTS_TO_SHOW)
+ 
+@@ -632,4 +652,4 @@ def is_outlier_detector(estimator):
+     out : bool
+         True if estimator is an outlier detector and False otherwise.
+     """
+-    return getattr(estimator, "_estimator_type", None) == "outlier_detector"
++    return getattr(estimator, "_estimator_type", None) == "outlier_detector"
+\ No newline at end of file
+diff --git a/sklearn/tests/test_base.py b/sklearn/tests/test_base.py
+index 316b01ff3..9defbd14a 100644
+--- a/sklearn/tests/test_base.py
++++ b/sklearn/tests/test_base.py
+@@ -14,6 +14,7 @@ from sklearn.utils.testing import assert_no_warnings
+ from sklearn.utils.testing import assert_warns_message
+ from sklearn.utils.testing import assert_dict_equal
+ from sklearn.utils.testing import ignore_warnings
++from sklearn._config import config_context
+ 
+ from sklearn.base import BaseEstimator, clone, is_classifier
+ from sklearn.svm import SVC
+@@ -172,6 +173,15 @@ def test_clone_nan():
+     assert clf.empty is clf2.empty
+ 
+ 
++def test_clone_numpy_array_params():
++    # Test that clone works correctly with numpy array parameters
++    from sklearn.linear_model import LogisticRegressionCV
++    import numpy as np
++    clf = LogisticRegressionCV(Cs=np.array([0.1, 1]))
++    clf2 = clone(clf)
++    assert np.array_equal(clf.Cs, clf2.Cs)
++    assert clf.Cs is not clf2.Cs
++
+ def test_clone_sparse_matrices():
+     sparse_matrix_classes = [
+         getattr(sp, name)
+@@ -206,6 +216,14 @@ def test_repr():
+ 
+     some_est = T(a=["long_params"] * 1000)
+     assert_equal(len(repr(some_est)), 495)
++    
++    # Test numpy array parameter representation
++    from sklearn.linear_model import LogisticRegressionCV
++    import numpy as np
++    with config_context(print_changed_only=True):
++        clf = LogisticRegressionCV(Cs=np.array([0.1, 1]))
++        repr_str = repr(clf)
++        assert 'Cs=array([0.1, 1. ])' in repr_str
+ 
+ 
+ def test_str():
+@@ -508,4 +526,4 @@ def test_regressormixin_score_multioutput():
+            "custom scorer with 'metrics.make_scorer' (the "
+            "built-in scorer 'r2' uses "
+            "multioutput='uniform_average').")
+-    assert_warns_message(FutureWarning, msg, reg.score, X, y)
++    assert_warns_message(FutureWarning, msg, reg.score, X, y)
+\ No newline at end of file

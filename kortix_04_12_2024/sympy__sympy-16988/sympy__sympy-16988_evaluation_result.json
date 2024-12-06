@@ -1,0 +1,108 @@
+{
+  "instance_id": "sympy__sympy-16988",
+  "test_result": {
+    "apply_patch_output": "APPLY_PATCH_PASS\nChecking patch sympy/sets/sets.py...\nChecking patch sympy/utilities/pytest.py...\nApplied patch sympy/sets/sets.py cleanly.\nApplied patch sympy/utilities/pytest.py cleanly.\n",
+    "test_output": "+ source /opt/miniconda3/bin/activate\n++ _CONDA_ROOT=/opt/miniconda3\n++ . /opt/miniconda3/etc/profile.d/conda.sh\n+++ export CONDA_EXE=/opt/miniconda3/bin/conda\n+++ CONDA_EXE=/opt/miniconda3/bin/conda\n+++ export _CE_M=\n+++ _CE_M=\n+++ export _CE_CONDA=\n+++ _CE_CONDA=\n+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+++ '[' -z x ']'\n++ conda activate\n++ local cmd=activate\n++ case \"$cmd\" in\n++ __conda_activate activate\n++ '[' -n '' ']'\n++ local ask_conda\n+++ PS1=\n+++ __conda_exe shell.posix activate\n+++ /opt/miniconda3/bin/conda shell.posix activate\n++ ask_conda='PS1='\\''(base) '\\''\nexport PATH='\\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3'\\''\nexport CONDA_SHLVL='\\''2'\\''\nexport CONDA_DEFAULT_ENV='\\''base'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(base) '\\''\nexport CONDA_PREFIX_1='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n++ eval 'PS1='\\''(base) '\\''\nexport PATH='\\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3'\\''\nexport CONDA_SHLVL='\\''2'\\''\nexport CONDA_DEFAULT_ENV='\\''base'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(base) '\\''\nexport CONDA_PREFIX_1='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n+++ PS1='(base) '\n+++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n+++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n+++ export CONDA_PREFIX=/opt/miniconda3\n+++ CONDA_PREFIX=/opt/miniconda3\n+++ export CONDA_SHLVL=2\n+++ CONDA_SHLVL=2\n+++ export CONDA_DEFAULT_ENV=base\n+++ CONDA_DEFAULT_ENV=base\n+++ export 'CONDA_PROMPT_MODIFIER=(base) '\n+++ CONDA_PROMPT_MODIFIER='(base) '\n+++ export CONDA_PREFIX_1=/opt/miniconda3/envs/testbed\n+++ CONDA_PREFIX_1=/opt/miniconda3/envs/testbed\n+++ export CONDA_EXE=/opt/miniconda3/bin/conda\n+++ CONDA_EXE=/opt/miniconda3/bin/conda\n+++ export _CE_M=\n+++ _CE_M=\n+++ export _CE_CONDA=\n+++ _CE_CONDA=\n+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n++ __conda_hashr\n++ '[' -n '' ']'\n++ '[' -n '' ']'\n++ hash -r\n+ conda activate testbed\n+ local cmd=activate\n+ case \"$cmd\" in\n+ __conda_activate activate testbed\n+ '[' -n '' ']'\n+ local ask_conda\n++ PS1='(base) '\n++ __conda_exe shell.posix activate testbed\n++ /opt/miniconda3/bin/conda shell.posix activate testbed\n+ ask_conda='PS1='\\''(testbed) '\\''\nexport PATH='\\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_SHLVL='\\''3'\\''\nexport CONDA_DEFAULT_ENV='\\''testbed'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(testbed) '\\''\nexport CONDA_PREFIX_2='\\''/opt/miniconda3'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n+ eval 'PS1='\\''(testbed) '\\''\nexport PATH='\\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_SHLVL='\\''3'\\''\nexport CONDA_DEFAULT_ENV='\\''testbed'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(testbed) '\\''\nexport CONDA_PREFIX_2='\\''/opt/miniconda3'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n++ PS1='(testbed) '\n++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed\n++ CONDA_PREFIX=/opt/miniconda3/envs/testbed\n++ export CONDA_SHLVL=3\n++ CONDA_SHLVL=3\n++ export CONDA_DEFAULT_ENV=testbed\n++ CONDA_DEFAULT_ENV=testbed\n++ export 'CONDA_PROMPT_MODIFIER=(testbed) '\n++ CONDA_PROMPT_MODIFIER='(testbed) '\n++ export CONDA_PREFIX_2=/opt/miniconda3\n++ CONDA_PREFIX_2=/opt/miniconda3\n++ export CONDA_EXE=/opt/miniconda3/bin/conda\n++ CONDA_EXE=/opt/miniconda3/bin/conda\n++ export _CE_M=\n++ _CE_M=\n++ export _CE_CONDA=\n++ _CE_CONDA=\n++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+ __conda_hashr\n+ '[' -n '' ']'\n+ '[' -n '' ']'\n+ hash -r\n+ cd /testbed\n+ git config --global --add safe.directory /testbed\n+ cd /testbed\n+ git status\n+ git show\n+ git diff e727339af6dc22321b00f52d971cda39e4ce89fb\n+ source /opt/miniconda3/bin/activate\n++ _CONDA_ROOT=/opt/miniconda3\n++ . /opt/miniconda3/etc/profile.d/conda.sh\n+++ export CONDA_EXE=/opt/miniconda3/bin/conda\n+++ CONDA_EXE=/opt/miniconda3/bin/conda\n+++ export _CE_M=\n+++ _CE_M=\n+++ export _CE_CONDA=\n+++ _CE_CONDA=\n+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+++ '[' -z x ']'\n++ conda activate\n++ local cmd=activate\n++ case \"$cmd\" in\n++ __conda_activate activate\n++ '[' -n '' ']'\n++ local ask_conda\n+++ PS1='(testbed) '\n+++ __conda_exe shell.posix activate\n+++ /opt/miniconda3/bin/conda shell.posix activate\n++ ask_conda='PS1='\\''(base) '\\''\nexport PATH='\\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3'\\''\nexport CONDA_SHLVL='\\''4'\\''\nexport CONDA_DEFAULT_ENV='\\''base'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(base) '\\''\nexport CONDA_PREFIX_3='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n++ eval 'PS1='\\''(base) '\\''\nexport PATH='\\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3'\\''\nexport CONDA_SHLVL='\\''4'\\''\nexport CONDA_DEFAULT_ENV='\\''base'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(base) '\\''\nexport CONDA_PREFIX_3='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n+++ PS1='(base) '\n+++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n+++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n+++ export CONDA_PREFIX=/opt/miniconda3\n+++ CONDA_PREFIX=/opt/miniconda3\n+++ export CONDA_SHLVL=4\n+++ CONDA_SHLVL=4\n+++ export CONDA_DEFAULT_ENV=base\n+++ CONDA_DEFAULT_ENV=base\n+++ export 'CONDA_PROMPT_MODIFIER=(base) '\n+++ CONDA_PROMPT_MODIFIER='(base) '\n+++ export CONDA_PREFIX_3=/opt/miniconda3/envs/testbed\n+++ CONDA_PREFIX_3=/opt/miniconda3/envs/testbed\n+++ export CONDA_EXE=/opt/miniconda3/bin/conda\n+++ CONDA_EXE=/opt/miniconda3/bin/conda\n+++ export _CE_M=\n+++ _CE_M=\n+++ export _CE_CONDA=\n+++ _CE_CONDA=\n+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n++ __conda_hashr\n++ '[' -n '' ']'\n++ '[' -n '' ']'\n++ hash -r\n+ conda activate testbed\n+ local cmd=activate\n+ case \"$cmd\" in\n+ __conda_activate activate testbed\n+ '[' -n '' ']'\n+ local ask_conda\n++ PS1='(base) '\n++ __conda_exe shell.posix activate testbed\n++ /opt/miniconda3/bin/conda shell.posix activate testbed\n+ ask_conda='PS1='\\''(testbed) '\\''\nexport PATH='\\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_SHLVL='\\''5'\\''\nexport CONDA_DEFAULT_ENV='\\''testbed'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(testbed) '\\''\nexport CONDA_PREFIX_4='\\''/opt/miniconda3'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n+ eval 'PS1='\\''(testbed) '\\''\nexport PATH='\\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\\''\nexport CONDA_PREFIX='\\''/opt/miniconda3/envs/testbed'\\''\nexport CONDA_SHLVL='\\''5'\\''\nexport CONDA_DEFAULT_ENV='\\''testbed'\\''\nexport CONDA_PROMPT_MODIFIER='\\''(testbed) '\\''\nexport CONDA_PREFIX_4='\\''/opt/miniconda3'\\''\nexport CONDA_EXE='\\''/opt/miniconda3/bin/conda'\\''\nexport _CE_M='\\'''\\''\nexport _CE_CONDA='\\'''\\''\nexport CONDA_PYTHON_EXE='\\''/opt/miniconda3/bin/python'\\'''\n++ PS1='(testbed) '\n++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed\n++ CONDA_PREFIX=/opt/miniconda3/envs/testbed\n++ export CONDA_SHLVL=5\n++ CONDA_SHLVL=5\n++ export CONDA_DEFAULT_ENV=testbed\n++ CONDA_DEFAULT_ENV=testbed\n++ export 'CONDA_PROMPT_MODIFIER=(testbed) '\n++ CONDA_PROMPT_MODIFIER='(testbed) '\n++ export CONDA_PREFIX_4=/opt/miniconda3\n++ CONDA_PREFIX_4=/opt/miniconda3\n++ export CONDA_EXE=/opt/miniconda3/bin/conda\n++ CONDA_EXE=/opt/miniconda3/bin/conda\n++ export _CE_M=\n++ _CE_M=\n++ export _CE_CONDA=\n++ _CE_CONDA=\n++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python\n+ __conda_hashr\n+ '[' -n '' ']'\n+ '[' -n '' ']'\n+ hash -r\n+ python -m pip install -e .\nWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv\n+ git checkout e727339af6dc22321b00f52d971cda39e4ce89fb sympy/sets/tests/test_sets.py\nUpdated 0 paths from 3be1a44635\n+ git apply -v -\nChecking patch sympy/sets/tests/test_sets.py...\nApplied patch sympy/sets/tests/test_sets.py cleanly.\n+ PYTHONWARNINGS=ignore::UserWarning,ignore::SyntaxWarning\n+ bin/test -C --verbose sympy/sets/tests/test_sets.py\n+ git checkout e727339af6dc22321b00f52d971cda39e4ce89fb sympy/sets/tests/test_sets.py\nUpdated 1 path from 3be1a44635\nOn branch master\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   sympy/sets/sets.py\n\tmodified:   sympy/utilities/pytest.py\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\ncommit e727339af6dc22321b00f52d971cda39e4ce89fb\nMerge: 6dd3966100 3c5b991bea\nAuthor: Francesco Bonazzi <franz.bonazzi@gmail.com>\nDate:   Fri Jun 7 09:45:12 2019 +0200\n\n    Merge pull request #16969 from kangzhiq/Added_functions_to_AC\n    \n    Added functions to ArrayComprehension\n\ndiff --git a/sympy/sets/sets.py b/sympy/sets/sets.py\nindex 03cf57a30b..2499791348 100644\n--- a/sympy/sets/sets.py\n+++ b/sympy/sets/sets.py\n@@ -1068,6 +1068,9 @@ def __new__(cls, *args, **kwargs):\n         # flatten inputs to merge intersections and iterables\n         args = _sympify(args)\n \n+        # Remove duplicates while preserving order\n+        args = list(dict.fromkeys(args))\n+\n         # Reduce sets using known rules\n         if evaluate:\n             args = list(cls._new_args_filter(args))\n@@ -1262,6 +1265,9 @@ def __new__(cls, *args, **kwargs):\n         # flatten inputs to merge intersections and iterables\n         args = _sympify(args)\n \n+        # Remove duplicates while preserving order\n+        args = list(dict.fromkeys(args))\n+\n         # Reduce sets using known rules\n         if evaluate:\n             args = list(cls._new_args_filter(args))\n@@ -2098,4 +2104,4 @@ def set_pow(x, y):\n \n def set_function(f, x):\n     from sympy.sets.handlers.functions import _set_function\n-    return _set_function(f, x)\n+    return _set_function(f, x)\n\\ No newline at end of file\ndiff --git a/sympy/utilities/pytest.py b/sympy/utilities/pytest.py\nindex aa7db99d2f..0ed480e771 100644\n--- a/sympy/utilities/pytest.py\n+++ b/sympy/utilities/pytest.py\n@@ -197,7 +197,11 @@ def warns(warningcls, **kwargs):\n \n \n else:\n-    XFAIL = py.test.mark.xfail\n+    try:\n+        import pytest\n+        XFAIL = pytest.mark.xfail\n+    except ImportError:\n+        XFAIL = None\n     slow = py.test.mark.slow\n \n     def SKIP(reason):\n@@ -281,4 +285,4 @@ def ignore_warnings(warningcls):\n     # Reissue any warnings that we aren't testing for\n     for w in warnrec:\n         if not issubclass(w.category, warningcls):\n-            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)\n+            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)\n\\ No newline at end of file\nObtaining file:///testbed\n  Preparing metadata (setup.py): started\n  Preparing metadata (setup.py): finished with status 'done'\nRequirement already satisfied: mpmath>=0.19 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from sympy==1.5.dev0) (1.3.0)\nInstalling collected packages: sympy\n  Attempting uninstall: sympy\n    Found existing installation: sympy 1.5.dev0\n    Uninstalling sympy-1.5.dev0:\n      Successfully uninstalled sympy-1.5.dev0\n  Running setup.py develop for sympy\nSuccessfully installed sympy-1.5.dev0\n============================= test process starts ==============================\nexecutable:         /opt/miniconda3/envs/testbed/bin/python  (3.9.19-final-0) [CPython]\narchitecture:       64-bit\ncache:              no\nground types:       python \nnumpy:              None\nrandom seed:        6873645\nhash randomization: on (PYTHONHASHSEED=1298044854)\n\nsympy/sets/tests/test_sets.py[78] \ntest_imageset F\ntest_interval_arguments ok\ntest_interval_symbolic_end_points ok\ntest_union ok\ntest_union_iter ok\ntest_difference ok\ntest_Complement ok\ntest_complement ok\ntest_intersect1 ok\ntest_intersection ok\ntest_issue_9623 ok\ntest_is_disjoint ok\ntest_ProductSet_of_single_arg_is_arg ok\ntest_interval_subs ok\ntest_interval_to_mpi ok\ntest_measure ok\ntest_is_subset ok\ntest_is_proper_subset ok\ntest_is_superset ok\ntest_is_proper_superset ok\ntest_contains ok\ntest_interval_symbolic ok\ntest_union_contains ok\ntest_is_number ok\ntest_Interval_is_left_unbounded ok\ntest_Interval_is_right_unbounded ok\ntest_Interval_as_relational ok\ntest_Finite_as_relational ok\ntest_Union_as_relational ok\ntest_Intersection_as_relational ok\ntest_EmptySet ok\ntest_finite_basic ok\ntest_powerset ok\ntest_product_basic ok\ntest_real ok\ntest_supinf ok\ntest_universalset ok\ntest_Union_of_ProductSets_shares ok\ntest_Interval_free_symbols ok\ntest_image_interval ok\ntest_image_piecewise ok\ntest_image_Intersection f\ntest_image_FiniteSet ok\ntest_image_Union ok\ntest_image_EmptySet ok\ntest_issue_5724_7680 ok\ntest_boundary ok\ntest_boundary_Union ok\ntest_union_boundary_of_joining_sets f\ntest_boundary_ProductSet ok\ntest_boundary_ProductSet_line ok\ntest_is_open ok\ntest_is_closed ok\ntest_closure ok\ntest_interior ok\ntest_issue_7841 ok\ntest_Eq ok\ntest_SymmetricDifference ok\ntest_issue_9536 ok\ntest_issue_9637 ok\ntest_issue_9808 f\ntest_issue_9956 ok\ntest_issue_Symbol_inter ok\ntest_issue_11827 ok\ntest_issue_10113 ok\ntest_issue_10248 ok\ntest_issue_9447 ok\ntest_issue_10337 ok\ntest_issue_10326 ok\ntest_issue_2799 ok\ntest_issue_9706 ok\ntest_issue_8257 ok\ntest_issue_10931 ok\ntest_issue_11174 ok\ntest_finite_set_intersection ok\ntest_union_intersection_constructor ok\ntest_Union_contains ok\ntest_issue_16878b f                                                       [FAIL]\n\n\n________________________________ slowest tests _________________________________\ntest_image_interval - Took 47.999 seconds\ntest_issue_10113 - Took 55.779 seconds\n________________________________________________________________________________\n_________________ sympy/sets/tests/test_sets.py:test_imageset __________________\nTraceback (most recent call last):\n  File \"/testbed/sympy/sets/tests/test_sets.py\", line 24, in test_imageset\n    assert (1, r) in imageset(x, (x, x), S.Reals) != False\nAssertionError\n\n== tests finished: 73 passed, 1 failed, 4 expected to fail, in 113.19 seconds ==\nDO *NOT* COMMIT!\n",
+    "report": {
+      "patch_is_None": false,
+      "patch_exists": true,
+      "patch_successfully_applied": true,
+      "resolved": false,
+      "tests_status": {
+        "FAIL_TO_PASS": {
+          "success": [
+            "test_intersection"
+          ],
+          "failure": [
+            "test_imageset"
+          ]
+        },
+        "PASS_TO_PASS": {
+          "success": [
+            "test_interval_arguments",
+            "test_interval_symbolic_end_points",
+            "test_union",
+            "test_union_iter",
+            "test_difference",
+            "test_Complement",
+            "test_complement",
+            "test_intersect1",
+            "test_issue_9623",
+            "test_is_disjoint",
+            "test_ProductSet_of_single_arg_is_arg",
+            "test_interval_subs",
+            "test_interval_to_mpi",
+            "test_measure",
+            "test_is_subset",
+            "test_is_proper_subset",
+            "test_is_superset",
+            "test_is_proper_superset",
+            "test_contains",
+            "test_interval_symbolic",
+            "test_union_contains",
+            "test_is_number",
+            "test_Interval_is_left_unbounded",
+            "test_Interval_is_right_unbounded",
+            "test_Interval_as_relational",
+            "test_Finite_as_relational",
+            "test_Union_as_relational",
+            "test_Intersection_as_relational",
+            "test_EmptySet",
+            "test_finite_basic",
+            "test_powerset",
+            "test_product_basic",
+            "test_real",
+            "test_supinf",
+            "test_universalset",
+            "test_Union_of_ProductSets_shares",
+            "test_Interval_free_symbols",
+            "test_image_interval",
+            "test_image_piecewise",
+            "test_image_FiniteSet",
+            "test_image_Union",
+            "test_image_EmptySet",
+            "test_issue_5724_7680",
+            "test_boundary",
+            "test_boundary_Union",
+            "test_boundary_ProductSet",
+            "test_boundary_ProductSet_line",
+            "test_is_open",
+            "test_is_closed",
+            "test_closure",
+            "test_interior",
+            "test_issue_7841",
+            "test_Eq",
+            "test_SymmetricDifference",
+            "test_issue_9536",
+            "test_issue_9637",
+            "test_issue_9956",
+            "test_issue_Symbol_inter",
+            "test_issue_11827",
+            "test_issue_10113",
+            "test_issue_10248",
+            "test_issue_9447",
+            "test_issue_10337",
+            "test_issue_10326",
+            "test_issue_2799",
+            "test_issue_9706",
+            "test_issue_8257",
+            "test_issue_10931",
+            "test_issue_11174",
+            "test_finite_set_intersection",
+            "test_union_intersection_constructor",
+            "test_Union_contains"
+          ],
+          "failure": []
+        },
+        "FAIL_TO_FAIL": {
+          "success": [],
+          "failure": []
+        },
+        "PASS_TO_FAIL": {
+          "success": [],
+          "failure": []
+        }
+      }
+    }
+  }
+}
