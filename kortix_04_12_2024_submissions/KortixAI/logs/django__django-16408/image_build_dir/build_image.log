@@ -1,0 +1,263 @@
+2024-12-03 03:53:10,747 - INFO - Building image sweb.eval.x86_64.django__django-16408:latest
+Using dockerfile:
+FROM --platform=linux/x86_64 sweb.env.x86_64.c70909fdac4897d1c685df:latest
+
+COPY ./setup_repo.sh /root/
+RUN /bin/bash /root/setup_repo.sh
+
+WORKDIR /testbed/
+
+Adding (1) setup scripts to image build repo
+2024-12-03 03:53:10,747 - INFO - [SETUP SCRIPT] setup_repo.sh:
+#!/bin/bash
+set -euxo pipefail
+git clone -o origin https://github.com/django/django /testbed
+chmod -R 777 /testbed
+cd /testbed
+git reset --hard ef85b6bf0bc5a8b194f0724cf5bbedbcee402b96
+git remote remove origin
+source /opt/miniconda3/bin/activate
+conda activate testbed
+echo "Current environment: $CONDA_DEFAULT_ENV"
+python -m pip install -e .
+
+2024-12-03 03:53:10,747 - INFO - Building docker image sweb.eval.x86_64.django__django-16408:latest in logs/build_images/instances/sweb.eval.x86_64.django__django-16408__latest with platform linux/x86_64
+2024-12-03 03:53:10,752 - INFO - Step 1/4 : FROM --platform=linux/x86_64 sweb.env.x86_64.c70909fdac4897d1c685df:latest
+2024-12-03 03:53:10,752 - INFO - 
+2024-12-03 03:53:11,058 - INFO - ---> c3f3cc5ed097
+2024-12-03 03:53:11,059 - INFO - Step 2/4 : COPY ./setup_repo.sh /root/
+2024-12-03 03:53:11,059 - INFO - 
+2024-12-03 03:53:13,645 - INFO - ---> 818c130554b0
+2024-12-03 03:53:13,645 - INFO - Step 3/4 : RUN /bin/bash /root/setup_repo.sh
+2024-12-03 03:53:13,645 - INFO - 
+2024-12-03 03:53:14,422 - INFO - ---> Running in 0dd9b5819087
+2024-12-03 03:53:15,185 - INFO - + git clone -o origin https://github.com/django/django /testbed
+2024-12-03 03:53:15,188 - INFO - Cloning into '/testbed'...
+2024-12-03 03:53:55,336 - INFO - Updating files:  87% (6016/6864)
+2024-12-03 03:53:55,343 - INFO - Updating files:  88% (6041/6864)
+2024-12-03 03:53:55,359 - INFO - Updating files:  89% (6109/6864)
+2024-12-03 03:53:55,367 - INFO - Updating files:  90% (6178/6864)
+2024-12-03 03:53:55,374 - INFO - Updating files:  91% (6247/6864)
+2024-12-03 03:53:55,410 - INFO - Updating files:  92% (6315/6864)
+2024-12-03 03:53:55,417 - INFO - Updating files:  93% (6384/6864)
+2024-12-03 03:53:55,435 - INFO - Updating files:  94% (6453/6864)
+2024-12-03 03:53:55,444 - INFO - Updating files:  95% (6521/6864)
+2024-12-03 03:53:55,459 - INFO - Updating files:  96% (6590/6864)
+2024-12-03 03:53:55,469 - INFO - Updating files:  97% (6659/6864)
+2024-12-03 03:53:55,482 - INFO - Updating files:  98% (6727/6864)
+2024-12-03 03:53:55,489 - INFO - Updating files:  99% (6796/6864)
+2024-12-03 03:53:55,498 - INFO - Updating files: 100% (6864/6864)
+2024-12-03 03:53:55,499 - INFO - Updating files: 100% (6864/6864), done.
+2024-12-03 03:53:55,527 - INFO - + chmod -R 777 /testbed
+2024-12-03 03:53:55,819 - INFO - + cd /testbed
+2024-12-03 03:53:55,819 - INFO - + git reset --hard ef85b6bf0bc5a8b194f0724cf5bbedbcee402b96
+2024-12-03 03:53:56,895 - INFO - Updating files:  55% (3785/6881)
+2024-12-03 03:53:56,906 - INFO - Updating files:  56% (3854/6881)
+2024-12-03 03:53:56,925 - INFO - Updating files:  57% (3923/6881)
+2024-12-03 03:53:56,941 - INFO - Updating files:  58% (3991/6881)
+2024-12-03 03:53:56,958 - INFO - Updating files:  59% (4060/6881)
+2024-12-03 03:53:56,977 - INFO - Updating files:  60% (4129/6881)
+2024-12-03 03:53:56,988 - INFO - Updating files:  61% (4198/6881)
+2024-12-03 03:53:57,000 - INFO - Updating files:  62% (4267/6881)
+2024-12-03 03:53:57,010 - INFO - Updating files:  63% (4336/6881)
+2024-12-03 03:53:57,024 - INFO - Updating files:  64% (4404/6881)
+2024-12-03 03:53:57,041 - INFO - Updating files:  65% (4473/6881)
+2024-12-03 03:53:57,052 - INFO - Updating files:  66% (4542/6881)
+2024-12-03 03:53:57,060 - INFO - Updating files:  67% (4611/6881)
+2024-12-03 03:53:57,072 - INFO - Updating files:  68% (4680/6881)
+2024-12-03 03:53:57,083 - INFO - Updating files:  69% (4748/6881)
+2024-12-03 03:53:57,093 - INFO - Updating files:  70% (4817/6881)
+2024-12-03 03:53:57,103 - INFO - Updating files:  71% (4886/6881)
+2024-12-03 03:53:57,112 - INFO - Updating files:  72% (4955/6881)
+2024-12-03 03:53:57,122 - INFO - Updating files:  73% (5024/6881)
+2024-12-03 03:53:57,132 - INFO - Updating files:  74% (5092/6881)
+2024-12-03 03:53:57,141 - INFO - Updating files:  75% (5161/6881)
+2024-12-03 03:53:57,153 - INFO - Updating files:  76% (5230/6881)
+2024-12-03 03:53:57,162 - INFO - Updating files:  77% (5299/6881)
+2024-12-03 03:53:57,198 - INFO - Updating files:  78% (5368/6881)
+2024-12-03 03:53:57,248 - INFO - Updating files:  79% (5436/6881)
+2024-12-03 03:53:57,258 - INFO - Updating files:  80% (5505/6881)
+2024-12-03 03:53:57,268 - INFO - Updating files:  81% (5574/6881)
+2024-12-03 03:53:57,277 - INFO - Updating files:  82% (5643/6881)
+2024-12-03 03:53:57,284 - INFO - Updating files:  83% (5712/6881)
+2024-12-03 03:53:57,292 - INFO - Updating files:  84% (5781/6881)
+2024-12-03 03:53:57,298 - INFO - Updating files:  85% (5849/6881)
+2024-12-03 03:53:57,307 - INFO - Updating files:  86% (5918/6881)
+2024-12-03 03:53:57,316 - INFO - Updating files:  87% (5987/6881)
+2024-12-03 03:53:57,326 - INFO - Updating files:  88% (6056/6881)
+2024-12-03 03:53:57,336 - INFO - Updating files:  89% (6125/6881)
+2024-12-03 03:53:57,345 - INFO - Updating files:  90% (6193/6881)
+2024-12-03 03:53:57,352 - INFO - Updating files:  91% (6262/6881)
+2024-12-03 03:53:57,359 - INFO - Updating files:  92% (6331/6881)
+2024-12-03 03:53:57,367 - INFO - Updating files:  93% (6400/6881)
+2024-12-03 03:53:57,375 - INFO - Updating files:  94% (6469/6881)
+2024-12-03 03:53:57,382 - INFO - Updating files:  95% (6537/6881)
+2024-12-03 03:53:57,390 - INFO - Updating files:  96% (6606/6881)
+2024-12-03 03:53:57,399 - INFO - Updating files:  97% (6675/6881)
+2024-12-03 03:53:57,407 - INFO - Updating files:  98% (6744/6881)
+2024-12-03 03:53:57,415 - INFO - Updating files:  99% (6813/6881)
+2024-12-03 03:53:57,423 - INFO - Updating files: 100% (6881/6881)Updating files: 100% (6881/6881), done.
+2024-12-03 03:53:57,560 - INFO - HEAD is now at ef85b6bf0b Fixed #34192 -- Preserved callable storage when it returns default_storage.
+2024-12-03 03:53:57,567 - INFO - + git remote remove origin
+2024-12-03 03:53:57,668 - INFO - + source /opt/miniconda3/bin/activate
+2024-12-03 03:53:57,668 - INFO - ++ _CONDA_ROOT=/opt/miniconda3
+2024-12-03 03:53:57,669 - INFO - ++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
+2024-12-03 03:53:57,670 - INFO - +++++ dirname /opt/miniconda3/bin/conda
+2024-12-03 03:53:57,671 - INFO - ++++ dirname /opt/miniconda3/bin
+2024-12-03 03:53:57,672 - INFO - +++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
+2024-12-03 03:53:57,672 - INFO - +++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
+2024-12-03 03:53:57,673 - INFO - +++ PS1=
++++ __conda_exe shell.posix activate
+2024-12-03 03:53:57,673 - INFO - +++ /opt/miniconda3/bin/conda shell.posix activate
+2024-12-03 03:53:57,807 - INFO - ++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
+2024-12-03 03:53:57,808 - INFO - +++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
+2024-12-03 03:53:57,808 - INFO - + conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
+2024-12-03 03:53:57,808 - INFO - + local ask_conda
+2024-12-03 03:53:57,808 - INFO - ++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+2024-12-03 03:53:57,808 - INFO - ++ /opt/miniconda3/bin/conda shell.posix activate testbed
+2024-12-03 03:53:58,530 - INFO - + ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+2024-12-03 03:53:58,530 - INFO - + eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+2024-12-03 03:53:58,530 - INFO - export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+2024-12-03 03:53:58,530 - INFO - ++ PS1='(testbed) '
+2024-12-03 03:53:58,530 - INFO - ++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+2024-12-03 03:53:58,530 - INFO - ++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+2024-12-03 03:53:58,530 - INFO - ++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+2024-12-03 03:53:58,531 - INFO - ++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+2024-12-03 03:53:58,531 - INFO - ++ export CONDA_SHLVL=2
+2024-12-03 03:53:58,531 - INFO - ++ CONDA_SHLVL=2
+2024-12-03 03:53:58,531 - INFO - ++ export CONDA_DEFAULT_ENV=testbed
+2024-12-03 03:53:58,531 - INFO - ++ CONDA_DEFAULT_ENV=testbed
+2024-12-03 03:53:58,531 - INFO - ++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+2024-12-03 03:53:58,531 - INFO - ++ CONDA_PROMPT_MODIFIER='(testbed) '
+2024-12-03 03:53:58,531 - INFO - ++ export CONDA_PREFIX_1=/opt/miniconda3
+2024-12-03 03:53:58,531 - INFO - ++ CONDA_PREFIX_1=/opt/miniconda3
+2024-12-03 03:53:58,531 - INFO - ++ export CONDA_EXE=/opt/miniconda3/bin/conda
+2024-12-03 03:53:58,532 - INFO - ++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
+2024-12-03 03:53:58,532 - INFO - + '[' -n '' ']'
+2024-12-03 03:53:58,532 - INFO - Current environment: testbed
+2024-12-03 03:53:58,532 - INFO - + '[' -n '' ']'
++ hash -r
++ echo 'Current environment: testbed'
++ python -m pip install -e .
+2024-12-03 03:53:59,836 - INFO - Obtaining file:///testbed
+2024-12-03 03:53:59,838 - INFO - Installing build dependencies: started
+2024-12-03 03:54:02,207 - INFO - Installing build dependencies: finished with status 'done'
+2024-12-03 03:54:02,207 - INFO - Checking if build backend supports build_editable: started
+2024-12-03 03:54:02,438 - INFO - Checking if build backend supports build_editable: finished with status 'done'
+2024-12-03 03:54:02,441 - INFO - Getting requirements to build editable: started
+2024-12-03 03:54:03,260 - INFO - Getting requirements to build editable: finished with status 'done'
+2024-12-03 03:54:03,261 - INFO - Preparing editable metadata (pyproject.toml): started
+2024-12-03 03:54:03,978 - INFO - Preparing editable metadata (pyproject.toml): finished with status 'done'
+2024-12-03 03:54:03,985 - INFO - Requirement already satisfied: asgiref>=3.6.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Django==5.0.dev20230123092917) (3.8.1)
+2024-12-03 03:54:03,986 - INFO - Requirement already satisfied: sqlparse>=0.2.2 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Django==5.0.dev20230123092917) (0.5.2)
+2024-12-03 03:54:03,988 - INFO - Building wheels for collected packages: Django
+2024-12-03 03:54:03,990 - INFO - Building editable for Django (pyproject.toml): started
+2024-12-03 03:54:05,620 - INFO - Building editable for Django (pyproject.toml): finished with status 'done'
+2024-12-03 03:54:05,621 - INFO - Created wheel for Django: filename=Django-5.0.dev20230123092917-0.editable-py3-none-any.whl size=27303 sha256=5a9454473465ec5a692da682e3dc8a55f66c094de99ddd75686b551d6bba706a
+2024-12-03 03:54:05,624 - INFO - Stored in directory: /tmp/pip-ephem-wheel-cache-vphify7l/wheels/49/5f/4f/01b7d31ea6ddac9643da788242d33e5fd3467d95d17b032c6b
+2024-12-03 03:54:05,626 - INFO - Successfully built Django
+2024-12-03 03:54:05,693 - INFO - Installing collected packages: Django
+2024-12-03 03:54:05,877 - INFO - Successfully installed Django-5.0.dev20230123092917
+2024-12-03 03:54:05,878 - INFO - WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+2024-12-03 03:54:18,180 - INFO - ---> Removed intermediate container 0dd9b5819087
+2024-12-03 03:54:18,180 - INFO - ---> 9fe7e9bdd636
+2024-12-03 03:54:18,180 - INFO - Step 4/4 : WORKDIR /testbed/
+2024-12-03 03:54:18,180 - INFO - 
+2024-12-03 03:54:23,343 - INFO - ---> Running in 3b005071bdc5
+2024-12-03 03:54:25,541 - INFO - ---> Removed intermediate container 3b005071bdc5
+2024-12-03 03:54:25,541 - INFO - ---> 28d129f38ffb
+2024-12-03 03:54:25,541 - INFO - Successfully built 28d129f38ffb
+2024-12-03 03:54:25,763 - INFO - Successfully tagged sweb.eval.x86_64.django__django-16408:latest
+2024-12-03 03:54:25,764 - INFO - Image built successfully!

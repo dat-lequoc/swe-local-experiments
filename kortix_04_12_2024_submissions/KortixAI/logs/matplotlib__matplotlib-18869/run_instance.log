@@ -1,0 +1,70 @@
+2024-12-03 05:51:26,871 - INFO - Environment image sweb.env.x86_64.574160a64a279afa47450f:latest found for matplotlib__matplotlib-18869
+Building instance image sweb.eval.x86_64.matplotlib__matplotlib-18869:latest for matplotlib__matplotlib-18869
+2024-12-03 06:00:34,099 - INFO - Creating container for matplotlib__matplotlib-18869...
+2024-12-03 06:00:34,280 - INFO - Container for matplotlib__matplotlib-18869 created: 56e512e1e527a433bcdac189b643d2cba416f27c5f8cdac1edcea47a5fbdf96c
+2024-12-03 06:00:34,689 - INFO - Container for matplotlib__matplotlib-18869 started: 56e512e1e527a433bcdac189b643d2cba416f27c5f8cdac1edcea47a5fbdf96c
+2024-12-03 06:00:34,690 - INFO - Intermediate patch for matplotlib__matplotlib-18869 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-18869/patch.diff, now applying to container...
+2024-12-03 06:00:35,162 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 06:00:35,262 - INFO - >>>>> Applied Patch:
+patching file lib/matplotlib/__init__.py
+patching file lib/matplotlib/tests/test_version.py
+
+2024-12-03 06:00:36,977 - INFO - Git diff before:
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index b657a35cf7..7b660be704 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -148,6 +148,11 @@ def __getattr__(name):
+         else:  # Get the version from the _version.py setuptools_scm file.
+             __version__ = _version.version
+         return __version__
++    elif name == "version_info":
++        global version_info  # cache it
++        version = __getattr__("__version__")  # ensure __version__ is set
++        version_info = _version._parse_version(version)
++        return version_info
+     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+ 
+ 
+@@ -1409,4 +1414,4 @@ def _preprocess_data(func=None, *, replace_names=None, label_namer=None):
+ 
+ _log.debug('interactive is %s', is_interactive())
+ _log.debug('platform is %s', sys.platform)
+-_log.debug('loaded modules: %s', list(sys.modules))
++_log.debug('loaded modules: %s', list(sys.modules))
+\ No newline at end of file
+2024-12-03 06:00:36,978 - INFO - Eval script for matplotlib__matplotlib-18869 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-18869/eval.sh; copying to container...
+2024-12-03 06:01:01,209 - INFO - Test runtime: 23.90 seconds
+2024-12-03 06:01:01,209 - INFO - Test output for matplotlib__matplotlib-18869 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-18869/test_output.txt
+2024-12-03 06:01:01,339 - INFO - Git diff after:
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index b657a35cf7..7b660be704 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -148,6 +148,11 @@ def __getattr__(name):
+         else:  # Get the version from the _version.py setuptools_scm file.
+             __version__ = _version.version
+         return __version__
++    elif name == "version_info":
++        global version_info  # cache it
++        version = __getattr__("__version__")  # ensure __version__ is set
++        version_info = _version._parse_version(version)
++        return version_info
+     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+ 
+ 
+@@ -1409,4 +1414,4 @@ def _preprocess_data(func=None, *, replace_names=None, label_namer=None):
+ 
+ _log.debug('interactive is %s', is_interactive())
+ _log.debug('platform is %s', sys.platform)
+-_log.debug('loaded modules: %s', list(sys.modules))
++_log.debug('loaded modules: %s', list(sys.modules))
+\ No newline at end of file
+2024-12-03 06:01:01,339 - INFO - Grading answer for matplotlib__matplotlib-18869...
+2024-12-03 06:01:01,341 - INFO - report: {'matplotlib__matplotlib-18869': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0-version_tuple0]', 'lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0rc2-version_tuple1]', 'lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0.dev820+g6768ef8c4c-version_tuple2]', 'lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0.post820+g6768ef8c4c-version_tuple3]']}, 'PASS_TO_PASS': {'success': ['lib/matplotlib/tests/test_matplotlib.py::test_importable_with_no_home', 'lib/matplotlib/tests/test_matplotlib.py::test_use_doc_standard_backends', 'lib/matplotlib/tests/test_matplotlib.py::test_importable_with__OO'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-18869: resolved: False
+2024-12-03 06:01:01,341 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-18869.KortixAI...
+2024-12-03 06:01:16,885 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-18869.KortixAI...
+2024-12-03 06:01:16,997 - INFO - Container sweb.eval.matplotlib__matplotlib-18869.KortixAI removed.
+2024-12-03 06:01:16,997 - INFO - Attempting to remove image sweb.eval.x86_64.matplotlib__matplotlib-18869:latest...
+2024-12-03 06:01:21,780 - INFO - Image sweb.eval.x86_64.matplotlib__matplotlib-18869:latest removed.

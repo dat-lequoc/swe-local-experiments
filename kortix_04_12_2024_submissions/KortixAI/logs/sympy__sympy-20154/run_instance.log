@@ -1,0 +1,94 @@
+2024-12-03 12:10:20,213 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-20154
+Building instance image sweb.eval.x86_64.sympy__sympy-20154:latest for sympy__sympy-20154
+2024-12-03 12:11:12,969 - INFO - Creating container for sympy__sympy-20154...
+2024-12-03 12:11:13,151 - INFO - Container for sympy__sympy-20154 created: 565b5cb798dcde14f10803641235b02813846230eaac01c843148474f55e8bf7
+2024-12-03 12:11:13,715 - INFO - Container for sympy__sympy-20154 started: 565b5cb798dcde14f10803641235b02813846230eaac01c843148474f55e8bf7
+2024-12-03 12:11:13,715 - INFO - Intermediate patch for sympy__sympy-20154 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-20154/patch.diff, now applying to container...
+2024-12-03 12:11:14,223 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:11:14,319 - INFO - >>>>> Applied Patch:
+patching file sympy/utilities/iterables.py
+patching file sympy/utilities/tests/test_iterables.py
+
+2024-12-03 12:11:15,097 - INFO - Git diff before:
+diff --git a/sympy/utilities/iterables.py b/sympy/utilities/iterables.py
+index dd36dea304..aff8034e99 100644
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -1842,9 +1842,9 @@ def partitions(n, m=None, k=None, size=False):
+             break
+         room -= need
+         if size:
+-            yield sum(ms.values()), ms
++            yield sum(ms.values()), ms.copy()
+         else:
+-            yield ms
++            yield ms.copy()
+ 
+ 
+ def ordered_partitions(n, m=None, sort=True):
+@@ -2728,4 +2728,4 @@ def roundrobin(*iterables):
+                 yield next()
+         except StopIteration:
+             pending -= 1
+-            nexts = itertools.cycle(itertools.islice(nexts, pending))
++            nexts = itertools.cycle(itertools.islice(nexts, pending))
+\ No newline at end of file
+diff --git a/sympy/utilities/tests/test_iterables.py b/sympy/utilities/tests/test_iterables.py
+index f3ebd270dc..04ec77edd1 100644
+--- a/sympy/utilities/tests/test_iterables.py
++++ b/sympy/utilities/tests/test_iterables.py
+@@ -472,6 +472,13 @@ def test():
+ 
+ 
+ def test_partitions():
++    # Test dictionary independence
++    p = list(partitions(5, k=3))
++    p1 = p[0]
++    p2 = p[1]
++    p1[3] = 100  # Modify first partition
++    assert p2 != p1  # Verify second partition is independent
++    
+     ans = [[{}], [(0, {})]]
+     for i in range(2):
+         assert list(partitions(0, size=i)) == ans[i]
+@@ -833,4 +840,4 @@ def test_ibin():
+     assert list(ibin(2, 'all')) == [(0, 0), (0, 1), (1, 0), (1, 1)]
+     assert list(ibin(2, '', str=True)) == ['00', '01', '10', '11']
+     raises(ValueError, lambda: ibin(-.5))
+-    raises(ValueError, lambda: ibin(2, 1))
++    raises(ValueError, lambda: ibin(2, 1))
+\ No newline at end of file
+2024-12-03 12:11:15,097 - INFO - Eval script for sympy__sympy-20154 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-20154/eval.sh; copying to container...
+2024-12-03 12:11:21,716 - INFO - Test runtime: 6.16 seconds
+2024-12-03 12:11:21,716 - INFO - Test output for sympy__sympy-20154 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-20154/test_output.txt
+2024-12-03 12:11:21,796 - INFO - Git diff after:
+diff --git a/sympy/utilities/iterables.py b/sympy/utilities/iterables.py
+index dd36dea304..aff8034e99 100644
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -1842,9 +1842,9 @@ def partitions(n, m=None, k=None, size=False):
+             break
+         room -= need
+         if size:
+-            yield sum(ms.values()), ms
++            yield sum(ms.values()), ms.copy()
+         else:
+-            yield ms
++            yield ms.copy()
+ 
+ 
+ def ordered_partitions(n, m=None, sort=True):
+@@ -2728,4 +2728,4 @@ def roundrobin(*iterables):
+                 yield next()
+         except StopIteration:
+             pending -= 1
+-            nexts = itertools.cycle(itertools.islice(nexts, pending))
++            nexts = itertools.cycle(itertools.islice(nexts, pending))
+\ No newline at end of file
+2024-12-03 12:11:21,796 - INFO - Git diff changed after running eval script
+2024-12-03 12:11:21,796 - INFO - Grading answer for sympy__sympy-20154...
+2024-12-03 12:11:21,799 - INFO - report: {'sympy__sympy-20154': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_partitions', 'test_uniq']}, 'PASS_TO_PASS': {'success': ['test_is_palindromic', 'test_postorder_traversal', 'test_flatten', 'test_iproduct', 'test_group', 'test_subsets', 'test_variations', 'test_cartes', 'test_filter_symbols', 'test_numbered_symbols', 'test_sift', 'test_take', 'test_dict_merge', 'test_prefixes', 'test_postfixes', 'test_topological_sort', 'test_strongly_connected_components', 'test_connected_components', 'test_rotate', 'test_multiset_partitions', 'test_multiset_combinations', 'test_multiset_permutations', 'test_binary_partitions', 'test_bell_perm', 'test_involutions', 'test_derangements', 'test_necklaces', 'test_bracelets', 'test_generate_oriented_forest', 'test_unflatten', 'test_common_prefix_suffix', 'test_minlex', 'test_ordered', 'test_runs', 'test_reshape', 'test_kbins', 'test_has_dups', 'test__partition', 'test_ordered_partitions', 'test_rotations'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-20154: resolved: False
+2024-12-03 12:11:21,800 - INFO - Attempting to stop container sweb.eval.sympy__sympy-20154.KortixAI...
+2024-12-03 12:11:37,110 - INFO - Attempting to remove container sweb.eval.sympy__sympy-20154.KortixAI...
+2024-12-03 12:11:37,211 - INFO - Container sweb.eval.sympy__sympy-20154.KortixAI removed.

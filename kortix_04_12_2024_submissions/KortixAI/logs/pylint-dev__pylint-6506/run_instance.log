@@ -1,0 +1,81 @@
+2024-12-03 05:51:56,004 - INFO - Environment image sweb.env.x86_64.15539247fbef7d28c70168:latest found for pylint-dev__pylint-6506
+Building instance image sweb.eval.x86_64.pylint-dev__pylint-6506:latest for pylint-dev__pylint-6506
+2024-12-03 05:52:13,550 - INFO - Creating container for pylint-dev__pylint-6506...
+2024-12-03 05:52:13,709 - INFO - Container for pylint-dev__pylint-6506 created: 4f6706c131596ed20ae6fc92f800249786736a5400aa37cb33a105332a481084
+2024-12-03 05:52:14,124 - INFO - Container for pylint-dev__pylint-6506 started: 4f6706c131596ed20ae6fc92f800249786736a5400aa37cb33a105332a481084
+2024-12-03 05:52:14,124 - INFO - Intermediate patch for pylint-dev__pylint-6506 written to logs/run_evaluation/KortixAI/KortixAI/pylint-dev__pylint-6506/patch.diff, now applying to container...
+2024-12-03 05:52:14,404 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 05:52:14,472 - INFO - >>>>> Applied Patch:
+patching file pylint/__init__.py
+
+2024-12-03 05:52:14,819 - INFO - Git diff before:
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 3aa4b7f9d..1fa5bc05b 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -20,11 +20,17 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:
+     argv can be a sequence of strings normally supplied as arguments on the command line
+     """
+     from pylint.lint import Run as PylintRun
++    from pylint.config.exceptions import _UnrecognizedOptionError
+ 
+     try:
+         PylintRun(argv or sys.argv[1:])
+     except KeyboardInterrupt:
+         sys.exit(1)
++    except _UnrecognizedOptionError:
++        # The E0015 message is already printed by the linter
++        print("usage: pylint [options] modules_or_packages", file=sys.stderr)
++        print("Try 'pylint --help' for more information.", file=sys.stderr)
++        sys.exit(32)
+ 
+ 
+ def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:
+@@ -86,4 +92,4 @@ def modify_sys_path() -> None:
+ 
+ 
+ version = __version__
+-__all__ = ["__version__", "version", "modify_sys_path"]
++__all__ = ["__version__", "version", "modify_sys_path"]
+\ No newline at end of file
+2024-12-03 05:52:14,820 - INFO - Eval script for pylint-dev__pylint-6506 written to logs/run_evaluation/KortixAI/KortixAI/pylint-dev__pylint-6506/eval.sh; copying to container...
+2024-12-03 05:52:20,802 - INFO - Test runtime: 5.70 seconds
+2024-12-03 05:52:20,803 - INFO - Test output for pylint-dev__pylint-6506 written to logs/run_evaluation/KortixAI/KortixAI/pylint-dev__pylint-6506/test_output.txt
+2024-12-03 05:52:20,874 - INFO - Git diff after:
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 3aa4b7f9d..1fa5bc05b 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -20,11 +20,17 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:
+     argv can be a sequence of strings normally supplied as arguments on the command line
+     """
+     from pylint.lint import Run as PylintRun
++    from pylint.config.exceptions import _UnrecognizedOptionError
+ 
+     try:
+         PylintRun(argv or sys.argv[1:])
+     except KeyboardInterrupt:
+         sys.exit(1)
++    except _UnrecognizedOptionError:
++        # The E0015 message is already printed by the linter
++        print("usage: pylint [options] modules_or_packages", file=sys.stderr)
++        print("Try 'pylint --help' for more information.", file=sys.stderr)
++        sys.exit(32)
+ 
+ 
+ def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:
+@@ -86,4 +92,4 @@ def modify_sys_path() -> None:
+ 
+ 
+ version = __version__
+-__all__ = ["__version__", "version", "modify_sys_path"]
++__all__ = ["__version__", "version", "modify_sys_path"]
+\ No newline at end of file
+2024-12-03 05:52:20,874 - INFO - Grading answer for pylint-dev__pylint-6506...
+2024-12-03 05:52:20,875 - INFO - report: {'pylint-dev__pylint-6506': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/config/test_config.py::test_unknown_option_name', 'tests/config/test_config.py::test_unknown_short_option_name']}, 'PASS_TO_PASS': {'success': ['tests/config/test_config.py::test_can_read_toml_env_variable', 'tests/config/test_config.py::test_unknown_message_id', 'tests/config/test_config.py::test_unknown_confidence', 'tests/config/test_config.py::test_unknown_yes_no', 'tests/config/test_config.py::test_unknown_py_version', 'tests/config/test_config.py::test_short_verbose'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-6506: resolved: False
+2024-12-03 05:52:20,876 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-6506.KortixAI...
+2024-12-03 05:52:36,556 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-6506.KortixAI...
+2024-12-03 05:52:36,688 - INFO - Container sweb.eval.pylint-dev__pylint-6506.KortixAI removed.
+2024-12-03 05:52:36,688 - INFO - Attempting to remove image sweb.eval.x86_64.pylint-dev__pylint-6506:latest...
+2024-12-03 05:52:36,942 - INFO - Image sweb.eval.x86_64.pylint-dev__pylint-6506:latest removed.

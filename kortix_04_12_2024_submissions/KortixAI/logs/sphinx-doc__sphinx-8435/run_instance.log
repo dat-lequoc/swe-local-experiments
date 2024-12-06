@@ -1,0 +1,83 @@
+2024-12-03 11:59:18,087 - INFO - Environment image sweb.env.x86_64.c6d251a05e0af7688b64fd:latest found for sphinx-doc__sphinx-8435
+Building instance image sweb.eval.x86_64.sphinx-doc__sphinx-8435:latest for sphinx-doc__sphinx-8435
+2024-12-03 12:00:10,248 - INFO - Creating container for sphinx-doc__sphinx-8435...
+2024-12-03 12:00:12,089 - INFO - Container for sphinx-doc__sphinx-8435 created: a5d819a89c364975d8024ec6e91e2a2cacd04166bbb16e2d63d86fd67192e56a
+2024-12-03 12:00:12,796 - INFO - Container for sphinx-doc__sphinx-8435 started: a5d819a89c364975d8024ec6e91e2a2cacd04166bbb16e2d63d86fd67192e56a
+2024-12-03 12:00:12,797 - INFO - Intermediate patch for sphinx-doc__sphinx-8435 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8435/patch.diff, now applying to container...
+2024-12-03 12:00:13,072 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:00:13,246 - INFO - >>>>> Applied Patch:
+patching file setup.py
+Reversed (or previously applied) patch detected!  Assuming -R.
+patching file sphinx/ext/autodoc/__init__.py
+patching file tox.ini
+Reversed (or previously applied) patch detected!  Assuming -R.
+
+2024-12-03 12:00:13,589 - INFO - Git diff before:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 171a3e7b0..d5f5bd218 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1702,7 +1702,7 @@ class DataDocumenter(ModuleLevelDocumenter):
+         if not self.options.annotation:
+             # obtain annotation for this data
+             try:
+-                annotations = get_type_hints(self.parent)
++                annotations = get_type_hints(self.parent, type_aliases=self.config.autodoc_type_aliases)
+             except NameError:
+                 # Failed to evaluate ForwardRef (maybe TYPE_CHECKING)
+                 annotations = safe_getattr(self.parent, '__annotations__', {})
+@@ -2093,7 +2093,7 @@ class AttributeDocumenter(DocstringStripSignatureMixin, ClassLevelDocumenter):
+         if not self.options.annotation:
+             # obtain type annotation for this attribute
+             try:
+-                annotations = get_type_hints(self.parent)
++                annotations = get_type_hints(self.parent, type_aliases=self.config.autodoc_type_aliases)
+             except NameError:
+                 # Failed to evaluate ForwardRef (maybe TYPE_CHECKING)
+                 annotations = safe_getattr(self.parent, '__annotations__', {})
+@@ -2338,4 +2338,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
+     app.setup_extension('sphinx.ext.autodoc.type_comment')
+     app.setup_extension('sphinx.ext.autodoc.typehints')
+ 
+-    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
++    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
+\ No newline at end of file
+2024-12-03 12:00:13,589 - INFO - Eval script for sphinx-doc__sphinx-8435 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8435/eval.sh; copying to container...
+2024-12-03 12:00:20,742 - INFO - Test runtime: 6.96 seconds
+2024-12-03 12:00:20,742 - INFO - Test output for sphinx-doc__sphinx-8435 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8435/test_output.txt
+2024-12-03 12:00:20,836 - INFO - Git diff after:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 171a3e7b0..d5f5bd218 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1702,7 +1702,7 @@ class DataDocumenter(ModuleLevelDocumenter):
+         if not self.options.annotation:
+             # obtain annotation for this data
+             try:
+-                annotations = get_type_hints(self.parent)
++                annotations = get_type_hints(self.parent, type_aliases=self.config.autodoc_type_aliases)
+             except NameError:
+                 # Failed to evaluate ForwardRef (maybe TYPE_CHECKING)
+                 annotations = safe_getattr(self.parent, '__annotations__', {})
+@@ -2093,7 +2093,7 @@ class AttributeDocumenter(DocstringStripSignatureMixin, ClassLevelDocumenter):
+         if not self.options.annotation:
+             # obtain type annotation for this attribute
+             try:
+-                annotations = get_type_hints(self.parent)
++                annotations = get_type_hints(self.parent, type_aliases=self.config.autodoc_type_aliases)
+             except NameError:
+                 # Failed to evaluate ForwardRef (maybe TYPE_CHECKING)
+                 annotations = safe_getattr(self.parent, '__annotations__', {})
+@@ -2338,4 +2338,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
+     app.setup_extension('sphinx.ext.autodoc.type_comment')
+     app.setup_extension('sphinx.ext.autodoc.typehints')
+ 
+-    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
++    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
+\ No newline at end of file
+2024-12-03 12:00:20,837 - INFO - Grading answer for sphinx-doc__sphinx-8435...
+2024-12-03 12:00:20,847 - INFO - report: {'sphinx-doc__sphinx-8435': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_configs.py::test_autodoc_type_aliases']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_configs.py::test_autoclass_content_class', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_init', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_both', 'tests/test_ext_autodoc_configs.py::test_autodoc_inherit_docstrings', 'tests/test_ext_autodoc_configs.py::test_autodoc_docstring_signature', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_class', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_init', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_both', 'tests/test_ext_autodoc_configs.py::test_mocked_module_imports', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_signature', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none_for_overload', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_for_invalid_node', 'tests/test_ext_autodoc_configs.py::test_autodoc_default_options', 'tests/test_ext_autodoc_configs.py::test_autodoc_default_options_with_values']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-8435: resolved: False
+2024-12-03 12:00:20,848 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-8435.KortixAI...
+2024-12-03 12:00:36,286 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-8435.KortixAI...
+2024-12-03 12:00:36,369 - INFO - Container sweb.eval.sphinx-doc__sphinx-8435.KortixAI removed.

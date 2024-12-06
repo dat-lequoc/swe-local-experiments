@@ -1,0 +1,141 @@
+2024-12-03 12:01:55,720 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-13031
+Building instance image sweb.eval.x86_64.sympy__sympy-13031:latest for sympy__sympy-13031
+2024-12-03 12:02:35,294 - INFO - Creating container for sympy__sympy-13031...
+2024-12-03 12:02:35,582 - INFO - Container for sympy__sympy-13031 created: 5bc05780748e59e648a00f93b5a40c6ca968afad6e9431f3428398aabb9c9f1f
+2024-12-03 12:02:36,378 - INFO - Container for sympy__sympy-13031 started: 5bc05780748e59e648a00f93b5a40c6ca968afad6e9431f3428398aabb9c9f1f
+2024-12-03 12:02:36,378 - INFO - Intermediate patch for sympy__sympy-13031 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-13031/patch.diff, now applying to container...
+2024-12-03 12:02:36,794 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:02:36,879 - INFO - >>>>> Applied Patch:
+patching file sympy/matrices/tests/test_matrices.py
+
+2024-12-03 12:02:37,746 - INFO - Git diff before:
+diff --git a/sympy/matrices/tests/test_matrices.py b/sympy/matrices/tests/test_matrices.py
+index bca44a60fe..8241b87502 100644
+--- a/sympy/matrices/tests/test_matrices.py
++++ b/sympy/matrices/tests/test_matrices.py
+@@ -266,6 +266,48 @@ def test_creation():
+ 
+     assert Matrix() == Matrix([]) == Matrix([[]]) == Matrix(0, 0, [])
+ 
++    # Test zero-row matrix stacking
++    M1 = Matrix.zeros(0, 0)
++    M2 = Matrix.zeros(0, 1)
++    M3 = Matrix.zeros(0, 2)
++    M4 = Matrix.zeros(0, 3)
++    assert Matrix.hstack(M1, M2, M3, M4).shape == (0, 6)
++
++    # Test non-zero row matrix stacking
++    M5 = Matrix.zeros(1, 0)
++    M6 = Matrix.zeros(1, 1)
++    M7 = Matrix.zeros(1, 2)
++    M8 = Matrix.zeros(1, 3)
++    assert Matrix.hstack(M5, M6, M7, M8).shape == (1, 6)
++
++    # Test zero-row matrix stacking
++    M1 = Matrix.zeros(0, 0)
++    M2 = Matrix.zeros(0, 1)
++    M3 = Matrix.zeros(0, 2)
++    M4 = Matrix.zeros(0, 3)
++    assert Matrix.hstack(M1, M2, M3, M4).shape == (0, 6)
++
++    # Test non-zero row matrix stacking
++    M5 = Matrix.zeros(1, 0)
++    M6 = Matrix.zeros(1, 1)
++    M7 = Matrix.zeros(1, 2)
++    M8 = Matrix.zeros(1, 3)
++    assert Matrix.hstack(M5, M6, M7, M8).shape == (1, 6)
++
++    # Test zero-row matrix stacking
++    M1 = Matrix.zeros(0, 0)
++    M2 = Matrix.zeros(0, 1)
++    M3 = Matrix.zeros(0, 2)
++    M4 = Matrix.zeros(0, 3)
++    assert Matrix.hstack(M1, M2, M3, M4).shape == (0, 6)
++
++    # Test non-zero row matrix stacking
++    M5 = Matrix.zeros(1, 0)
++    M6 = Matrix.zeros(1, 1)
++    M7 = Matrix.zeros(1, 2)
++    M8 = Matrix.zeros(1, 3)
++    assert Matrix.hstack(M5, M6, M7, M8).shape == (1, 6)
++
+     a = Matrix([[x, 0], [0, 0]])
+     m = a
+     assert m.cols == m.rows
+@@ -2940,4 +2982,4 @@ def test_deprecated():
+         m = Matrix(3, 3, [0, 1, 0, -4, 4, 0, -2, 1, 2])
+         P, Jcells = m.jordan_cells()
+         assert Jcells[1] == Matrix(1, 1, [2])
+-        assert Jcells[0] == Matrix(2, 2, [2, 1, 0, 2])
++        assert Jcells[0] == Matrix(2, 2, [2, 1, 0, 2])
+\ No newline at end of file
+2024-12-03 12:02:37,746 - INFO - Eval script for sympy__sympy-13031 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-13031/eval.sh; copying to container...
+2024-12-03 12:02:44,097 - INFO - Test runtime: 5.83 seconds
+2024-12-03 12:02:44,098 - INFO - Test output for sympy__sympy-13031 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-13031/test_output.txt
+2024-12-03 12:02:44,196 - INFO - Git diff after:
+diff --git a/sympy/matrices/tests/test_matrices.py b/sympy/matrices/tests/test_matrices.py
+index bca44a60fe..8241b87502 100644
+--- a/sympy/matrices/tests/test_matrices.py
++++ b/sympy/matrices/tests/test_matrices.py
+@@ -266,6 +266,48 @@ def test_creation():
+ 
+     assert Matrix() == Matrix([]) == Matrix([[]]) == Matrix(0, 0, [])
+ 
++    # Test zero-row matrix stacking
++    M1 = Matrix.zeros(0, 0)
++    M2 = Matrix.zeros(0, 1)
++    M3 = Matrix.zeros(0, 2)
++    M4 = Matrix.zeros(0, 3)
++    assert Matrix.hstack(M1, M2, M3, M4).shape == (0, 6)
++
++    # Test non-zero row matrix stacking
++    M5 = Matrix.zeros(1, 0)
++    M6 = Matrix.zeros(1, 1)
++    M7 = Matrix.zeros(1, 2)
++    M8 = Matrix.zeros(1, 3)
++    assert Matrix.hstack(M5, M6, M7, M8).shape == (1, 6)
++
++    # Test zero-row matrix stacking
++    M1 = Matrix.zeros(0, 0)
++    M2 = Matrix.zeros(0, 1)
++    M3 = Matrix.zeros(0, 2)
++    M4 = Matrix.zeros(0, 3)
++    assert Matrix.hstack(M1, M2, M3, M4).shape == (0, 6)
++
++    # Test non-zero row matrix stacking
++    M5 = Matrix.zeros(1, 0)
++    M6 = Matrix.zeros(1, 1)
++    M7 = Matrix.zeros(1, 2)
++    M8 = Matrix.zeros(1, 3)
++    assert Matrix.hstack(M5, M6, M7, M8).shape == (1, 6)
++
++    # Test zero-row matrix stacking
++    M1 = Matrix.zeros(0, 0)
++    M2 = Matrix.zeros(0, 1)
++    M3 = Matrix.zeros(0, 2)
++    M4 = Matrix.zeros(0, 3)
++    assert Matrix.hstack(M1, M2, M3, M4).shape == (0, 6)
++
++    # Test non-zero row matrix stacking
++    M5 = Matrix.zeros(1, 0)
++    M6 = Matrix.zeros(1, 1)
++    M7 = Matrix.zeros(1, 2)
++    M8 = Matrix.zeros(1, 3)
++    assert Matrix.hstack(M5, M6, M7, M8).shape == (1, 6)
++
+     a = Matrix([[x, 0], [0, 0]])
+     m = a
+     assert m.cols == m.rows
+@@ -2940,4 +2982,4 @@ def test_deprecated():
+         m = Matrix(3, 3, [0, 1, 0, -4, 4, 0, -2, 1, 2])
+         P, Jcells = m.jordan_cells()
+         assert Jcells[1] == Matrix(1, 1, [2])
+-        assert Jcells[0] == Matrix(2, 2, [2, 1, 0, 2])
++        assert Jcells[0] == Matrix(2, 2, [2, 1, 0, 2])
+\ No newline at end of file
+2024-12-03 12:02:44,196 - INFO - Grading answer for sympy__sympy-13031...
+2024-12-03 12:02:44,198 - INFO - report: {'sympy__sympy-13031': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_sparse_matrix']}, 'PASS_TO_PASS': {'success': ['test_transpose', 'test_trace', 'test_CL_RL', 'test_add', 'test_errors', 'test_len', 'test_sparse_zeros_sparse_eye', 'test_copyin', 'test_sparse_solve'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13031: resolved: False
+2024-12-03 12:02:44,198 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13031.KortixAI...
+2024-12-03 12:02:59,808 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13031.KortixAI...
+2024-12-03 12:02:59,866 - INFO - Container sweb.eval.sympy__sympy-13031.KortixAI removed.

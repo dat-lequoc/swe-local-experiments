@@ -1,0 +1,90 @@
+2024-12-03 11:59:17,380 - INFO - Environment image sweb.env.x86_64.c6d251a05e0af7688b64fd:latest found for sphinx-doc__sphinx-8282
+Building instance image sweb.eval.x86_64.sphinx-doc__sphinx-8282:latest for sphinx-doc__sphinx-8282
+2024-12-03 12:00:01,816 - INFO - Creating container for sphinx-doc__sphinx-8282...
+2024-12-03 12:00:02,287 - INFO - Container for sphinx-doc__sphinx-8282 created: 303e270fec62127fe0cdad01255a979dfc0285b49cd868b7835ea179d976f1d8
+2024-12-03 12:00:02,847 - INFO - Container for sphinx-doc__sphinx-8282 started: 303e270fec62127fe0cdad01255a979dfc0285b49cd868b7835ea179d976f1d8
+2024-12-03 12:00:02,848 - INFO - Intermediate patch for sphinx-doc__sphinx-8282 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8282/patch.diff, now applying to container...
+2024-12-03 12:00:03,413 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:00:03,540 - INFO - >>>>> Applied Patch:
+patching file setup.py
+Reversed (or previously applied) patch detected!  Assuming -R.
+patching file tests/roots/test-ext-autodoc/target/overloaded.py
+patching file tests/test_ext_autodoc_autofunction.py
+patching file tox.ini
+Reversed (or previously applied) patch detected!  Assuming -R.
+
+2024-12-03 12:00:04,008 - INFO - Git diff before:
+diff --git a/tests/test_ext_autodoc_autofunction.py b/tests/test_ext_autodoc_autofunction.py
+index bb292bc6a..ad16e0b2c 100644
+--- a/tests/test_ext_autodoc_autofunction.py
++++ b/tests/test_ext_autodoc_autofunction.py
+@@ -105,6 +105,20 @@ def test_decorated(app):
+ 
+ 
+ @pytest.mark.sphinx('html', testroot='ext-autodoc')
++@pytest.mark.sphinx('html', testroot='ext-autodoc', confoverrides={'autodoc_typehints': 'none'})
++def test_overloaded_function_without_typehints(app):
++    options = {}
++    actual = do_autodoc(app, 'function', 'target.overloaded', options)
++    assert list(actual) == [
++        '',
++        '.. py:function:: overloaded(arg)',
++        '                 overloaded(arg)',
++        '   :module: target',
++        '',
++        '   Function with overloads.',
++        '',
++    ]
++
+ def test_singledispatch(app):
+     options = {}
+     actual = do_autodoc(app, 'function', 'target.singledispatch.func', options)
+@@ -158,4 +172,4 @@ def test_wrapped_function_contextmanager(app):
+         '',
+         "   You'll feel better in this context!",
+         '',
+-    ]
++    ]
+\ No newline at end of file
+2024-12-03 12:00:04,009 - INFO - Eval script for sphinx-doc__sphinx-8282 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8282/eval.sh; copying to container...
+2024-12-03 12:00:11,365 - INFO - Test runtime: 7.10 seconds
+2024-12-03 12:00:11,365 - INFO - Test output for sphinx-doc__sphinx-8282 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8282/test_output.txt
+2024-12-03 12:00:11,430 - INFO - Git diff after:
+diff --git a/tests/test_ext_autodoc_autofunction.py b/tests/test_ext_autodoc_autofunction.py
+index bb292bc6a..ad16e0b2c 100644
+--- a/tests/test_ext_autodoc_autofunction.py
++++ b/tests/test_ext_autodoc_autofunction.py
+@@ -105,6 +105,20 @@ def test_decorated(app):
+ 
+ 
+ @pytest.mark.sphinx('html', testroot='ext-autodoc')
++@pytest.mark.sphinx('html', testroot='ext-autodoc', confoverrides={'autodoc_typehints': 'none'})
++def test_overloaded_function_without_typehints(app):
++    options = {}
++    actual = do_autodoc(app, 'function', 'target.overloaded', options)
++    assert list(actual) == [
++        '',
++        '.. py:function:: overloaded(arg)',
++        '                 overloaded(arg)',
++        '   :module: target',
++        '',
++        '   Function with overloads.',
++        '',
++    ]
++
+ def test_singledispatch(app):
+     options = {}
+     actual = do_autodoc(app, 'function', 'target.singledispatch.func', options)
+@@ -158,4 +172,4 @@ def test_wrapped_function_contextmanager(app):
+         '',
+         "   You'll feel better in this context!",
+         '',
+-    ]
++    ]
+\ No newline at end of file
+2024-12-03 12:00:11,430 - INFO - Grading answer for sphinx-doc__sphinx-8282...
+2024-12-03 12:00:11,441 - INFO - report: {'sphinx-doc__sphinx-8282': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none_for_overload']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_configs.py::test_autoclass_content_class', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_init', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_both', 'tests/test_ext_autodoc_configs.py::test_autodoc_inherit_docstrings', 'tests/test_ext_autodoc_configs.py::test_autodoc_docstring_signature', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_class', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_init', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_both', 'tests/test_ext_autodoc_configs.py::test_mocked_module_imports', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_signature', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_for_invalid_node', 'tests/test_ext_autodoc_configs.py::test_autodoc_type_aliases', 'tests/test_ext_autodoc_configs.py::test_autodoc_default_options', 'tests/test_ext_autodoc_configs.py::test_autodoc_default_options_with_values']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-8282: resolved: False
+2024-12-03 12:00:11,442 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-8282.KortixAI...
+2024-12-03 12:00:27,132 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-8282.KortixAI...
+2024-12-03 12:00:27,196 - INFO - Container sweb.eval.sphinx-doc__sphinx-8282.KortixAI removed.

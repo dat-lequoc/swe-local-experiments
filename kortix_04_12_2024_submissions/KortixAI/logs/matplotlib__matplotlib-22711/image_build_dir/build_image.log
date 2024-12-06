@@ -1,0 +1,333 @@
+2024-12-03 03:54:56,081 - INFO - Building image sweb.eval.x86_64.matplotlib__matplotlib-22711:latest
+Using dockerfile:
+FROM --platform=linux/x86_64 sweb.env.x86_64.7037e8c448a4b8ebfe9b13:latest
+
+COPY ./setup_repo.sh /root/
+RUN /bin/bash /root/setup_repo.sh
+
+WORKDIR /testbed/
+
+Adding (1) setup scripts to image build repo
+2024-12-03 03:54:56,081 - INFO - [SETUP SCRIPT] setup_repo.sh:
+#!/bin/bash
+set -euxo pipefail
+git clone -o origin https://github.com/matplotlib/matplotlib /testbed
+chmod -R 777 /testbed
+cd /testbed
+git reset --hard f670fe78795b18eb1118707721852209cd77ad51
+git remote remove origin
+source /opt/miniconda3/bin/activate
+conda activate testbed
+echo "Current environment: $CONDA_DEFAULT_ENV"
+apt-get -y update && apt-get -y upgrade && DEBIAN_FRONTEND=noninteractive apt-get install -y imagemagick ffmpeg texlive texlive-latex-extra texlive-fonts-recommended texlive-xetex texlive-luatex cm-super dvipng
+python -m pip install -e .
+
+2024-12-03 03:54:56,081 - INFO - Building docker image sweb.eval.x86_64.matplotlib__matplotlib-22711:latest in logs/build_images/instances/sweb.eval.x86_64.matplotlib__matplotlib-22711__latest with platform linux/x86_64
+2024-12-03 03:54:56,085 - INFO - Step 1/4 : FROM --platform=linux/x86_64 sweb.env.x86_64.7037e8c448a4b8ebfe9b13:latest
+2024-12-03 03:54:56,085 - INFO - 
+2024-12-03 03:54:56,085 - INFO - ---> 548496af3b21
+2024-12-03 03:54:56,085 - INFO - Step 2/4 : COPY ./setup_repo.sh /root/
+2024-12-03 03:54:56,085 - INFO - 
+2024-12-03 03:54:57,892 - INFO - ---> 5ad61bcd2090
+2024-12-03 03:54:57,893 - INFO - Step 3/4 : RUN /bin/bash /root/setup_repo.sh
+2024-12-03 03:54:57,893 - INFO - 
+2024-12-03 03:54:58,329 - INFO - ---> Running in 12fc06ad62be
+2024-12-03 03:54:58,834 - INFO - + git clone -o origin https://github.com/matplotlib/matplotlib /testbed
+2024-12-03 03:54:58,835 - INFO - Cloning into '/testbed'...
+2024-12-03 03:55:40,113 - INFO - Updating files:  72% (3370/4631)
+2024-12-03 03:55:40,127 - INFO - Updating files:  73% (3381/4631)Updating files:  74% (3427/4631)
+2024-12-03 03:55:40,136 - INFO - Updating files:  75% (3474/4631)
+2024-12-03 03:55:40,146 - INFO - Updating files:  76% (3520/4631)
+2024-12-03 03:55:40,156 - INFO - Updating files:  77% (3566/4631)
+2024-12-03 03:55:40,165 - INFO - Updating files:  78% (3613/4631)
+2024-12-03 03:55:40,181 - INFO - Updating files:  79% (3659/4631)
+2024-12-03 03:55:40,191 - INFO - Updating files:  80% (3705/4631)
+2024-12-03 03:55:40,200 - INFO - Updating files:  81% (3752/4631)
+2024-12-03 03:55:40,204 - INFO - Updating files:  82% (3798/4631)
+2024-12-03 03:55:40,212 - INFO - Updating files:  83% (3844/4631)
+2024-12-03 03:55:40,223 - INFO - Updating files:  84% (3891/4631)
+2024-12-03 03:55:40,235 - INFO - Updating files:  85% (3937/4631)
+2024-12-03 03:55:40,237 - INFO - Updating files:  86% (3983/4631)
+2024-12-03 03:55:40,247 - INFO - Updating files:  87% (4029/4631)
+2024-12-03 03:55:40,269 - INFO - Updating files:  88% (4076/4631)
+2024-12-03 03:55:40,295 - INFO - Updating files:  89% (4122/4631)
+2024-12-03 03:55:40,313 - INFO - Updating files:  90% (4168/4631)
+2024-12-03 03:55:40,339 - INFO - Updating files:  91% (4215/4631)
+2024-12-03 03:55:40,347 - INFO - Updating files:  92% (4261/4631)
+2024-12-03 03:55:40,370 - INFO - Updating files:  93% (4307/4631)
+2024-12-03 03:55:40,387 - INFO - Updating files:  94% (4354/4631)
+2024-12-03 03:55:40,406 - INFO - Updating files:  95% (4400/4631)
+2024-12-03 03:55:40,417 - INFO - Updating files:  96% (4446/4631)
+2024-12-03 03:55:40,438 - INFO - Updating files:  97% (4493/4631)
+2024-12-03 03:55:40,471 - INFO - Updating files:  98% (4539/4631)
+2024-12-03 03:55:40,500 - INFO - Updating files:  99% (4585/4631)
+2024-12-03 03:55:40,510 - INFO - Updating files: 100% (4631/4631)
+2024-12-03 03:55:40,514 - INFO - Updating files: 100% (4631/4631), done.
+2024-12-03 03:55:40,545 - INFO - + chmod -R 777 /testbed
+2024-12-03 03:55:40,627 - INFO - + cd /testbed
+2024-12-03 03:55:40,628 - INFO - + git reset --hard f670fe78795b18eb1118707721852209cd77ad51
+2024-12-03 03:55:41,682 - INFO - Updating files:  58% (3318/5689)
+2024-12-03 03:55:41,729 - INFO - Updating files:  59% (3357/5689)
+2024-12-03 03:55:41,757 - INFO - Updating files:  60% (3414/5689)
+2024-12-03 03:55:41,807 - INFO - Updating files:  61% (3471/5689)
+2024-12-03 03:55:41,848 - INFO - Updating files:  62% (3528/5689)
+2024-12-03 03:55:41,908 - INFO - Updating files:  63% (3585/5689)
+2024-12-03 03:55:41,947 - INFO - Updating files:  64% (3641/5689)
+2024-12-03 03:55:41,982 - INFO - Updating files:  65% (3698/5689)
+2024-12-03 03:55:41,994 - INFO - Updating files:  66% (3755/5689)
+2024-12-03 03:55:42,012 - INFO - Updating files:  67% (3812/5689)
+2024-12-03 03:55:42,028 - INFO - Updating files:  68% (3869/5689)
+2024-12-03 03:55:42,043 - INFO - Updating files:  69% (3926/5689)
+2024-12-03 03:55:42,066 - INFO - Updating files:  70% (3983/5689)
+2024-12-03 03:55:42,084 - INFO - Updating files:  71% (4040/5689)
+2024-12-03 03:55:42,095 - INFO - Updating files:  72% (4097/5689)
+2024-12-03 03:55:42,109 - INFO - Updating files:  73% (4153/5689)
+2024-12-03 03:55:42,126 - INFO - Updating files:  74% (4210/5689)
+2024-12-03 03:55:42,140 - INFO - Updating files:  75% (4267/5689)
+2024-12-03 03:55:42,151 - INFO - Updating files:  76% (4324/5689)
+2024-12-03 03:55:42,163 - INFO - Updating files:  77% (4381/5689)
+2024-12-03 03:55:42,173 - INFO - Updating files:  78% (4438/5689)
+2024-12-03 03:55:42,186 - INFO - Updating files:  79% (4495/5689)
+2024-12-03 03:55:42,196 - INFO - Updating files:  80% (4552/5689)
+2024-12-03 03:55:42,207 - INFO - Updating files:  81% (4609/5689)
+2024-12-03 03:55:42,218 - INFO - Updating files:  82% (4665/5689)
+2024-12-03 03:55:42,228 - INFO - Updating files:  83% (4722/5689)
+2024-12-03 03:55:42,239 - INFO - Updating files:  84% (4779/5689)
+2024-12-03 03:55:42,249 - INFO - Updating files:  85% (4836/5689)
+2024-12-03 03:55:42,262 - INFO - Updating files:  86% (4893/5689)
+2024-12-03 03:55:42,272 - INFO - Updating files:  87% (4950/5689)
+2024-12-03 03:55:42,283 - INFO - Updating files:  88% (5007/5689)
+2024-12-03 03:55:42,303 - INFO - Updating files:  89% (5064/5689)
+2024-12-03 03:55:42,317 - INFO - Updating files:  90% (5121/5689)
+2024-12-03 03:55:42,351 - INFO - Updating files:  91% (5177/5689)
+2024-12-03 03:55:42,380 - INFO - Updating files:  92% (5234/5689)
+2024-12-03 03:55:42,403 - INFO - Updating files:  93% (5291/5689)
+2024-12-03 03:55:42,433 - INFO - Updating files:  94% (5348/5689)
+2024-12-03 03:55:42,473 - INFO - Updating files:  95% (5405/5689)
+2024-12-03 03:55:42,496 - INFO - Updating files:  96% (5462/5689)
+2024-12-03 03:55:42,532 - INFO - Updating files:  97% (5519/5689)
+2024-12-03 03:55:42,561 - INFO - Updating files:  98% (5576/5689)
+2024-12-03 03:55:42,586 - INFO - Updating files:  99% (5633/5689)
+2024-12-03 03:55:42,607 - INFO - Updating files: 100% (5689/5689)
+2024-12-03 03:55:42,607 - INFO - Updating files: 100% (5689/5689), done.
+2024-12-03 03:55:42,634 - INFO - HEAD is now at f670fe7879 Merge pull request #22263 from jklymak/doc-version-switcher-condense
+2024-12-03 03:55:42,659 - INFO - + git remote remove origin
+2024-12-03 03:55:42,688 - INFO - + source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
+2024-12-03 03:55:42,688 - INFO - +++++ dirname /opt/miniconda3/bin/conda
+2024-12-03 03:55:42,688 - INFO - ++++ dirname /opt/miniconda3/bin
+2024-12-03 03:55:42,689 - INFO - +++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+2024-12-03 03:55:42,689 - INFO - +++ export PATH
++++ '[' -z '' ']'
+2024-12-03 03:55:42,690 - INFO - +++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
+2024-12-03 03:55:42,696 - INFO - +++ /opt/miniconda3/bin/conda shell.posix activate
+2024-12-03 03:55:42,873 - INFO - ++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+2024-12-03 03:55:42,873 - INFO - export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+2024-12-03 03:55:42,873 - INFO - ++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+2024-12-03 03:55:42,874 - INFO - export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+2024-12-03 03:55:42,874 - INFO - +++ PS1='(base) '
+2024-12-03 03:55:42,874 - INFO - +++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+2024-12-03 03:55:42,875 - INFO - +++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+2024-12-03 03:55:42,875 - INFO - +++ export CONDA_PREFIX=/opt/miniconda3
+2024-12-03 03:55:42,875 - INFO - +++ CONDA_PREFIX=/opt/miniconda3
+2024-12-03 03:55:42,875 - INFO - +++ export CONDA_SHLVL=1
+2024-12-03 03:55:42,876 - INFO - +++ CONDA_SHLVL=1
+2024-12-03 03:55:42,876 - INFO - +++ export CONDA_DEFAULT_ENV=base
+2024-12-03 03:55:42,876 - INFO - +++ CONDA_DEFAULT_ENV=base
+2024-12-03 03:55:42,877 - INFO - +++ export 'CONDA_PROMPT_MODIFIER=(base) '
+2024-12-03 03:55:42,877 - INFO - +++ CONDA_PROMPT_MODIFIER='(base) '
+2024-12-03 03:55:42,877 - INFO - +++ export CONDA_EXE=/opt/miniconda3/bin/conda
+2024-12-03 03:55:42,878 - INFO - +++ CONDA_EXE=/opt/miniconda3/bin/conda
+2024-12-03 03:55:42,878 - INFO - +++ export _CE_M=
+2024-12-03 03:55:42,878 - INFO - +++ _CE_M=
+2024-12-03 03:55:42,878 - INFO - +++ export _CE_CONDA=
+2024-12-03 03:55:42,879 - INFO - +++ _CE_CONDA=
+2024-12-03 03:55:42,879 - INFO - +++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+2024-12-03 03:55:42,879 - INFO - +++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+2024-12-03 03:55:42,880 - INFO - ++ __conda_hashr
+2024-12-03 03:55:42,880 - INFO - ++ '[' -n '' ']'
+2024-12-03 03:55:42,880 - INFO - ++ '[' -n '' ']'
+2024-12-03 03:55:42,881 - INFO - ++ hash -r
+2024-12-03 03:55:42,881 - INFO - + conda activate testbed
+2024-12-03 03:55:42,881 - INFO - + local cmd=activate
+2024-12-03 03:55:42,881 - INFO - + case "$cmd" in
+2024-12-03 03:55:42,882 - INFO - + __conda_activate activate testbed
+2024-12-03 03:55:42,882 - INFO - + '[' -n '' ']'
+2024-12-03 03:55:42,882 - INFO - + local ask_conda
+2024-12-03 03:55:42,883 - INFO - ++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+2024-12-03 03:55:42,883 - INFO - ++ /opt/miniconda3/bin/conda shell.posix activate testbed
+2024-12-03 03:55:43,132 - INFO - + ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+2024-12-03 03:55:43,132 - INFO - . "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh"'
+2024-12-03 03:55:43,133 - INFO - + eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
+2024-12-03 03:55:43,133 - INFO - +++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh
+2024-12-03 03:55:43,133 - INFO - +++ test -n ''
+2024-12-03 03:55:43,134 - INFO - Current environment: testbed
+2024-12-03 03:55:43,134 - INFO - +++ xml_catalog_files_libxml2=
++++ XML_CATALOG_FILES=
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ echo 'Current environment: testbed'
++ apt-get -y update
+2024-12-03 03:55:43,435 - INFO - Get:1 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
+2024-12-03 03:55:43,594 - INFO - Err:1 http://archive.ubuntu.com/ubuntu jammy InRelease
+2024-12-03 03:55:43,595 - INFO - Couldn't create temporary file /tmp/apt.conf.GYFGVZ for passing config to apt-key
+2024-12-03 03:55:43,595 - INFO - Get:2 http://security.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
+2024-12-03 03:55:43,608 - INFO - Get:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
+2024-12-03 03:55:43,617 - INFO - Err:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease
+  Couldn't create temporary file /tmp/apt.conf.WliCaq for passing config to apt-key
+2024-12-03 03:55:43,647 - INFO - Get:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [127 kB]
+2024-12-03 03:55:43,661 - INFO - Err:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
+2024-12-03 03:55:43,661 - INFO - Couldn't create temporary file /tmp/apt.conf.8WJHaO for passing config to apt-key
+2024-12-03 03:55:43,991 - INFO - Err:2 http://security.ubuntu.com/ubuntu jammy-security InRelease
+  Couldn't create temporary file /tmp/apt.conf.7J27Xc for passing config to apt-key
+2024-12-03 03:55:44,008 - INFO - Reading package lists...
+2024-12-03 03:55:44,045 - INFO - 
+2024-12-03 03:55:44,056 - INFO - W: GPG error: http://archive.ubuntu.com/ubuntu jammy InRelease: Couldn't create temporary file /tmp/apt.conf.GYFGVZ for passing config to apt-key
+E: The repository 'http://archive.ubuntu.com/ubuntu jammy InRelease' is not signed.
+W: GPG error: http://archive.ubuntu.com/ubuntu jammy-updates InRelease: Couldn't create temporary file /tmp/apt.conf.WliCaq for passing config to apt-key
+E: The repository 'http://archive.ubuntu.com/ubuntu jammy-updates InRelease' is not signed.
+W: GPG error: http://archive.ubuntu.com/ubuntu jammy-backports InRelease: Couldn't create temporary file /tmp/apt.conf.8WJHaO for passing config to apt-key
+E: The repository 'http://archive.ubuntu.com/ubuntu jammy-backports InRelease' is not signed.
+W: GPG error: http://security.ubuntu.com/ubuntu jammy-security InRelease: Couldn't create temporary file /tmp/apt.conf.7J27Xc for passing config to apt-key
+E: The repository 'http://security.ubuntu.com/ubuntu jammy-security InRelease' is not signed.
+2024-12-03 03:55:44,056 - INFO - + python -m pip install -e .
+2024-12-03 03:55:44,709 - INFO - Obtaining file:///testbed
+2024-12-03 03:55:44,711 - INFO - Preparing metadata (setup.py): started
+2024-12-03 03:55:49,137 - INFO - Preparing metadata (setup.py): finished with status 'done'
+2024-12-03 03:55:49,157 - INFO - Requirement already satisfied: cycler>=0.10 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (0.11.0)
+2024-12-03 03:55:49,158 - INFO - Requirement already satisfied: fonttools>=4.22.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (4.42.1)
+2024-12-03 03:55:49,159 - INFO - Requirement already satisfied: kiwisolver>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (1.4.5)
+2024-12-03 03:55:49,160 - INFO - Requirement already satisfied: numpy>=1.19 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (1.25.2)
+2024-12-03 03:55:49,161 - INFO - Requirement already satisfied: packaging>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (23.1)
+2024-12-03 03:55:49,162 - INFO - Requirement already satisfied: pillow>=6.2.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (10.0.0)
+2024-12-03 03:55:49,333 - INFO - Collecting pyparsing<3.0.0,>=2.2.1 (from matplotlib==3.6.0.dev1926+gf670fe7879)
+2024-12-03 03:55:49,359 - INFO - Downloading pyparsing-2.4.7-py2.py3-none-any.whl.metadata (3.6 kB)
+2024-12-03 03:55:49,400 - INFO - Requirement already satisfied: python-dateutil>=2.7 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (2.8.2)
+2024-12-03 03:55:49,403 - INFO - Requirement already satisfied: setuptools_scm>=4 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1926+gf670fe7879) (7.1.0)
+2024-12-03 03:55:49,431 - INFO - Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from python-dateutil>=2.7->matplotlib==3.6.0.dev1926+gf670fe7879) (1.16.0)
+2024-12-03 03:55:49,441 - INFO - Requirement already satisfied: setuptools in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev1926+gf670fe7879) (68.1.2)
+Requirement already satisfied: typing-extensions in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev1926+gf670fe7879) (4.7.1)
+2024-12-03 03:55:49,455 - INFO - Downloading pyparsing-2.4.7-py2.py3-none-any.whl (67 kB)
+2024-12-03 03:55:49,807 - INFO - Installing collected packages: pyparsing, matplotlib
+  Attempting uninstall: pyparsing
+    Found existing installation: pyparsing 3.0.9
+2024-12-03 03:55:49,811 - INFO - Uninstalling pyparsing-3.0.9:
+2024-12-03 03:55:49,829 - INFO - Successfully uninstalled pyparsing-3.0.9
+2024-12-03 03:55:49,949 - INFO - Running setup.py develop for matplotlib
+2024-12-03 03:55:49,949 - INFO - DEPRECATION: Legacy editable install of matplotlib==3.6.0.dev1926+gf670fe7879 from file:///testbed (setup.py develop) is deprecated. pip 25.0 will enforce this behaviour change. A possible replacement is to add a pyproject.toml or enable --use-pep517, and use setuptools >= 64. If the resulting installation is not behaving as expected, try using --config-settings editable_mode=compat. Please consult the setuptools documentation for more information. Discussion can be found at https://github.com/pypa/pip/issues/11457
+2024-12-03 03:57:45,103 - INFO - Successfully installed matplotlib-3.6.0.dev1926+gf670fe7879 pyparsing-2.4.7
+2024-12-03 03:57:45,104 - INFO - WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+2024-12-03 03:57:58,435 - INFO - ---> Removed intermediate container 12fc06ad62be
+2024-12-03 03:57:58,435 - INFO - ---> 9f8ab3d077dc
+2024-12-03 03:57:58,435 - INFO - Step 4/4 : WORKDIR /testbed/
+2024-12-03 03:57:58,435 - INFO - 
+2024-12-03 03:58:07,256 - INFO - ---> Running in 83146ca5ad3b
+2024-12-03 03:58:08,848 - INFO - ---> Removed intermediate container 83146ca5ad3b
+2024-12-03 03:58:08,849 - INFO - ---> 35b7a1262c86
+2024-12-03 03:58:08,849 - INFO - Successfully built 35b7a1262c86
+2024-12-03 03:58:09,123 - INFO - Successfully tagged sweb.eval.x86_64.matplotlib__matplotlib-22711:latest
+2024-12-03 03:58:09,124 - INFO - Image built successfully!

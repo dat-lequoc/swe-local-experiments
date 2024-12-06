@@ -1,0 +1,153 @@
+2024-12-03 05:54:55,956 - INFO - Environment image sweb.env.x86_64.8f1f7b974f0c57c7aeba39:latest found for pytest-dev__pytest-8365
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-8365:latest for pytest-dev__pytest-8365
+2024-12-03 05:55:11,219 - INFO - Creating container for pytest-dev__pytest-8365...
+2024-12-03 05:55:11,529 - INFO - Container for pytest-dev__pytest-8365 created: a3a19e7169426d74e5c441fa4f8941963e9003c3f38d1de2554de760966281e9
+2024-12-03 05:55:11,885 - INFO - Container for pytest-dev__pytest-8365 started: a3a19e7169426d74e5c441fa4f8941963e9003c3f38d1de2554de760966281e9
+2024-12-03 05:55:11,885 - INFO - Intermediate patch for pytest-dev__pytest-8365 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-8365/patch.diff, now applying to container...
+2024-12-03 05:55:12,129 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 05:55:12,191 - INFO - >>>>> Applied Patch:
+patching file src/_pytest/tmpdir.py
+patching file testing/test_tmpdir.py
+
+2024-12-03 05:55:12,357 - INFO - Git diff before:
+diff --git a/src/_pytest/tmpdir.py b/src/_pytest/tmpdir.py
+index 29c7e19d7..429a13796 100644
+--- a/src/_pytest/tmpdir.py
++++ b/src/_pytest/tmpdir.py
+@@ -148,13 +148,35 @@ class TempdirFactory:
+         return py.path.local(self._tmppath_factory.getbasetemp().resolve())
+ 
+ 
++def sanitize_username(username: Optional[str]) -> str:
++    """Sanitize username for use in temporary directory paths."""
++    if not username:
++        return "unknown"
++    illegal_chars = r'\/:*?"<>|'
++    result = []
++    was_special = False
++    
++    for c in username:
++        if c in illegal_chars:
++            if not was_special:
++                result.append('_')
++                was_special = True
++        else:
++            result.append(c)
++            was_special = False
++            
++    return ''.join(result)
++
+ def get_user() -> Optional[str]:
+     """Return the current user name, or None if getuser() does not work
+     in the current environment (see #1010)."""
+     import getpass
+ 
+     try:
+-        return getpass.getuser()
++        username = getpass.getuser()
++        if not username:
++            return None
++        return sanitize_username(username)
+     except (ImportError, KeyError):
+         return None
+ 
+@@ -228,4 +250,4 @@ def tmp_path(request: FixtureRequest, tmp_path_factory: TempPathFactory) -> Path
+     The returned object is a :class:`pathlib.Path` object.
+     """
+ 
+-    return _mk_tmp(request, tmp_path_factory)
++    return _mk_tmp(request, tmp_path_factory)
+\ No newline at end of file
+diff --git a/testing/test_tmpdir.py b/testing/test_tmpdir.py
+index d123287aa..de90c816e 100644
+--- a/testing/test_tmpdir.py
++++ b/testing/test_tmpdir.py
+@@ -243,7 +243,19 @@ def test_get_user(monkeypatch):
+     """
+     monkeypatch.delenv("USER", raising=False)
+     monkeypatch.delenv("USERNAME", raising=False)
+-    assert get_user() is None
++    assert get_user() == "unknown"
++
++def test_get_user_with_domain(monkeypatch):
++    """Test that get_user() handles domain usernames correctly."""
++    monkeypatch.setattr("getpass.getuser", lambda: "domain\\user")
++    assert get_user() == "domain_user"
++
++def test_get_user_with_special_chars(monkeypatch):
++    """Test that get_user() handles usernames with special characters."""
++    monkeypatch.setattr("getpass.getuser", lambda: 'user:*?"<>|with/bad\\chars')
++    sanitized = get_user()
++    assert all(c not in r'\/:*?"<>|' for c in sanitized)
++    assert sanitized == "user_____with_bad_chars"
+ 
+ 
+ class TestNumberedDir:
+@@ -444,4 +456,4 @@ def test_basetemp_with_read_only_files(pytester: Pytester) -> None:
+     assert result.ret == 0
+     # running a second time and ensure we don't crash
+     result = pytester.runpytest("--basetemp=tmp")
+-    assert result.ret == 0
++    assert result.ret == 0
+\ No newline at end of file
+2024-12-03 05:55:12,358 - INFO - Eval script for pytest-dev__pytest-8365 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-8365/eval.sh; copying to container...
+2024-12-03 05:55:20,092 - INFO - Test runtime: 7.57 seconds
+2024-12-03 05:55:20,092 - INFO - Test output for pytest-dev__pytest-8365 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-8365/test_output.txt
+2024-12-03 05:55:20,175 - INFO - Git diff after:
+diff --git a/src/_pytest/tmpdir.py b/src/_pytest/tmpdir.py
+index 29c7e19d7..429a13796 100644
+--- a/src/_pytest/tmpdir.py
++++ b/src/_pytest/tmpdir.py
+@@ -148,13 +148,35 @@ class TempdirFactory:
+         return py.path.local(self._tmppath_factory.getbasetemp().resolve())
+ 
+ 
++def sanitize_username(username: Optional[str]) -> str:
++    """Sanitize username for use in temporary directory paths."""
++    if not username:
++        return "unknown"
++    illegal_chars = r'\/:*?"<>|'
++    result = []
++    was_special = False
++    
++    for c in username:
++        if c in illegal_chars:
++            if not was_special:
++                result.append('_')
++                was_special = True
++        else:
++            result.append(c)
++            was_special = False
++            
++    return ''.join(result)
++
+ def get_user() -> Optional[str]:
+     """Return the current user name, or None if getuser() does not work
+     in the current environment (see #1010)."""
+     import getpass
+ 
+     try:
+-        return getpass.getuser()
++        username = getpass.getuser()
++        if not username:
++            return None
++        return sanitize_username(username)
+     except (ImportError, KeyError):
+         return None
+ 
+@@ -228,4 +250,4 @@ def tmp_path(request: FixtureRequest, tmp_path_factory: TempPathFactory) -> Path
+     The returned object is a :class:`pathlib.Path` object.
+     """
+ 
+-    return _mk_tmp(request, tmp_path_factory)
++    return _mk_tmp(request, tmp_path_factory)
+\ No newline at end of file
+2024-12-03 05:55:20,176 - INFO - Git diff changed after running eval script
+2024-12-03 05:55:20,176 - INFO - Grading answer for pytest-dev__pytest-8365...
+2024-12-03 05:55:20,180 - INFO - report: {'pytest-dev__pytest-8365': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['testing/test_tmpdir.py::test_tmp_path_factory_handles_invalid_dir_characters']}, 'PASS_TO_PASS': {'success': ['testing/test_tmpdir.py::TestTempdirHandler::test_mktemp', 'testing/test_tmpdir.py::TestTempdirHandler::test_tmppath_relative_basetemp_absolute', 'testing/test_tmpdir.py::test_get_user_uid_not_found', 'testing/test_tmpdir.py::TestNumberedDir::test_make', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_lock_create', 'testing/test_tmpdir.py::TestNumberedDir::test_lock_register_cleanup_removal', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_keep', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_locked', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_ignores_symlink', 'testing/test_tmpdir.py::TestNumberedDir::test_removal_accepts_lock', 'testing/test_tmpdir.py::TestRmRf::test_rm_rf', 'testing/test_tmpdir.py::TestRmRf::test_rm_rf_with_read_only_file', 'testing/test_tmpdir.py::TestRmRf::test_rm_rf_with_read_only_directory', 'testing/test_tmpdir.py::TestRmRf::test_on_rm_rf_error', 'testing/test_tmpdir.py::test_tmpdir_equals_tmp_path', 'testing/test_tmpdir.py::test_tmpdir_fixture', 'testing/test_tmpdir.py::TestConfigTmpdir::test_getbasetemp_custom_removes_old', 'testing/test_tmpdir.py::test_mktemp[mypath-True]', 'testing/test_tmpdir.py::test_mktemp[/mypath1-False]', 'testing/test_tmpdir.py::test_mktemp[./mypath1-True]', 'testing/test_tmpdir.py::test_mktemp[../mypath3-False]', 'testing/test_tmpdir.py::test_mktemp[../../mypath4-False]', 'testing/test_tmpdir.py::test_mktemp[mypath5/..-False]', 'testing/test_tmpdir.py::test_mktemp[mypath6/../mypath6-True]', 'testing/test_tmpdir.py::test_mktemp[mypath7/../mypath7/..-False]', 'testing/test_tmpdir.py::test_tmpdir_always_is_realpath', 'testing/test_tmpdir.py::test_tmp_path_always_is_realpath', 'testing/test_tmpdir.py::test_tmpdir_too_long_on_parametrization', 'testing/test_tmpdir.py::test_tmpdir_factory', 'testing/test_tmpdir.py::test_tmpdir_fallback_tox_env', 'testing/test_tmpdir.py::test_tmpdir_fallback_uid_not_found', 'testing/test_tmpdir.py::test_basetemp_with_read_only_files'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-8365: resolved: False
+2024-12-03 05:55:20,180 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-8365.KortixAI...
+2024-12-03 05:55:35,742 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-8365.KortixAI...
+2024-12-03 05:55:35,845 - INFO - Container sweb.eval.pytest-dev__pytest-8365.KortixAI removed.
+2024-12-03 05:55:35,845 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-8365:latest...
+2024-12-03 05:55:35,944 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-8365:latest removed.

@@ -1,0 +1,101 @@
+2024-12-03 11:49:41,796 - INFO - Environment image sweb.env.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-13779
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-13779:latest for scikit-learn__scikit-learn-13779
+2024-12-03 11:58:48,760 - INFO - Creating container for scikit-learn__scikit-learn-13779...
+2024-12-03 11:58:49,440 - INFO - Container for scikit-learn__scikit-learn-13779 created: ba3f48eabcb95cb3bfb06084e94f41d97d650143e1fb838f0e6bc473da3d9980
+2024-12-03 11:58:49,903 - INFO - Container for scikit-learn__scikit-learn-13779 started: ba3f48eabcb95cb3bfb06084e94f41d97d650143e1fb838f0e6bc473da3d9980
+2024-12-03 11:58:49,903 - INFO - Intermediate patch for scikit-learn__scikit-learn-13779 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13779/patch.diff, now applying to container...
+2024-12-03 11:58:50,168 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 11:58:50,230 - INFO - >>>>> Applied Patch:
+patching file sklearn/ensemble/tests/test_voting.py
+patching file sklearn/ensemble/voting.py
+
+2024-12-03 11:58:50,543 - INFO - Git diff before:
+diff --git a/sklearn/ensemble/tests/test_voting.py b/sklearn/ensemble/tests/test_voting.py
+index 2a19bc9a6..07f78ff69 100644
+--- a/sklearn/ensemble/tests/test_voting.py
++++ b/sklearn/ensemble/tests/test_voting.py
+@@ -348,6 +348,26 @@ def test_sample_weight():
+     assert_raise_message(ValueError, msg, eclf3.fit, X, y, sample_weight)
+ 
+ 
++def test_sample_weight_with_none_estimator():
++    """Check that sample weight works with None estimators"""
++    # Test that None estimator is properly handled with sample weights
++    clf1 = LogisticRegression(random_state=123)
++    clf2 = RandomForestClassifier(random_state=123)
++    eclf = VotingClassifier(estimators=[
++        ('lr', clf1), ('rf', clf2)],
++        voting='soft')
++    sample_weight = np.ones(len(y))
++    
++    # Should work with all estimators
++    eclf.fit(X, y, sample_weight=sample_weight)
++    
++    # Should still work after setting one estimator to None
++    eclf.set_params(lr=None)
++    eclf.fit(X, y, sample_weight=sample_weight)
++    
++    # Should work with the remaining estimator
++    assert_array_equal(eclf.predict(X), clf2.predict(X))
++
+ def test_sample_weight_kwargs():
+     """Check that VotingClassifier passes sample_weight as kwargs"""
+     class MockClassifier(BaseEstimator, ClassifierMixin):
+@@ -506,4 +526,4 @@ def test_transform():
+     assert_array_almost_equal(
+             eclf3.transform(X).swapaxes(0, 1).reshape((4, 6)),
+             eclf2.transform(X)
+-    )
++    )
+\ No newline at end of file
+diff --git a/sklearn/ensemble/voting.py b/sklearn/ensemble/voting.py
+index 7afa7180c..b0942afdd 100644
+--- a/sklearn/ensemble/voting.py
++++ b/sklearn/ensemble/voting.py
+@@ -78,7 +78,7 @@ class _BaseVoting(_BaseComposition, TransformerMixin):
+ 
+         if sample_weight is not None:
+             for name, step in self.estimators:
+-                if not has_fit_parameter(step, 'sample_weight'):
++                if step is not None and not has_fit_parameter(step, 'sample_weight'):
+                     raise ValueError('Underlying estimator \'%s\' does not'
+                                      ' support sample weights.' % name)
+ 
+@@ -485,4 +485,4 @@ class VotingRegressor(_BaseVoting, RegressorMixin):
+             values predicted by each regressor.
+         """
+         check_is_fitted(self, 'estimators_')
+-        return self._predict(X)
++        return self._predict(X)
+\ No newline at end of file
+2024-12-03 11:58:50,544 - INFO - Eval script for scikit-learn__scikit-learn-13779 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13779/eval.sh; copying to container...
+2024-12-03 11:59:01,730 - INFO - Test runtime: 11.00 seconds
+2024-12-03 11:59:01,731 - INFO - Test output for scikit-learn__scikit-learn-13779 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13779/test_output.txt
+2024-12-03 11:59:01,895 - INFO - Git diff after:
+diff --git a/sklearn/ensemble/voting.py b/sklearn/ensemble/voting.py
+index 7afa7180c..b0942afdd 100644
+--- a/sklearn/ensemble/voting.py
++++ b/sklearn/ensemble/voting.py
+@@ -78,7 +78,7 @@ class _BaseVoting(_BaseComposition, TransformerMixin):
+ 
+         if sample_weight is not None:
+             for name, step in self.estimators:
+-                if not has_fit_parameter(step, 'sample_weight'):
++                if step is not None and not has_fit_parameter(step, 'sample_weight'):
+                     raise ValueError('Underlying estimator \'%s\' does not'
+                                      ' support sample weights.' % name)
+ 
+@@ -485,4 +485,4 @@ class VotingRegressor(_BaseVoting, RegressorMixin):
+             values predicted by each regressor.
+         """
+         check_is_fitted(self, 'estimators_')
+-        return self._predict(X)
++        return self._predict(X)
+\ No newline at end of file
+2024-12-03 11:59:01,895 - INFO - Git diff changed after running eval script
+2024-12-03 11:59:01,895 - INFO - Grading answer for scikit-learn__scikit-learn-13779...
+2024-12-03 11:59:01,910 - INFO - report: {'scikit-learn__scikit-learn-13779': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/ensemble/tests/test_voting.py::test_none_estimator_with_weights[X0-y0-voter0]', 'sklearn/ensemble/tests/test_voting.py::test_none_estimator_with_weights[X1-y1-voter1]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/ensemble/tests/test_voting.py::test_estimator_init', 'sklearn/ensemble/tests/test_voting.py::test_predictproba_hardvoting', 'sklearn/ensemble/tests/test_voting.py::test_notfitted', 'sklearn/ensemble/tests/test_voting.py::test_majority_label_iris', 'sklearn/ensemble/tests/test_voting.py::test_tie_situation', 'sklearn/ensemble/tests/test_voting.py::test_weights_iris', 'sklearn/ensemble/tests/test_voting.py::test_weights_regressor', 'sklearn/ensemble/tests/test_voting.py::test_predict_on_toy_problem', 'sklearn/ensemble/tests/test_voting.py::test_predict_proba_on_toy_problem', 'sklearn/ensemble/tests/test_voting.py::test_multilabel', 'sklearn/ensemble/tests/test_voting.py::test_gridsearch', 'sklearn/ensemble/tests/test_voting.py::test_parallel_fit', 'sklearn/ensemble/tests/test_voting.py::test_sample_weight', 'sklearn/ensemble/tests/test_voting.py::test_sample_weight_kwargs', 'sklearn/ensemble/tests/test_voting.py::test_set_params', 'sklearn/ensemble/tests/test_voting.py::test_set_estimator_none', 'sklearn/ensemble/tests/test_voting.py::test_estimator_weights_format', 'sklearn/ensemble/tests/test_voting.py::test_transform'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-13779: resolved: True
+2024-12-03 11:59:01,911 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-13779.KortixAI...
+2024-12-03 11:59:17,314 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-13779.KortixAI...
+2024-12-03 11:59:17,375 - INFO - Container sweb.eval.scikit-learn__scikit-learn-13779.KortixAI removed.

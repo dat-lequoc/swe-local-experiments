@@ -1,0 +1,26 @@
+2024-11-20 03:50:38,200 - INFO - Environment image sweb.env.x86_64.a18371b03f944585b4f08c:latest found for django__django-12184
+Building instance image sweb.eval.x86_64.django__django-12184:latest for django__django-12184
+2024-11-20 03:51:20,027 - INFO - Creating container for django__django-12184...
+2024-11-20 03:51:20,050 - INFO - Container for django__django-12184 created: 923571b507f5abe476b9597790b0c047a47216b68e74b2ab993ff02af5afbff0
+2024-11-20 03:51:20,253 - INFO - Container for django__django-12184 started: 923571b507f5abe476b9597790b0c047a47216b68e74b2ab993ff02af5afbff0
+2024-11-20 03:51:20,253 - INFO - Intermediate patch for django__django-12184 written to logs/run_evaluation/KortixAI/KortixAI/django__django-12184/patch.diff, now applying to container...
+2024-11-20 03:51:20,471 - INFO - Failed to apply patch to container, trying again...
+2024-11-20 03:51:20,521 - INFO - >>>>> Applied Patch:
+patching file tests/urlpatterns/edge_cases.py
+patching file tests/urlpatterns/test_optional_params.py
+
+2024-11-20 03:51:21,492 - INFO - Git diff before:
+
+2024-11-20 03:51:21,492 - INFO - Eval script for django__django-12184 written to logs/run_evaluation/KortixAI/KortixAI/django__django-12184/eval.sh; copying to container...
+2024-11-20 03:51:28,691 - INFO - Test runtime: 7.04 seconds
+2024-11-20 03:51:28,691 - INFO - Test output for django__django-12184 written to logs/run_evaluation/KortixAI/KortixAI/django__django-12184/test_output.txt
+2024-11-20 03:51:28,751 - INFO - Git diff after:
+
+2024-11-20 03:51:28,751 - INFO - Grading answer for django__django-12184...
+2024-11-20 03:51:28,753 - INFO - report: {'django__django-12184': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_re_path_with_missing_optional_parameter (urlpatterns.tests.SimplifiedURLTests)']}, 'PASS_TO_PASS': {'success': ['test_allows_non_ascii_but_valid_identifiers (urlpatterns.tests.ParameterRestrictionTests)', 'test_non_identifier_parameter_name_causes_exception (urlpatterns.tests.ParameterRestrictionTests)', 'test_matching_urls (urlpatterns.tests.ConverterTests)', 'test_nonmatching_urls (urlpatterns.tests.ConverterTests)', 'test_resolve_type_error_propagates (urlpatterns.tests.ConversionExceptionTests)', 'test_resolve_value_error_means_no_match (urlpatterns.tests.ConversionExceptionTests)', 'test_reverse_value_error_propagates (urlpatterns.tests.ConversionExceptionTests)', 'test_converter_resolve (urlpatterns.tests.SimplifiedURLTests)', 'test_converter_reverse (urlpatterns.tests.SimplifiedURLTests)', 'test_converter_reverse_with_second_layer_instance_namespace (urlpatterns.tests.SimplifiedURLTests)', 'test_invalid_converter (urlpatterns.tests.SimplifiedURLTests)', 'test_path_inclusion_is_matchable (urlpatterns.tests.SimplifiedURLTests)', 'test_path_inclusion_is_reversible (urlpatterns.tests.SimplifiedURLTests)', 'test_path_lookup_with_double_inclusion (urlpatterns.tests.SimplifiedURLTests)', 'test_path_lookup_with_empty_string_inclusion (urlpatterns.tests.SimplifiedURLTests)', 'test_path_lookup_with_inclusion (urlpatterns.tests.SimplifiedURLTests)', 'test_path_lookup_with_multiple_parameters (urlpatterns.tests.SimplifiedURLTests)', 'test_path_lookup_with_typed_parameters (urlpatterns.tests.SimplifiedURLTests)', 'test_path_lookup_without_parameters (urlpatterns.tests.SimplifiedURLTests)', 'test_path_reverse_with_parameter (urlpatterns.tests.SimplifiedURLTests)', 'test_path_reverse_without_parameter (urlpatterns.tests.SimplifiedURLTests)', 'test_re_path (urlpatterns.tests.SimplifiedURLTests)', 'test_re_path_with_optional_parameter (urlpatterns.tests.SimplifiedURLTests)', 'test_space_in_route (urlpatterns.tests.SimplifiedURLTests)', 'test_two_variable_at_start_of_path_pattern (urlpatterns.tests.SimplifiedURLTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12184: resolved: False
+2024-11-20 03:51:28,754 - INFO - Attempting to stop container sweb.eval.django__django-12184.KortixAI...
+2024-11-20 03:51:43,973 - INFO - Attempting to remove container sweb.eval.django__django-12184.KortixAI...
+2024-11-20 03:51:44,015 - INFO - Container sweb.eval.django__django-12184.KortixAI removed.
+2024-11-20 03:51:44,015 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-12184:latest...
+2024-11-20 03:51:45,350 - INFO - Image sweb.eval.x86_64.django__django-12184:latest removed.

@@ -1,0 +1,184 @@
+2024-12-03 12:05:33,434 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-16106
+Building instance image sweb.eval.x86_64.sympy__sympy-16106:latest for sympy__sympy-16106
+2024-12-03 12:06:21,347 - INFO - Creating container for sympy__sympy-16106...
+2024-12-03 12:06:21,657 - INFO - Container for sympy__sympy-16106 created: 4d8ee5ca7cf65157f1868ce235ff629479409baeecda739071c1c1ef7ced68cc
+2024-12-03 12:06:22,243 - INFO - Container for sympy__sympy-16106 started: 4d8ee5ca7cf65157f1868ce235ff629479409baeecda739071c1c1ef7ced68cc
+2024-12-03 12:06:22,243 - INFO - Intermediate patch for sympy__sympy-16106 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-16106/patch.diff, now applying to container...
+2024-12-03 12:06:22,959 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:06:23,118 - INFO - >>>>> Applied Patch:
+patching file sympy/printing/mathml.py
+patching file sympy/printing/tests/test_mathml.py
+patching file sympy/utilities/pytest.py
+
+2024-12-03 12:06:23,955 - INFO - Git diff before:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 1aa0ee01a2..47bb715716 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -1025,6 +1025,29 @@ def _print_Tuple(self, e):
+         mrow.appendChild(x)
+         return mrow
+ 
++    def _print_Indexed(self, e):
++        """Handles printing of indexed objects in Presentation MathML."""
++        mrow = self.dom.createElement('mrow')
++        if len(e.indices) == 1:
++            msub = self.dom.createElement('msub')
++            msub.appendChild(self._print(e.base))
++            msub.appendChild(self._print(e.indices[0]))
++            mrow.appendChild(msub)
++        else:
++            msubsup = self.dom.createElement('msubsup')
++            msubsup.appendChild(self._print(e.base))
++            # Create a mrow for multiple indices
++            indices_row = self.dom.createElement('mrow')
++            for i, index in enumerate(e.indices):
++                if i > 0:
++                    comma = self.dom.createElement('mo')
++                    comma.appendChild(self.dom.createTextNode(','))
++                    indices_row.appendChild(comma)
++                indices_row.appendChild(self._print(index))
++            msubsup.appendChild(indices_row)
++            mrow.appendChild(msubsup)
++        return mrow
++
+     def _print_Interval(self, i):
+         mrow = self.dom.createElement('mrow')
+         brac = self.dom.createElement('mfenced')
+@@ -1318,4 +1341,4 @@ def print_mathml(expr, printer='content', **settings):
+     print(pretty_xml)
+ 
+ #For backward compatibility
+-MathMLPrinter = MathMLContentPrinter
++MathMLPrinter = MathMLContentPrinter
+\ No newline at end of file
+diff --git a/sympy/printing/tests/test_mathml.py b/sympy/printing/tests/test_mathml.py
+index 74e09fb2b5..f9cc8a1832 100644
+--- a/sympy/printing/tests/test_mathml.py
++++ b/sympy/printing/tests/test_mathml.py
+@@ -1,4 +1,4 @@
+-from sympy import diff, Integral, Limit, sin, Symbol, Integer, Rational, cos, \
++from sympy import diff, Integral, Limit, sin, Symbol, Integer, Rational, cos, IndexedBase, \
+     tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, E, I, oo, \
+     pi, GoldenRatio, EulerGamma, Sum, Eq, Ne, Ge, Lt, Float, Matrix, Basic, S, \
+     MatrixSymbol, Function, Derivative, log, Lambda
+@@ -383,6 +383,20 @@ def test_content_symbol():
+     del mml
+ 
+ 
++def test_content_mathml_indexed():
++    # Test indexed objects in content MathML
++    x = Symbol('x')
++    A = IndexedBase('A')
++    assert mathml(A[x]) == '<apply><selector/><ci>A</ci><ci>x</ci></apply>'
++    assert mathml(A[1,2]) == '<apply><selector/><ci>A</ci><cn>1</cn><cn>2</cn></apply>'
++
++def test_presentation_mathml_indexed():
++    # Test indexed objects in presentation MathML
++    x = Symbol('x')
++    A = IndexedBase('A')
++    assert mathml(A[x], printer='presentation') == '<mrow><msub><mi>A</mi><mi>x</mi></msub></mrow>'
++    assert mathml(A[1,2], printer='presentation') == '<mrow><msubsup><mi>A</mi><mrow><mn>1</mn><mo>,</mo><mn>2</mn></mrow></msubsup></mrow>'
++
+ def test_content_mathml_greek():
+     mml = mp._print(Symbol('alpha'))
+     assert mml.nodeName == 'ci'
+@@ -1138,4 +1152,4 @@ def test_print_matrix_symbol():
+ def test_print_random_symbol():
+     R = RandomSymbol(Symbol('R'))
+     assert mpp.doprint(R) == '<mi>R</mi>'
+-    assert mp.doprint(R) == '<ci>R</ci>'
++    assert mp.doprint(R) == '<ci>R</ci>'
+\ No newline at end of file
+diff --git a/sympy/utilities/pytest.py b/sympy/utilities/pytest.py
+index b07f91c6ff..2aa4d12b04 100644
+--- a/sympy/utilities/pytest.py
++++ b/sympy/utilities/pytest.py
+@@ -197,7 +197,7 @@ def warns(warningcls, **kwargs):
+ 
+ 
+ else:
+-    XFAIL = py.test.mark.xfail
++    XFAIL = pytest.mark.xfail
+     slow = py.test.mark.slow
+ 
+     def SKIP(reason):
+@@ -281,4 +281,4 @@ def ignore_warnings(warningcls):
+     # Reissue any warnings that we aren't testing for
+     for w in warnrec:
+         if not issubclass(w.category, warningcls):
+-            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
++            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
+\ No newline at end of file
+2024-12-03 12:06:23,956 - INFO - Eval script for sympy__sympy-16106 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-16106/eval.sh; copying to container...
+2024-12-03 12:06:31,211 - INFO - Test runtime: 6.66 seconds
+2024-12-03 12:06:31,212 - INFO - Test output for sympy__sympy-16106 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-16106/test_output.txt
+2024-12-03 12:06:31,286 - INFO - Git diff after:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 1aa0ee01a2..47bb715716 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -1025,6 +1025,29 @@ def _print_Tuple(self, e):
+         mrow.appendChild(x)
+         return mrow
+ 
++    def _print_Indexed(self, e):
++        """Handles printing of indexed objects in Presentation MathML."""
++        mrow = self.dom.createElement('mrow')
++        if len(e.indices) == 1:
++            msub = self.dom.createElement('msub')
++            msub.appendChild(self._print(e.base))
++            msub.appendChild(self._print(e.indices[0]))
++            mrow.appendChild(msub)
++        else:
++            msubsup = self.dom.createElement('msubsup')
++            msubsup.appendChild(self._print(e.base))
++            # Create a mrow for multiple indices
++            indices_row = self.dom.createElement('mrow')
++            for i, index in enumerate(e.indices):
++                if i > 0:
++                    comma = self.dom.createElement('mo')
++                    comma.appendChild(self.dom.createTextNode(','))
++                    indices_row.appendChild(comma)
++                indices_row.appendChild(self._print(index))
++            msubsup.appendChild(indices_row)
++            mrow.appendChild(msubsup)
++        return mrow
++
+     def _print_Interval(self, i):
+         mrow = self.dom.createElement('mrow')
+         brac = self.dom.createElement('mfenced')
+@@ -1318,4 +1341,4 @@ def print_mathml(expr, printer='content', **settings):
+     print(pretty_xml)
+ 
+ #For backward compatibility
+-MathMLPrinter = MathMLContentPrinter
++MathMLPrinter = MathMLContentPrinter
+\ No newline at end of file
+diff --git a/sympy/utilities/pytest.py b/sympy/utilities/pytest.py
+index b07f91c6ff..2aa4d12b04 100644
+--- a/sympy/utilities/pytest.py
++++ b/sympy/utilities/pytest.py
+@@ -197,7 +197,7 @@ def warns(warningcls, **kwargs):
+ 
+ 
+ else:
+-    XFAIL = py.test.mark.xfail
++    XFAIL = pytest.mark.xfail
+     slow = py.test.mark.slow
+ 
+     def SKIP(reason):
+@@ -281,4 +281,4 @@ def ignore_warnings(warningcls):
+     # Reissue any warnings that we aren't testing for
+     for w in warnrec:
+         if not issubclass(w.category, warningcls):
+-            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
++            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
+\ No newline at end of file
+2024-12-03 12:06:31,286 - INFO - Git diff changed after running eval script
+2024-12-03 12:06:31,287 - INFO - Grading answer for sympy__sympy-16106...
+2024-12-03 12:06:31,291 - INFO - report: {'sympy__sympy-16106': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_print_IndexedBase']}, 'PASS_TO_PASS': {'success': ['test_mathml_printer', 'test_content_printmethod', 'test_content_mathml_core', 'test_content_mathml_functions', 'test_content_mathml_limits', 'test_content_mathml_integrals', 'test_content_mathml_matrices', 'test_content_mathml_sums', 'test_content_mathml_tuples', 'test_content_mathml_add', 'test_content_mathml_Rational', 'test_content_mathml_constants', 'test_content_mathml_trig', 'test_content_mathml_relational', 'test_content_symbol', 'test_content_mathml_greek', 'test_content_mathml_order', 'test_content_settings', 'test_presentation_printmethod', 'test_presentation_mathml_core', 'test_presentation_mathml_functions', 'test_print_derivative', 'test_presentation_mathml_limits', 'test_presentation_mathml_integrals', 'test_presentation_mathml_matrices', 'test_presentation_mathml_sums', 'test_presentation_mathml_add', 'test_presentation_mathml_Rational', 'test_presentation_mathml_constants', 'test_presentation_mathml_trig', 'test_presentation_mathml_relational', 'test_presentation_symbol', 'test_presentation_mathml_greek', 'test_presentation_mathml_order', 'test_print_tuples', 'test_print_re_im', 'test_presentation_settings', 'test_toprettyxml_hooking', 'test_print_domains', 'test_print_expression_with_minus', 'test_print_AssocOp', 'test_print_basic', 'test_ln_notation_print', 'test_mul_symbol_print', 'test_print_lerchphi', 'test_print_polylog', 'test_print_logic', 'test_root_notation_print', 'test_fold_frac_powers_print', 'test_fold_short_frac_print', 'test_print_factorials', 'test_print_Lambda', 'test_print_conjugate', 'test_print_matrix_symbol', 'test_print_random_symbol'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-16106: resolved: False
+2024-12-03 12:06:31,291 - INFO - Attempting to stop container sweb.eval.sympy__sympy-16106.KortixAI...
+2024-12-03 12:06:46,927 - INFO - Attempting to remove container sweb.eval.sympy__sympy-16106.KortixAI...
+2024-12-03 12:06:46,986 - INFO - Container sweb.eval.sympy__sympy-16106.KortixAI removed.

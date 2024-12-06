@@ -1,0 +1,143 @@
+2024-12-03 06:00:47,631 - INFO - Environment image sweb.env.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-13241
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-13241:latest for scikit-learn__scikit-learn-13241
+2024-12-03 06:05:43,543 - INFO - Creating container for scikit-learn__scikit-learn-13241...
+2024-12-03 06:05:43,691 - INFO - Container for scikit-learn__scikit-learn-13241 created: b406453ffc2fc229cf98ccaf6789286213b57fe124f8321fab971f880a337b78
+2024-12-03 06:05:43,984 - INFO - Container for scikit-learn__scikit-learn-13241 started: b406453ffc2fc229cf98ccaf6789286213b57fe124f8321fab971f880a337b78
+2024-12-03 06:05:43,984 - INFO - Intermediate patch for scikit-learn__scikit-learn-13241 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13241/patch.diff, now applying to container...
+2024-12-03 06:05:44,215 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 06:05:44,269 - INFO - >>>>> Applied Patch:
+patching file sklearn/decomposition/kernel_pca.py
+
+2024-12-03 06:05:44,539 - INFO - Git diff before:
+diff --git a/sklearn/decomposition/kernel_pca.py b/sklearn/decomposition/kernel_pca.py
+index bb91d0cbb..9a7a35078 100644
+--- a/sklearn/decomposition/kernel_pca.py
++++ b/sklearn/decomposition/kernel_pca.py
+@@ -20,6 +20,13 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+ 
+     Non-linear dimensionality reduction through the use of kernels (see
+     :ref:`metrics`).
++    
++    Note: The sign of components from transform or fit_transform is stabilized 
++    to ensure more consistent output across multiple runs. This is done by fixing
++    the sign based on the largest absolute component. However, the absolute value
++    of the components is what carries the meaningful information, and sign 
++    differences between runs do not affect the quality of the dimensionality
++    reduction.
+ 
+     Read more in the :ref:`User Guide <kernel_PCA>`.
+ 
+@@ -162,6 +169,7 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+         self.random_state = random_state
+         self.n_jobs = n_jobs
+         self.copy_X = copy_X
++        self.eigenvalue_signs_ = None
+ 
+     @property
+     def _pairwise(self):
+@@ -277,6 +285,14 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+ 
+         X_transformed = self.alphas_ * np.sqrt(self.lambdas_)
+ 
++        # Store eigenvalue signs during fit
++        if self.eigenvalue_signs_ is None:
++            # Use signs of largest magnitude components
++            self.eigenvalue_signs_ = np.sign(self.alphas_[np.argmax(np.abs(self.alphas_), axis=0), range(self.alphas_.shape[1])])
++            
++        # Apply consistent signs based on eigenvalues
++        X_transformed *= self.eigenvalue_signs_
++
+         if self.fit_inverse_transform:
+             self._fit_inverse_transform(X_transformed, X)
+ 
+@@ -296,7 +312,10 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+         check_is_fitted(self, 'X_fit_')
+ 
+         K = self._centerer.transform(self._get_kernel(X, self.X_fit_))
+-        return np.dot(K, self.alphas_ / np.sqrt(self.lambdas_))
++        X_transformed = np.dot(K, self.alphas_ / np.sqrt(self.lambdas_))
++        if self.eigenvalue_signs_ is not None:
++            X_transformed *= self.eigenvalue_signs_
++        return X_transformed
+ 
+     def inverse_transform(self, X):
+         """Transform X back to original space.
+@@ -320,4 +339,4 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+ 
+         K = self._get_kernel(X, self.X_transformed_fit_)
+ 
+-        return np.dot(K, self.dual_coef_)
++        return np.dot(K, self.dual_coef_)
+\ No newline at end of file
+2024-12-03 06:05:44,539 - INFO - Eval script for scikit-learn__scikit-learn-13241 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13241/eval.sh; copying to container...
+2024-12-03 06:05:53,727 - INFO - Test runtime: 9.01 seconds
+2024-12-03 06:05:53,727 - INFO - Test output for scikit-learn__scikit-learn-13241 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13241/test_output.txt
+2024-12-03 06:05:53,789 - INFO - Git diff after:
+diff --git a/sklearn/decomposition/kernel_pca.py b/sklearn/decomposition/kernel_pca.py
+index bb91d0cbb..9a7a35078 100644
+--- a/sklearn/decomposition/kernel_pca.py
++++ b/sklearn/decomposition/kernel_pca.py
+@@ -20,6 +20,13 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+ 
+     Non-linear dimensionality reduction through the use of kernels (see
+     :ref:`metrics`).
++    
++    Note: The sign of components from transform or fit_transform is stabilized 
++    to ensure more consistent output across multiple runs. This is done by fixing
++    the sign based on the largest absolute component. However, the absolute value
++    of the components is what carries the meaningful information, and sign 
++    differences between runs do not affect the quality of the dimensionality
++    reduction.
+ 
+     Read more in the :ref:`User Guide <kernel_PCA>`.
+ 
+@@ -162,6 +169,7 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+         self.random_state = random_state
+         self.n_jobs = n_jobs
+         self.copy_X = copy_X
++        self.eigenvalue_signs_ = None
+ 
+     @property
+     def _pairwise(self):
+@@ -277,6 +285,14 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+ 
+         X_transformed = self.alphas_ * np.sqrt(self.lambdas_)
+ 
++        # Store eigenvalue signs during fit
++        if self.eigenvalue_signs_ is None:
++            # Use signs of largest magnitude components
++            self.eigenvalue_signs_ = np.sign(self.alphas_[np.argmax(np.abs(self.alphas_), axis=0), range(self.alphas_.shape[1])])
++            
++        # Apply consistent signs based on eigenvalues
++        X_transformed *= self.eigenvalue_signs_
++
+         if self.fit_inverse_transform:
+             self._fit_inverse_transform(X_transformed, X)
+ 
+@@ -296,7 +312,10 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+         check_is_fitted(self, 'X_fit_')
+ 
+         K = self._centerer.transform(self._get_kernel(X, self.X_fit_))
+-        return np.dot(K, self.alphas_ / np.sqrt(self.lambdas_))
++        X_transformed = np.dot(K, self.alphas_ / np.sqrt(self.lambdas_))
++        if self.eigenvalue_signs_ is not None:
++            X_transformed *= self.eigenvalue_signs_
++        return X_transformed
+ 
+     def inverse_transform(self, X):
+         """Transform X back to original space.
+@@ -320,4 +339,4 @@ class KernelPCA(BaseEstimator, TransformerMixin, _UnstableOn32BitMixin):
+ 
+         K = self._get_kernel(X, self.X_transformed_fit_)
+ 
+-        return np.dot(K, self.dual_coef_)
++        return np.dot(K, self.dual_coef_)
+\ No newline at end of file
+2024-12-03 06:05:53,789 - INFO - Grading answer for scikit-learn__scikit-learn-13241...
+2024-12-03 06:05:53,797 - INFO - report: {'scikit-learn__scikit-learn-13241': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_deterministic_output'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_invalid_parameters', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_consistent_transform', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_sparse', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_linear_kernel', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_n_components', 'sklearn/decomposition/tests/test_kernel_pca.py::test_remove_zero_eig', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_precomputed', 'sklearn/decomposition/tests/test_kernel_pca.py::test_kernel_pca_invalid_kernel', 'sklearn/decomposition/tests/test_kernel_pca.py::test_gridsearch_pipeline', 'sklearn/decomposition/tests/test_kernel_pca.py::test_gridsearch_pipeline_precomputed', 'sklearn/decomposition/tests/test_kernel_pca.py::test_nested_circles', 'sklearn/decomposition/tests/test_pca.py::test_pca', 'sklearn/decomposition/tests/test_pca.py::test_pca_arpack_solver', 'sklearn/decomposition/tests/test_pca.py::test_pca_randomized_solver', 'sklearn/decomposition/tests/test_pca.py::test_no_empty_slice_warning', 'sklearn/decomposition/tests/test_pca.py::test_whitening', 'sklearn/decomposition/tests/test_pca.py::test_explained_variance', 'sklearn/decomposition/tests/test_pca.py::test_singular_values', 'sklearn/decomposition/tests/test_pca.py::test_pca_check_projection', 'sklearn/decomposition/tests/test_pca.py::test_pca_inverse', 'sklearn/decomposition/tests/test_pca.py::test_pca_validation[full]', 'sklearn/decomposition/tests/test_pca.py::test_pca_validation[arpack]', 'sklearn/decomposition/tests/test_pca.py::test_pca_validation[randomized]', 'sklearn/decomposition/tests/test_pca.py::test_pca_validation[auto]', 'sklearn/decomposition/tests/test_pca.py::test_n_components_none[full]', 'sklearn/decomposition/tests/test_pca.py::test_n_components_none[arpack]', 'sklearn/decomposition/tests/test_pca.py::test_n_components_none[randomized]', 'sklearn/decomposition/tests/test_pca.py::test_n_components_none[auto]', 'sklearn/decomposition/tests/test_pca.py::test_randomized_pca_check_projection', 'sklearn/decomposition/tests/test_pca.py::test_randomized_pca_check_list', 'sklearn/decomposition/tests/test_pca.py::test_randomized_pca_inverse', 'sklearn/decomposition/tests/test_pca.py::test_n_components_mle', 'sklearn/decomposition/tests/test_pca.py::test_pca_dim', 'sklearn/decomposition/tests/test_pca.py::test_infer_dim_1', 'sklearn/decomposition/tests/test_pca.py::test_infer_dim_2', 'sklearn/decomposition/tests/test_pca.py::test_infer_dim_3', 'sklearn/decomposition/tests/test_pca.py::test_infer_dim_by_explained_variance', 'sklearn/decomposition/tests/test_pca.py::test_pca_score', 'sklearn/decomposition/tests/test_pca.py::test_pca_score2', 'sklearn/decomposition/tests/test_pca.py::test_pca_score3', 'sklearn/decomposition/tests/test_pca.py::test_pca_score_with_different_solvers', 'sklearn/decomposition/tests/test_pca.py::test_pca_zero_noise_variance_edge_cases', 'sklearn/decomposition/tests/test_pca.py::test_svd_solver_auto', 'sklearn/decomposition/tests/test_pca.py::test_pca_sparse_input[full]', 'sklearn/decomposition/tests/test_pca.py::test_pca_sparse_input[arpack]', 'sklearn/decomposition/tests/test_pca.py::test_pca_sparse_input[randomized]', 'sklearn/decomposition/tests/test_pca.py::test_pca_sparse_input[auto]', 'sklearn/decomposition/tests/test_pca.py::test_pca_bad_solver', 'sklearn/decomposition/tests/test_pca.py::test_pca_dtype_preservation[full]', 'sklearn/decomposition/tests/test_pca.py::test_pca_dtype_preservation[arpack]', 'sklearn/decomposition/tests/test_pca.py::test_pca_dtype_preservation[randomized]', 'sklearn/decomposition/tests/test_pca.py::test_pca_dtype_preservation[auto]', 'sklearn/decomposition/tests/test_pca.py::test_pca_deterministic_output'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-13241: resolved: True
+2024-12-03 06:05:53,797 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-13241.KortixAI...
+2024-12-03 06:06:09,175 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-13241.KortixAI...
+2024-12-03 06:06:09,222 - INFO - Container sweb.eval.scikit-learn__scikit-learn-13241.KortixAI removed.
+2024-12-03 06:06:09,222 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-13241:latest...
+2024-12-03 06:06:09,419 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-13241:latest removed.

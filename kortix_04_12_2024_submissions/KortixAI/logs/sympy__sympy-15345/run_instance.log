@@ -1,0 +1,92 @@
+2024-12-03 12:04:33,654 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-15345
+Building instance image sweb.eval.x86_64.sympy__sympy-15345:latest for sympy__sympy-15345
+2024-12-03 12:05:16,700 - INFO - Creating container for sympy__sympy-15345...
+2024-12-03 12:05:16,841 - INFO - Container for sympy__sympy-15345 created: 36af0413034a5f5e9e661a669fc828fb0e1dab06c23d1d7e848986766b6e64c4
+2024-12-03 12:05:17,532 - INFO - Container for sympy__sympy-15345 started: 36af0413034a5f5e9e661a669fc828fb0e1dab06c23d1d7e848986766b6e64c4
+2024-12-03 12:05:17,533 - INFO - Intermediate patch for sympy__sympy-15345 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-15345/patch.diff, now applying to container...
+2024-12-03 12:05:18,153 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:05:18,272 - INFO - >>>>> Applied Patch:
+patching file sympy/printing/mathematica.py
+patching file sympy/printing/tests/test_mathematica.py
+
+2024-12-03 12:05:18,965 - INFO - Git diff before:
+diff --git a/sympy/printing/mathematica.py b/sympy/printing/mathematica.py
+index ea7e3a2d94..01e8fc5868 100644
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -94,7 +94,10 @@ def _print_list(self, expr):
+     _print_Tuple = _print_list
+ 
+     def _print_Function(self, expr):
+-        if expr.func.__name__ in self.known_functions:
++        if expr.func.__name__ in ['Max', 'Min']:
++            args = [self._print(arg) for arg in expr.args]
++            return "%s[%s]" % (expr.func.__name__, ", ".join(args))
++        elif expr.func.__name__ in self.known_functions:
+             cond_mfunc = self.known_functions[expr.func.__name__]
+             for cond, mfunc in cond_mfunc:
+                 if cond(*expr.args):
+@@ -128,4 +131,4 @@ def mathematica_code(expr, **settings):
+     >>> mcode(sin(x).series(x).removeO())
+     '(1/120)*x^5 - 1/6*x^3 + x'
+     """
+-    return MCodePrinter(settings).doprint(expr)
++    return MCodePrinter(settings).doprint(expr)
+\ No newline at end of file
+diff --git a/sympy/printing/tests/test_mathematica.py b/sympy/printing/tests/test_mathematica.py
+index dd636d0623..870cd3ed66 100644
+--- a/sympy/printing/tests/test_mathematica.py
++++ b/sympy/printing/tests/test_mathematica.py
+@@ -25,7 +25,11 @@ def test_Rational():
+ 
+ 
+ def test_Function():
++    from sympy import Max, Min
+     assert mcode(f(x, y, z)) == "f[x, y, z]"
++    assert mcode(Max(x, 2)) == "Max[x, 2]"
++    assert mcode(Min(x, 2)) == "Min[x, 2]"
++    assert mcode(Max(x, y, 2)) == "Max[x, y, 2]"
+     assert mcode(sin(x) ** cos(x)) == "Sin[x]^Cos[x]"
+     assert mcode(conjugate(x)) == "Conjugate[x]"
+ 
+@@ -89,4 +93,4 @@ def test_Sum():
+                      (x, -oo, oo),
+                      (y, -oo, oo))) == \
+         "Hold[Sum[Exp[-x^2 - y^2], {x, -Infinity, Infinity}, " \
+-        "{y, -Infinity, Infinity}]]"
++        "{y, -Infinity, Infinity}]]"
+\ No newline at end of file
+2024-12-03 12:05:18,965 - INFO - Eval script for sympy__sympy-15345 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-15345/eval.sh; copying to container...
+2024-12-03 12:05:25,228 - INFO - Test runtime: 5.89 seconds
+2024-12-03 12:05:25,228 - INFO - Test output for sympy__sympy-15345 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-15345/test_output.txt
+2024-12-03 12:05:25,308 - INFO - Git diff after:
+diff --git a/sympy/printing/mathematica.py b/sympy/printing/mathematica.py
+index ea7e3a2d94..01e8fc5868 100644
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -94,7 +94,10 @@ def _print_list(self, expr):
+     _print_Tuple = _print_list
+ 
+     def _print_Function(self, expr):
+-        if expr.func.__name__ in self.known_functions:
++        if expr.func.__name__ in ['Max', 'Min']:
++            args = [self._print(arg) for arg in expr.args]
++            return "%s[%s]" % (expr.func.__name__, ", ".join(args))
++        elif expr.func.__name__ in self.known_functions:
+             cond_mfunc = self.known_functions[expr.func.__name__]
+             for cond, mfunc in cond_mfunc:
+                 if cond(*expr.args):
+@@ -128,4 +131,4 @@ def mathematica_code(expr, **settings):
+     >>> mcode(sin(x).series(x).removeO())
+     '(1/120)*x^5 - 1/6*x^3 + x'
+     """
+-    return MCodePrinter(settings).doprint(expr)
++    return MCodePrinter(settings).doprint(expr)
+\ No newline at end of file
+2024-12-03 12:05:25,308 - INFO - Git diff changed after running eval script
+2024-12-03 12:05:25,308 - INFO - Grading answer for sympy__sympy-15345...
+2024-12-03 12:05:25,310 - INFO - report: {'sympy__sympy-15345': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_Function']}, 'PASS_TO_PASS': {'success': ['test_Integer', 'test_Rational', 'test_Pow', 'test_Mul', 'test_constants', 'test_containers', 'test_Integral', 'test_Derivative'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-15345: resolved: False
+2024-12-03 12:05:25,311 - INFO - Attempting to stop container sweb.eval.sympy__sympy-15345.KortixAI...
+2024-12-03 12:05:40,783 - INFO - Attempting to remove container sweb.eval.sympy__sympy-15345.KortixAI...
+2024-12-03 12:05:40,883 - INFO - Container sweb.eval.sympy__sympy-15345.KortixAI removed.

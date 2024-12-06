@@ -1,0 +1,190 @@
+2024-12-03 12:00:27,201 - INFO - Environment image sweb.env.x86_64.c6d251a05e0af7688b64fd:latest found for sphinx-doc__sphinx-8801
+Building instance image sweb.eval.x86_64.sphinx-doc__sphinx-8801:latest for sphinx-doc__sphinx-8801
+2024-12-03 12:01:04,236 - INFO - Creating container for sphinx-doc__sphinx-8801...
+2024-12-03 12:01:04,395 - INFO - Container for sphinx-doc__sphinx-8801 created: a79d33f0fcc8f18cd6324091d50eea7c156a80fb59b3dd82f3365bca4bb50f86
+2024-12-03 12:01:04,922 - INFO - Container for sphinx-doc__sphinx-8801 started: a79d33f0fcc8f18cd6324091d50eea7c156a80fb59b3dd82f3365bca4bb50f86
+2024-12-03 12:01:04,923 - INFO - Intermediate patch for sphinx-doc__sphinx-8801 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8801/patch.diff, now applying to container...
+2024-12-03 12:01:05,425 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:01:05,633 - INFO - >>>>> Applied Patch:
+patching file setup.py
+Reversed (or previously applied) patch detected!  Assuming -R.
+patching file sphinx/ext/autodoc/__init__.py
+patching file tests/test_ext_autodoc.py
+patching file tox.ini
+Reversed (or previously applied) patch detected!  Assuming -R.
+
+2024-12-03 12:01:06,223 - INFO - Git diff before:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index dc413b5c2..b6c732279 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -2426,21 +2426,32 @@ class AttributeDocumenter(GenericAliasMixin, NewTypeMixin, SlotsMixin,  # type:
+         return False
+ 
+     def update_annotations(self, parent: Any) -> None:
+-        """Update __annotations__ to support type_comment and so on."""
++        """Update __annotations__ to support type_comment and inherited annotations."""
+         try:
+             annotations = dict(inspect.getannotations(parent))
+             parent.__annotations__ = annotations
+ 
++            # Traverse MRO chain to gather all annotations
+             for cls in inspect.getmro(parent):
+                 try:
+                     module = safe_getattr(cls, '__module__')
+                     qualname = safe_getattr(cls, '__qualname__')
+ 
++                    # Get annotations from module analyzer
+                     analyzer = ModuleAnalyzer.for_module(module)
+                     analyzer.analyze()
++                    
++                    # Add annotations from this class if not already present
+                     for (classname, attrname), annotation in analyzer.annotations.items():
+                         if classname == qualname and attrname not in annotations:
+                             annotations[attrname] = annotation
++
++                    # Also check class annotations directly
++                    cls_annotations = inspect.getannotations(cls)
++                    for name, value in cls_annotations.items():
++                        if name not in annotations:
++                            annotations[name] = value
++                            
+                 except (AttributeError, PycodeError):
+                     pass
+         except TypeError:
+@@ -2656,4 +2667,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
+     app.setup_extension('sphinx.ext.autodoc.type_comment')
+     app.setup_extension('sphinx.ext.autodoc.typehints')
+ 
+-    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
++    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
+\ No newline at end of file
+diff --git a/tests/test_ext_autodoc.py b/tests/test_ext_autodoc.py
+index d555359cf..c4363acd0 100644
+--- a/tests/test_ext_autodoc.py
++++ b/tests/test_ext_autodoc.py
+@@ -636,6 +636,25 @@ def test_autodoc_inherited_members_Base(app):
+     assert '   .. py:method:: Derived.inheritedmeth()' in actual
+     assert '   .. py:method:: Derived.inheritedclassmeth' not in actual
+ 
++def test_autodoc_inherited_annotations(app):
++    text = '''\
++    class Foo:
++        """Foo docstring"""
++        attr1: int  #: docstring for attr1
++
++    class Bar(Foo):
++        """Bar docstring"""
++        attr2: str  #: docstring for attr2
++    '''
++    # Write test module
++    (app.srcdir / 'annotation_inheritance.py').write_text(text, encoding='utf-8')
++
++    options = {"members": None,
++               "inherited-members": None}
++    actual = do_autodoc(app, 'class', 'annotation_inheritance.Bar', options)
++    assert '   .. py:attribute:: Bar.attr1' in actual
++    assert '   .. py:attribute:: Bar.attr2' in actual
++
+ 
+ @pytest.mark.sphinx('html', testroot='ext-autodoc')
+ def test_autodoc_inherited_members_None(app):
+@@ -2280,4 +2299,4 @@ def test_hide_value(app):
+         '',
+         '   :meta hide-value:',
+         '',
+-    ]
++    ]
+\ No newline at end of file
+2024-12-03 12:01:06,223 - INFO - Eval script for sphinx-doc__sphinx-8801 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8801/eval.sh; copying to container...
+2024-12-03 12:01:15,419 - INFO - Test runtime: 8.92 seconds
+2024-12-03 12:01:15,419 - INFO - Test output for sphinx-doc__sphinx-8801 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-8801/test_output.txt
+2024-12-03 12:01:15,678 - INFO - Git diff after:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index dc413b5c2..b6c732279 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -2426,21 +2426,32 @@ class AttributeDocumenter(GenericAliasMixin, NewTypeMixin, SlotsMixin,  # type:
+         return False
+ 
+     def update_annotations(self, parent: Any) -> None:
+-        """Update __annotations__ to support type_comment and so on."""
++        """Update __annotations__ to support type_comment and inherited annotations."""
+         try:
+             annotations = dict(inspect.getannotations(parent))
+             parent.__annotations__ = annotations
+ 
++            # Traverse MRO chain to gather all annotations
+             for cls in inspect.getmro(parent):
+                 try:
+                     module = safe_getattr(cls, '__module__')
+                     qualname = safe_getattr(cls, '__qualname__')
+ 
++                    # Get annotations from module analyzer
+                     analyzer = ModuleAnalyzer.for_module(module)
+                     analyzer.analyze()
++                    
++                    # Add annotations from this class if not already present
+                     for (classname, attrname), annotation in analyzer.annotations.items():
+                         if classname == qualname and attrname not in annotations:
+                             annotations[attrname] = annotation
++
++                    # Also check class annotations directly
++                    cls_annotations = inspect.getannotations(cls)
++                    for name, value in cls_annotations.items():
++                        if name not in annotations:
++                            annotations[name] = value
++                            
+                 except (AttributeError, PycodeError):
+                     pass
+         except TypeError:
+@@ -2656,4 +2667,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
+     app.setup_extension('sphinx.ext.autodoc.type_comment')
+     app.setup_extension('sphinx.ext.autodoc.typehints')
+ 
+-    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
++    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
+\ No newline at end of file
+diff --git a/tests/test_ext_autodoc.py b/tests/test_ext_autodoc.py
+index d555359cf..c4363acd0 100644
+--- a/tests/test_ext_autodoc.py
++++ b/tests/test_ext_autodoc.py
+@@ -636,6 +636,25 @@ def test_autodoc_inherited_members_Base(app):
+     assert '   .. py:method:: Derived.inheritedmeth()' in actual
+     assert '   .. py:method:: Derived.inheritedclassmeth' not in actual
+ 
++def test_autodoc_inherited_annotations(app):
++    text = '''\
++    class Foo:
++        """Foo docstring"""
++        attr1: int  #: docstring for attr1
++
++    class Bar(Foo):
++        """Bar docstring"""
++        attr2: str  #: docstring for attr2
++    '''
++    # Write test module
++    (app.srcdir / 'annotation_inheritance.py').write_text(text, encoding='utf-8')
++
++    options = {"members": None,
++               "inherited-members": None}
++    actual = do_autodoc(app, 'class', 'annotation_inheritance.Bar', options)
++    assert '   .. py:attribute:: Bar.attr1' in actual
++    assert '   .. py:attribute:: Bar.attr2' in actual
++
+ 
+ @pytest.mark.sphinx('html', testroot='ext-autodoc')
+ def test_autodoc_inherited_members_None(app):
+@@ -2280,4 +2299,4 @@ def test_hide_value(app):
+         '',
+         '   :meta hide-value:',
+         '',
+-    ]
++    ]
+\ No newline at end of file
+2024-12-03 12:01:15,678 - INFO - Grading answer for sphinx-doc__sphinx-8801...
+2024-12-03 12:01:15,687 - INFO - report: {'sphinx-doc__sphinx-8801': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_autoclass.py::test_uninitialized_attributes']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_autoclass.py::test_classes', 'tests/test_ext_autodoc_autoclass.py::test_instance_variable', 'tests/test_ext_autodoc_autoclass.py::test_inherited_instance_variable', 'tests/test_ext_autodoc_autoclass.py::test_undocumented_uninitialized_attributes', 'tests/test_ext_autodoc_autoclass.py::test_decorators', 'tests/test_ext_autodoc_autoclass.py::test_slots_attribute', 'tests/test_ext_autodoc_autoclass.py::test_show_inheritance_for_subclass_of_generic_type', 'tests/test_ext_autodoc_autoclass.py::test_class_alias']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-8801: resolved: False
+2024-12-03 12:01:15,687 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-8801.KortixAI...
+2024-12-03 12:01:31,130 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-8801.KortixAI...
+2024-12-03 12:01:31,318 - INFO - Container sweb.eval.sphinx-doc__sphinx-8801.KortixAI removed.

@@ -1,0 +1,71 @@
+2024-12-02 12:44:19,057 - INFO - Environment image sweb.env.x86_64.934a137824256b612e9dc5:latest found for django__django-15498
+Building instance image sweb.eval.x86_64.django__django-15498:latest for django__django-15498
+2024-12-02 12:45:21,887 - INFO - Creating container for django__django-15498...
+2024-12-02 12:45:21,971 - INFO - Container for django__django-15498 created: 2d7472b44cfe805979b12991b9a5cd1527fa6e99fbc428b022727cb9ec1bbafd
+2024-12-02 12:45:23,131 - INFO - Container for django__django-15498 started: 2d7472b44cfe805979b12991b9a5cd1527fa6e99fbc428b022727cb9ec1bbafd
+2024-12-02 12:45:23,131 - INFO - Intermediate patch for django__django-15498 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15498/patch.diff, now applying to container...
+2024-12-02 12:45:26,093 - INFO - Failed to apply patch to container, trying again...
+2024-12-02 12:45:26,461 - INFO - >>>>> Applied Patch:
+patching file django/http/request.py
+
+2024-12-02 12:45:28,338 - INFO - Git diff before:
+diff --git a/django/http/request.py b/django/http/request.py
+index 0b64b1b2b9..34967da280 100644
+--- a/django/http/request.py
++++ b/django/http/request.py
+@@ -434,7 +434,11 @@ class HttpHeaders(CaseInsensitiveMapping):
+ 
+     def __getitem__(self, key):
+         """Allow header lookup using underscores in place of hyphens."""
+-        return super().__getitem__(key.replace("_", "-"))
++        try:
++            value = super().__getitem__(key.replace("_", "-"))
++            return value if value else None
++        except KeyError:
++            return None
+ 
+     @classmethod
+     def parse_header_name(cls, header):
+@@ -709,4 +713,4 @@ def validate_host(host, allowed_hosts):
+ 
+ 
+ def parse_accept_header(header):
+-    return [MediaType(token) for token in header.split(",") if token.strip()]
++    return [MediaType(token) for token in header.split(",") if token.strip()]
+\ No newline at end of file
+2024-12-02 12:45:28,339 - INFO - Eval script for django__django-15498 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15498/eval.sh; copying to container...
+2024-12-02 12:45:39,530 - INFO - Test runtime: 9.96 seconds
+2024-12-02 12:45:39,531 - INFO - Test output for django__django-15498 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15498/test_output.txt
+2024-12-02 12:45:39,785 - INFO - Git diff after:
+diff --git a/django/http/request.py b/django/http/request.py
+index 0b64b1b2b9..34967da280 100644
+--- a/django/http/request.py
++++ b/django/http/request.py
+@@ -434,7 +434,11 @@ class HttpHeaders(CaseInsensitiveMapping):
+ 
+     def __getitem__(self, key):
+         """Allow header lookup using underscores in place of hyphens."""
+-        return super().__getitem__(key.replace("_", "-"))
++        try:
++            value = super().__getitem__(key.replace("_", "-"))
++            return value if value else None
++        except KeyError:
++            return None
+ 
+     @classmethod
+     def parse_header_name(cls, header):
+@@ -709,4 +713,4 @@ def validate_host(host, allowed_hosts):
+ 
+ 
+ def parse_accept_header(header):
+-    return [MediaType(token) for token in header.split(",") if token.strip()]
++    return [MediaType(token) for token in header.split(",") if token.strip()]
+\ No newline at end of file
+2024-12-02 12:45:39,785 - INFO - Grading answer for django__django-15498...
+2024-12-02 12:45:39,791 - INFO - report: {'django__django-15498': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_was_modified_since_empty_string (view_tests.tests.test_static.StaticUtilsTests)']}, 'PASS_TO_PASS': {'success': ['A floating point mtime does not disturb was_modified_since (#18675).', 'test_404 (view_tests.tests.test_static.StaticHelperTest)', 'The static view should stream files in chunks to avoid large memory usage', 'test_copes_with_empty_path_component (view_tests.tests.test_static.StaticHelperTest)', 'No URLs are served if DEBUG=False.', 'test_empty_prefix (view_tests.tests.test_static.StaticHelperTest)', 'test_index (view_tests.tests.test_static.StaticHelperTest)', 'test_index_custom_template (view_tests.tests.test_static.StaticHelperTest)', 'test_index_subdir (view_tests.tests.test_static.StaticHelperTest)', 'Handle bogus If-Modified-Since values gracefully', 'Handle even more bogus If-Modified-Since values gracefully', 'test_is_modified_since (view_tests.tests.test_static.StaticHelperTest)', 'test_not_modified_since (view_tests.tests.test_static.StaticHelperTest)', 'test_prefix (view_tests.tests.test_static.StaticHelperTest)', 'The static view can serve static media', 'No URLs are served if prefix contains a netloc part.', 'test_unknown_mime_type (view_tests.tests.test_static.StaticHelperTest)', 'test_404 (view_tests.tests.test_static.StaticTests)', 'test_copes_with_empty_path_component (view_tests.tests.test_static.StaticTests)', 'test_index (view_tests.tests.test_static.StaticTests)', 'test_index_custom_template (view_tests.tests.test_static.StaticTests)', 'test_index_subdir (view_tests.tests.test_static.StaticTests)', 'test_is_modified_since (view_tests.tests.test_static.StaticTests)', 'test_not_modified_since (view_tests.tests.test_static.StaticTests)', 'test_unknown_mime_type (view_tests.tests.test_static.StaticTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15498: resolved: False
+2024-12-02 12:45:39,791 - INFO - Attempting to stop container sweb.eval.django__django-15498.KortixAI...
+2024-12-02 12:45:54,990 - INFO - Attempting to remove container sweb.eval.django__django-15498.KortixAI...
+2024-12-02 12:45:55,156 - INFO - Container sweb.eval.django__django-15498.KortixAI removed.
+2024-12-02 12:45:55,156 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15498:latest...
+2024-12-02 12:45:55,580 - INFO - Image sweb.eval.x86_64.django__django-15498:latest removed.

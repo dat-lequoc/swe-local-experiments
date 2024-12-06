@@ -1,0 +1,203 @@
+2024-12-03 05:54:18,231 - INFO - Environment image sweb.env.x86_64.5d1fda9d55d65d8a4e5bdb:latest found for pytest-dev__pytest-7220
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-7220:latest for pytest-dev__pytest-7220
+2024-12-03 05:54:32,578 - INFO - Creating container for pytest-dev__pytest-7220...
+2024-12-03 05:54:32,796 - INFO - Container for pytest-dev__pytest-7220 created: 1c780c67ed9d84db53d2a30baf12abda26ea363e2261ec5fdab33988e702f583
+2024-12-03 05:54:33,169 - INFO - Container for pytest-dev__pytest-7220 started: 1c780c67ed9d84db53d2a30baf12abda26ea363e2261ec5fdab33988e702f583
+2024-12-03 05:54:33,169 - INFO - Intermediate patch for pytest-dev__pytest-7220 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-7220/patch.diff, now applying to container...
+2024-12-03 05:54:33,420 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 05:54:33,481 - INFO - >>>>> Applied Patch:
+patching file src/_pytest/nodes.py
+patching file src/_pytest/reports.py
+patching file testing/test_reports.py
+
+2024-12-03 05:54:33,640 - INFO - Git diff before:
+diff --git a/src/_pytest/nodes.py b/src/_pytest/nodes.py
+index 4a79bc861..0e85163d4 100644
+--- a/src/_pytest/nodes.py
++++ b/src/_pytest/nodes.py
+@@ -113,6 +113,7 @@ class Node(metaclass=NodeMeta):
+         fspath: Optional[py.path.local] = None,
+         nodeid: Optional[str] = None,
+     ) -> None:
++        self._original_cwd = os.getcwd()
+         #: a unique name within the scope of the parent node
+         self.name = name
+ 
+@@ -604,4 +605,4 @@ class Item(Node):
+             fspath = py.path.local(location[0])
+         relfspath = self.session._node_location_to_relpath(fspath)
+         assert type(location[2]) is str
+-        return (relfspath, location[1], location[2])
++        return (relfspath, location[1], location[2])
+\ No newline at end of file
+diff --git a/src/_pytest/reports.py b/src/_pytest/reports.py
+index 178df6004..4bda455ca 100644
+--- a/src/_pytest/reports.py
++++ b/src/_pytest/reports.py
+@@ -327,7 +327,11 @@ class CollectReport(BaseReport):
+ 
+     @property
+     def location(self):
+-        return (self.fspath, None, self.fspath)
++        if hasattr(self, '_original_cwd'):
++            fspath = os.path.relpath(self.fspath, self._original_cwd)
++        else:
++            fspath = self.fspath
++        return (fspath, None, fspath)
+ 
+     def __repr__(self):
+         return "<CollectReport {!r} lenresult={} outcome={!r}>".format(
+@@ -505,4 +509,4 @@ def _report_kwargs_from_json(reportdict):
+             exception_info.addsection(*section)
+         reportdict["longrepr"] = exception_info
+ 
+-    return reportdict
++    return reportdict
+\ No newline at end of file
+diff --git a/testing/test_reports.py b/testing/test_reports.py
+index 81778e27d..9fa5fc36b 100644
+--- a/testing/test_reports.py
++++ b/testing/test_reports.py
+@@ -404,6 +404,34 @@ class TestReportSerialization:
+         result.stdout.fnmatch_lines(["E   *Error: No module named 'unknown'"])
+         result.stdout.no_fnmatch_line("ERROR  - *ConftestImportFailure*")
+ 
++    def test_directory_change_path_reporting(self, testdir):
++        """Test that paths are reported correctly when directory is changed in fixture"""
++        testdir.makepyfile("""
++            import os
++            import pytest
++            
++            @pytest.fixture
++            def change_dir(tmpdir):
++                old_dir = os.getcwd()
++                os.chdir(str(tmpdir))
++                yield
++                os.chdir(old_dir)
++                
++            def test_show_path(change_dir):
++                assert False
++        """)
++        
++        result = testdir.runpytest()
++        result.stdout.fnmatch_lines([
++            "*test_directory_change_path_reporting.py:*",  # Should not show ../
++        ])
++        sub_dir = testdir.tmpdir.join("ns").ensure_dir()
++        sub_dir.join("conftest").new(ext=".py").write("import unknown")
++
++        result = testdir.runpytest_subprocess(".")
++        result.stdout.fnmatch_lines(["E   *Error: No module named 'unknown'"])
++        result.stdout.no_fnmatch_line("ERROR  - *ConftestImportFailure*")
++
+ 
+ class TestHooks:
+     """Test that the hooks are working correctly for plugins"""
+@@ -472,4 +500,4 @@ class TestHooks:
+         with pytest.raises(AssertionError):
+             _ = pytestconfig.hook.pytest_report_from_serializable(
+                 config=pytestconfig, data=data
+-            )
++            )
+\ No newline at end of file
+2024-12-03 05:54:33,640 - INFO - Eval script for pytest-dev__pytest-7220 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-7220/eval.sh; copying to container...
+2024-12-03 05:54:40,052 - INFO - Test runtime: 6.13 seconds
+2024-12-03 05:54:40,052 - INFO - Test output for pytest-dev__pytest-7220 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-7220/test_output.txt
+2024-12-03 05:54:40,109 - INFO - Git diff after:
+diff --git a/src/_pytest/nodes.py b/src/_pytest/nodes.py
+index 4a79bc861..0e85163d4 100644
+--- a/src/_pytest/nodes.py
++++ b/src/_pytest/nodes.py
+@@ -113,6 +113,7 @@ class Node(metaclass=NodeMeta):
+         fspath: Optional[py.path.local] = None,
+         nodeid: Optional[str] = None,
+     ) -> None:
++        self._original_cwd = os.getcwd()
+         #: a unique name within the scope of the parent node
+         self.name = name
+ 
+@@ -604,4 +605,4 @@ class Item(Node):
+             fspath = py.path.local(location[0])
+         relfspath = self.session._node_location_to_relpath(fspath)
+         assert type(location[2]) is str
+-        return (relfspath, location[1], location[2])
++        return (relfspath, location[1], location[2])
+\ No newline at end of file
+diff --git a/src/_pytest/reports.py b/src/_pytest/reports.py
+index 178df6004..4bda455ca 100644
+--- a/src/_pytest/reports.py
++++ b/src/_pytest/reports.py
+@@ -327,7 +327,11 @@ class CollectReport(BaseReport):
+ 
+     @property
+     def location(self):
+-        return (self.fspath, None, self.fspath)
++        if hasattr(self, '_original_cwd'):
++            fspath = os.path.relpath(self.fspath, self._original_cwd)
++        else:
++            fspath = self.fspath
++        return (fspath, None, fspath)
+ 
+     def __repr__(self):
+         return "<CollectReport {!r} lenresult={} outcome={!r}>".format(
+@@ -505,4 +509,4 @@ def _report_kwargs_from_json(reportdict):
+             exception_info.addsection(*section)
+         reportdict["longrepr"] = exception_info
+ 
+-    return reportdict
++    return reportdict
+\ No newline at end of file
+diff --git a/testing/test_reports.py b/testing/test_reports.py
+index 81778e27d..9fa5fc36b 100644
+--- a/testing/test_reports.py
++++ b/testing/test_reports.py
+@@ -404,6 +404,34 @@ class TestReportSerialization:
+         result.stdout.fnmatch_lines(["E   *Error: No module named 'unknown'"])
+         result.stdout.no_fnmatch_line("ERROR  - *ConftestImportFailure*")
+ 
++    def test_directory_change_path_reporting(self, testdir):
++        """Test that paths are reported correctly when directory is changed in fixture"""
++        testdir.makepyfile("""
++            import os
++            import pytest
++            
++            @pytest.fixture
++            def change_dir(tmpdir):
++                old_dir = os.getcwd()
++                os.chdir(str(tmpdir))
++                yield
++                os.chdir(old_dir)
++                
++            def test_show_path(change_dir):
++                assert False
++        """)
++        
++        result = testdir.runpytest()
++        result.stdout.fnmatch_lines([
++            "*test_directory_change_path_reporting.py:*",  # Should not show ../
++        ])
++        sub_dir = testdir.tmpdir.join("ns").ensure_dir()
++        sub_dir.join("conftest").new(ext=".py").write("import unknown")
++
++        result = testdir.runpytest_subprocess(".")
++        result.stdout.fnmatch_lines(["E   *Error: No module named 'unknown'"])
++        result.stdout.no_fnmatch_line("ERROR  - *ConftestImportFailure*")
++
+ 
+ class TestHooks:
+     """Test that the hooks are working correctly for plugins"""
+@@ -472,4 +500,4 @@ class TestHooks:
+         with pytest.raises(AssertionError):
+             _ = pytestconfig.hook.pytest_report_from_serializable(
+                 config=pytestconfig, data=data
+-            )
++            )
+\ No newline at end of file
+2024-12-03 05:54:40,109 - INFO - Grading answer for pytest-dev__pytest-7220...
+2024-12-03 05:54:40,111 - INFO - report: {'pytest-dev__pytest-7220': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['testing/test_nodes.py::test_failure_with_changed_cwd']}, 'PASS_TO_PASS': {'success': ['testing/test_nodes.py::test_ischildnode[--True]', 'testing/test_nodes.py::test_ischildnode[-foo-True]', 'testing/test_nodes.py::test_ischildnode[-foo/bar-True]', 'testing/test_nodes.py::test_ischildnode[-foo/bar::TestBaz-True]', 'testing/test_nodes.py::test_ischildnode[foo-food-False]', 'testing/test_nodes.py::test_ischildnode[foo/bar::TestBaz-foo/bar-False]', 'testing/test_nodes.py::test_ischildnode[foo/bar::TestBaz-foo/bar::TestBop-False]', 'testing/test_nodes.py::test_ischildnode[foo/bar-foo/bar::TestBop-True]', 'testing/test_nodes.py::test_node_from_parent_disallowed_arguments', 'testing/test_nodes.py::test__check_initialpaths_for_relpath', 'testing/test_nodes.py::test_std_warn_not_pytestwarning'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-7220: resolved: False
+2024-12-03 05:54:40,112 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-7220.KortixAI...
+2024-12-03 05:54:55,744 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-7220.KortixAI...
+2024-12-03 05:54:55,838 - INFO - Container sweb.eval.pytest-dev__pytest-7220.KortixAI removed.
+2024-12-03 05:54:55,838 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-7220:latest...
+2024-12-03 05:54:55,931 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-7220:latest removed.

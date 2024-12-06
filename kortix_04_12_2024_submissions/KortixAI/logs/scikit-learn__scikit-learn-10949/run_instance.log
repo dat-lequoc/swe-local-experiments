@@ -1,0 +1,139 @@
+2024-12-03 05:55:38,414 - INFO - Environment image sweb.env.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-10949
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-10949:latest for scikit-learn__scikit-learn-10949
+2024-12-03 06:01:10,963 - INFO - Creating container for scikit-learn__scikit-learn-10949...
+2024-12-03 06:01:11,227 - INFO - Container for scikit-learn__scikit-learn-10949 created: 4c7bb9886956c68ce3681603a508134bafd569282b403ca1ba596a9a65e15fa9
+2024-12-03 06:01:11,846 - INFO - Container for scikit-learn__scikit-learn-10949 started: 4c7bb9886956c68ce3681603a508134bafd569282b403ca1ba596a9a65e15fa9
+2024-12-03 06:01:11,846 - INFO - Intermediate patch for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-10949/patch.diff, now applying to container...
+2024-12-03 06:01:12,152 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 06:01:12,223 - INFO - >>>>> Applied Patch:
+patching file sklearn/utils/tests/test_validation.py
+patching file sklearn/utils/validation.py
+
+2024-12-03 06:01:12,596 - INFO - Git diff before:
+diff --git a/sklearn/utils/tests/test_validation.py b/sklearn/utils/tests/test_validation.py
+index 00182fa0a..d581601bb 100644
+--- a/sklearn/utils/tests/test_validation.py
++++ b/sklearn/utils/tests/test_validation.py
+@@ -336,6 +336,10 @@ def test_check_array_pandas_dtype_object_conversion():
+     # smoke-test against dataframes with column named "dtype"
+     X_df.dtype = "Hans"
+     assert_equal(check_array(X_df, ensure_2d=False).dtype.kind, "f")
++    
++    # Test that warn_on_dtype works with dataframes
++    assert_warns(DataConversionWarning, check_array, X_df,
++                warn_on_dtype=True)
+ 
+ 
+ def test_check_array_on_mock_dataframe():
+@@ -747,4 +751,4 @@ def test_check_array_memmap(copy):
+     with TempMemmap(X, mmap_mode='r') as X_memmap:
+         X_checked = check_array(X_memmap, copy=copy)
+         assert np.may_share_memory(X_memmap, X_checked) == (not copy)
+-        assert X_checked.flags['WRITEABLE'] == copy
++        assert X_checked.flags['WRITEABLE'] == copy
+\ No newline at end of file
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..d35dbe296 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -461,11 +461,33 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+     # store whether originally we wanted numeric dtype
+     dtype_numeric = isinstance(dtype, six.string_types) and dtype == "numeric"
+ 
+-    dtype_orig = getattr(array, "dtype", None)
++    # Get original dtype for dataframes and other array-like objects
++    if hasattr(array, 'dtypes'):
++        # pandas dataframe
++        dtype_orig = array.dtypes.iloc[0]
++    else:
++        dtype_orig = getattr(array, "dtype", None)
++
+     if not hasattr(dtype_orig, 'kind'):
+         # not a data type (e.g. a column named dtype in a pandas DataFrame)
+         dtype_orig = None
+ 
++    if estimator is not None:
++        if isinstance(estimator, six.string_types):
++            estimator_name = estimator
++        else:
++            estimator_name = estimator.__class__.__name__
++    else:
++        estimator_name = "Estimator"
++    context = " by %s" % estimator_name if estimator is not None else ""
++
++    if warn_on_dtype and dtype_orig is not None and hasattr(array, 'dtypes'):
++        # For DataFrames, check if conversion will happen
++        if dtype is None and dtype_numeric and dtype_orig.kind == 'O':
++            msg = ("Data with input dtype %s was converted to %s%s."
++                   % (dtype_orig, np.float64, context))
++            warnings.warn(msg, DataConversionWarning)
++
+     if dtype_numeric:
+         if dtype_orig is not None and dtype_orig.kind == "O":
+             # if input is object, convert to float.
+@@ -935,4 +957,4 @@ def check_non_negative(X, whom):
+     """
+     X = X.data if sp.issparse(X) else X
+     if (X < 0).any():
+-        raise ValueError("Negative values in data passed to %s" % whom)
++        raise ValueError("Negative values in data passed to %s" % whom)
+\ No newline at end of file
+2024-12-03 06:01:12,596 - INFO - Eval script for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-10949/eval.sh; copying to container...
+2024-12-03 06:01:19,433 - INFO - Test runtime: 6.59 seconds
+2024-12-03 06:01:19,433 - INFO - Test output for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-10949/test_output.txt
+2024-12-03 06:01:19,590 - INFO - Git diff after:
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..d35dbe296 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -461,11 +461,33 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+     # store whether originally we wanted numeric dtype
+     dtype_numeric = isinstance(dtype, six.string_types) and dtype == "numeric"
+ 
+-    dtype_orig = getattr(array, "dtype", None)
++    # Get original dtype for dataframes and other array-like objects
++    if hasattr(array, 'dtypes'):
++        # pandas dataframe
++        dtype_orig = array.dtypes.iloc[0]
++    else:
++        dtype_orig = getattr(array, "dtype", None)
++
+     if not hasattr(dtype_orig, 'kind'):
+         # not a data type (e.g. a column named dtype in a pandas DataFrame)
+         dtype_orig = None
+ 
++    if estimator is not None:
++        if isinstance(estimator, six.string_types):
++            estimator_name = estimator
++        else:
++            estimator_name = estimator.__class__.__name__
++    else:
++        estimator_name = "Estimator"
++    context = " by %s" % estimator_name if estimator is not None else ""
++
++    if warn_on_dtype and dtype_orig is not None and hasattr(array, 'dtypes'):
++        # For DataFrames, check if conversion will happen
++        if dtype is None and dtype_numeric and dtype_orig.kind == 'O':
++            msg = ("Data with input dtype %s was converted to %s%s."
++                   % (dtype_orig, np.float64, context))
++            warnings.warn(msg, DataConversionWarning)
++
+     if dtype_numeric:
+         if dtype_orig is not None and dtype_orig.kind == "O":
+             # if input is object, convert to float.
+@@ -935,4 +957,4 @@ def check_non_negative(X, whom):
+     """
+     X = X.data if sp.issparse(X) else X
+     if (X < 0).any():
+-        raise ValueError("Negative values in data passed to %s" % whom)
++        raise ValueError("Negative values in data passed to %s" % whom)
+\ No newline at end of file
+2024-12-03 06:01:19,590 - INFO - Git diff changed after running eval script
+2024-12-03 06:01:19,590 - INFO - Grading answer for scikit-learn__scikit-learn-10949...
+2024-12-03 06:01:19,607 - INFO - report: {'scikit-learn__scikit-learn-10949': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/utils/tests/test_validation.py::test_check_dataframe_warns_on_dtype']}, 'PASS_TO_PASS': {'success': ['sklearn/utils/tests/test_validation.py::test_as_float_array', 'sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X0]', 'sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X1]', 'sklearn/utils/tests/test_validation.py::test_np_matrix', 'sklearn/utils/tests/test_validation.py::test_memmap', 'sklearn/utils/tests/test_validation.py::test_ordering', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-inf-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-allow-nan]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-inf-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-allow-nan]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-False]', 'sklearn/utils/tests/test_validation.py::test_check_array', 'sklearn/utils/tests/test_validation.py::test_check_array_pandas_dtype_object_conversion', 'sklearn/utils/tests/test_validation.py::test_check_array_on_mock_dataframe', 'sklearn/utils/tests/test_validation.py::test_check_array_dtype_stability', 'sklearn/utils/tests/test_validation.py::test_check_array_dtype_warning', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_type_exception', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_no_exception', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_min_samples_and_features_messages', 'sklearn/utils/tests/test_validation.py::test_check_array_complex_data_error', 'sklearn/utils/tests/test_validation.py::test_has_fit_parameter', 'sklearn/utils/tests/test_validation.py::test_check_symmetric', 'sklearn/utils/tests/test_validation.py::test_check_is_fitted', 'sklearn/utils/tests/test_validation.py::test_check_consistent_length', 'sklearn/utils/tests/test_validation.py::test_check_dataframe_fit_attribute', 'sklearn/utils/tests/test_validation.py::test_suppress_validation', 'sklearn/utils/tests/test_validation.py::test_check_memory', 'sklearn/utils/tests/test_validation.py::test_check_array_memmap[True]', 'sklearn/utils/tests/test_validation.py::test_check_array_memmap[False]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-10949: resolved: False
+2024-12-03 06:01:19,607 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-10949.KortixAI...
+2024-12-03 06:01:35,173 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-10949.KortixAI...
+2024-12-03 06:01:35,229 - INFO - Container sweb.eval.scikit-learn__scikit-learn-10949.KortixAI removed.
+2024-12-03 06:01:35,230 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-10949:latest...
+2024-12-03 06:01:35,918 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-10949:latest removed.

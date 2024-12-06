@@ -1,0 +1,148 @@
+2024-12-02 12:36:21,080 - INFO - Environment image sweb.env.x86_64.e83e37f52c09532c62acfb:latest found for django__django-13220
+Building instance image sweb.eval.x86_64.django__django-13220:latest for django__django-13220
+2024-12-02 12:37:24,946 - INFO - Creating container for django__django-13220...
+2024-12-02 12:37:24,992 - INFO - Container for django__django-13220 created: 369d5d66b206a4763c21d6f162c15e16eb546374f5071457f9187cef65a12008
+2024-12-02 12:37:25,443 - INFO - Container for django__django-13220 started: 369d5d66b206a4763c21d6f162c15e16eb546374f5071457f9187cef65a12008
+2024-12-02 12:37:25,444 - INFO - Intermediate patch for django__django-13220 written to logs/run_evaluation/KortixAI/KortixAI/django__django-13220/patch.diff, now applying to container...
+2024-12-02 12:37:26,289 - INFO - Failed to apply patch to container, trying again...
+2024-12-02 12:37:26,507 - INFO - >>>>> Applied Patch:
+patching file django/core/exceptions.py
+patching file tests/validation/test_validation_error.py
+
+2024-12-02 12:37:28,197 - INFO - Git diff before:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..0f48743d18 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -98,6 +98,50 @@ NON_FIELD_ERRORS = '__all__'
+ 
+ class ValidationError(Exception):
+     """An error while validating data."""
++
++    def __eq__(self, other):
++        """
++        Compare two ValidationErrors for equality.
++        
++        ValidationErrors are considered equal if they have the same:
++        - message, code, and params for simple errors
++        - error lists with the same errors in any order
++        - error dictionaries with the same errors in any order
++        """
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++        
++        if hasattr(self, 'error_dict') and hasattr(other, 'error_dict'):
++            return self._compare_error_dicts(other)
++        elif hasattr(self, 'error_list') and hasattr(other, 'error_list'):
++            return self._compare_error_lists(other)
++        else:
++            return (self.message == other.message and 
++                   self.code == other.code and 
++                   self.params == other.params)
++
++    def _compare_error_lists(self, other):
++        """Compare two error lists, ignoring the order of errors."""
++        return set(self._normalize_error(e) for e in self.error_list) == \
++               set(self._normalize_error(e) for e in other.error_list)
++
++    def _compare_error_dicts(self, other):
++        """Compare two error dictionaries, ignoring the order of errors in each field."""
++        return self._normalize_error_dict(self.error_dict) == \
++               self._normalize_error_dict(other.error_dict)
++
++    def _normalize_error(self, error):
++        """Convert an error into a comparable tuple format."""
++        return (str(error.message), error.code, 
++                tuple(sorted(error.params.items())) if error.params else None)
++
++    def _normalize_error_dict(self, error_dict):
++        """Convert an error dictionary into a comparable format."""
++        return {
++            field: set(self._normalize_error(e) for e in errors)
++            for field, errors in sorted(error_dict.items())
++        }
++
+     def __init__(self, message, code=None, params=None):
+         """
+         The `message` argument can be a single error, a list of errors, or a
+@@ -190,4 +234,4 @@ class EmptyResultSet(Exception):
+ 
+ class SynchronousOnlyOperation(Exception):
+     """The user tried to call a sync-only function from an async context."""
+-    pass
++    pass
+\ No newline at end of file
+2024-12-02 12:37:28,197 - INFO - Eval script for django__django-13220 written to logs/run_evaluation/KortixAI/KortixAI/django__django-13220/eval.sh; copying to container...
+2024-12-02 12:37:40,546 - INFO - Test runtime: 11.70 seconds
+2024-12-02 12:37:40,546 - INFO - Test output for django__django-13220 written to logs/run_evaluation/KortixAI/KortixAI/django__django-13220/test_output.txt
+2024-12-02 12:37:40,996 - INFO - Git diff after:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..0f48743d18 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -98,6 +98,50 @@ NON_FIELD_ERRORS = '__all__'
+ 
+ class ValidationError(Exception):
+     """An error while validating data."""
++
++    def __eq__(self, other):
++        """
++        Compare two ValidationErrors for equality.
++        
++        ValidationErrors are considered equal if they have the same:
++        - message, code, and params for simple errors
++        - error lists with the same errors in any order
++        - error dictionaries with the same errors in any order
++        """
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++        
++        if hasattr(self, 'error_dict') and hasattr(other, 'error_dict'):
++            return self._compare_error_dicts(other)
++        elif hasattr(self, 'error_list') and hasattr(other, 'error_list'):
++            return self._compare_error_lists(other)
++        else:
++            return (self.message == other.message and 
++                   self.code == other.code and 
++                   self.params == other.params)
++
++    def _compare_error_lists(self, other):
++        """Compare two error lists, ignoring the order of errors."""
++        return set(self._normalize_error(e) for e in self.error_list) == \
++               set(self._normalize_error(e) for e in other.error_list)
++
++    def _compare_error_dicts(self, other):
++        """Compare two error dictionaries, ignoring the order of errors in each field."""
++        return self._normalize_error_dict(self.error_dict) == \
++               self._normalize_error_dict(other.error_dict)
++
++    def _normalize_error(self, error):
++        """Convert an error into a comparable tuple format."""
++        return (str(error.message), error.code, 
++                tuple(sorted(error.params.items())) if error.params else None)
++
++    def _normalize_error_dict(self, error_dict):
++        """Convert an error dictionary into a comparable format."""
++        return {
++            field: set(self._normalize_error(e) for e in errors)
++            for field, errors in sorted(error_dict.items())
++        }
++
+     def __init__(self, message, code=None, params=None):
+         """
+         The `message` argument can be a single error, a list of errors, or a
+@@ -190,4 +234,4 @@ class EmptyResultSet(Exception):
+ 
+ class SynchronousOnlyOperation(Exception):
+     """The user tried to call a sync-only function from an async context."""
+-    pass
++    pass
+\ No newline at end of file
+2024-12-02 12:37:40,996 - INFO - Grading answer for django__django-13220...
+2024-12-02 12:37:41,005 - INFO - report: {'django__django-13220': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_eq_nested (test_exceptions.test_validation_error.TestValidationError)'], 'failure': ['test_eq (test_exceptions.test_validation_error.TestValidationError)', 'test_hash (test_exceptions.test_validation_error.TestValidationError)', 'test_hash_nested (test_exceptions.test_validation_error.TestValidationError)']}, 'PASS_TO_PASS': {'success': ['test_messages_concatenates_error_dict_values (test_exceptions.test_validation_error.TestValidationError)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13220: resolved: False
+2024-12-02 12:37:41,005 - INFO - Attempting to stop container sweb.eval.django__django-13220.KortixAI...
+2024-12-02 12:37:56,357 - INFO - Attempting to remove container sweb.eval.django__django-13220.KortixAI...
+2024-12-02 12:37:56,394 - INFO - Container sweb.eval.django__django-13220.KortixAI removed.
+2024-12-02 12:37:56,394 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13220:latest...
+2024-12-02 12:37:57,291 - INFO - Image sweb.eval.x86_64.django__django-13220:latest removed.

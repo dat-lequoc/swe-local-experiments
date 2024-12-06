@@ -1,0 +1,182 @@
+2024-12-03 12:00:42,148 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-12236
+Building instance image sweb.eval.x86_64.sympy__sympy-12236:latest for sympy__sympy-12236
+2024-12-03 12:01:31,945 - INFO - Creating container for sympy__sympy-12236...
+2024-12-03 12:01:33,157 - INFO - Container for sympy__sympy-12236 created: 310e3e8a7c1a583b17fc1fc619c8406253e6448ff2747656aa1b31e4427edbbf
+2024-12-03 12:01:33,853 - INFO - Container for sympy__sympy-12236 started: 310e3e8a7c1a583b17fc1fc619c8406253e6448ff2747656aa1b31e4427edbbf
+2024-12-03 12:01:33,853 - INFO - Intermediate patch for sympy__sympy-12236 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-12236/patch.diff, now applying to container...
+2024-12-03 12:01:34,154 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:01:34,217 - INFO - >>>>> Applied Patch:
+patching file sympy/polys/partfrac.py
+patching file sympy/polys/tests/test_partfrac.py
+
+2024-12-03 12:01:34,643 - INFO - Git diff before:
+diff --git a/sympy/polys/partfrac.py b/sympy/polys/partfrac.py
+index 612b8f4607..8aa7517336 100644
+--- a/sympy/polys/partfrac.py
++++ b/sympy/polys/partfrac.py
+@@ -76,6 +76,28 @@ def apart(f, x=None, full=False, **options):
+         return f
+     else:
+         P, Q = f.as_numer_denom()
++        # Enhanced normalization for symbolic coefficients
++        if x is not None:
++            P = P.expand()
++            P = P.collect(x)
++            if not P.is_polynomial(x):
++                P = Add(*[t.collect(x) for t in P.as_ordered_terms()])
++            P = P.expand()
++            # Additional normalization for symbolic coefficients
++            P = P.collect(x, evaluate=False)
++            P = Add(*[coeff*monom for monom, coeff in P.items()])
++            
++            # Track symbolic coefficients
++            if any(t.free_symbols for t in P.as_ordered_terms()):
++                P = P.as_ordered_terms()
++                P = Add(*[t.collect(x, evaluate=False) for t in P])
++            
++            # Normalize denominator similarly
++            Q = Q.expand()
++            Q = Q.collect(x)
++            Q = Q.expand()
++            Q = Q.collect(x, evaluate=False)
++            Q = Add(*[coeff*monom for monom, coeff in Q.items()])
+ 
+     _options = options.copy()
+     options = set_defaults(options, extension=True)
+@@ -323,6 +345,28 @@ def apart_list(f, x=None, dummies=None, **options):
+         return f
+     else:
+         P, Q = f.as_numer_denom()
++        # Enhanced normalization for symbolic coefficients
++        if x is not None:
++            P = P.expand()
++            P = P.collect(x)
++            if not P.is_polynomial(x):
++                P = Add(*[t.collect(x) for t in P.as_ordered_terms()])
++            P = P.expand()
++            # Additional normalization for symbolic coefficients
++            P = P.collect(x, evaluate=False)
++            P = Add(*[coeff*monom for monom, coeff in P.items()])
++            
++            # Track symbolic coefficients
++            if any(t.free_symbols for t in P.as_ordered_terms()):
++                P = P.as_ordered_terms()
++                P = Add(*[t.collect(x, evaluate=False) for t in P])
++            
++            # Normalize denominator similarly
++            Q = Q.expand()
++            Q = Q.collect(x)
++            Q = Q.expand()
++            Q = Q.collect(x, evaluate=False)
++            Q = Add(*[coeff*monom for monom, coeff in Q.items()])
+ 
+     options = set_defaults(options, extension=True)
+     (P, Q), opt = parallel_poly_from_expr((P, Q), x, **options)
+@@ -495,4 +539,4 @@ def assemble_partfrac_list(partial_list):
+             for root in r:
+                 pfd += nf(root)/df(root)**ex
+ 
+-    return common*pfd
++    return common*pfd
+\ No newline at end of file
+diff --git a/sympy/polys/tests/test_partfrac.py b/sympy/polys/tests/test_partfrac.py
+index 707fb45871..d8cf47cae5 100644
+--- a/sympy/polys/tests/test_partfrac.py
++++ b/sympy/polys/tests/test_partfrac.py
+@@ -164,7 +164,14 @@ class foo(Expr):
+     c = 1/(1 + y)
+     assert apart(e + foo()) == c + foo()
+ 
++def test_symbolic_apart():
++    from sympy import symbols
++    a, t = symbols('a t', real=True)
++    bug = a * (-t + (-t + 1) * (2 * t - 1)) / (2 * t - 1)
++    assert apart(bug, t) == -a*t + a/2 - a/(2*(2*t - 1))
++    assert apart(bug.subs(a, 1), t) == -t + S(1)/2 - 1/(2*(2*t - 1))
++
+ def test_issue_5798():
+     assert apart(
+         2*x/(x**2 + 1) - (x - 1)/(2*(x**2 + 1)) + 1/(2*(x + 1)) - 2/x) == \
+-        (3*x + 1)/(x**2 + 1)/2 + 1/(x + 1)/2 - 2/x
++        (3*x + 1)/(x**2 + 1)/2 + 1/(x + 1)/2 - 2/x
+\ No newline at end of file
+2024-12-03 12:01:34,643 - INFO - Eval script for sympy__sympy-12236 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-12236/eval.sh; copying to container...
+2024-12-03 12:01:48,070 - INFO - Test runtime: 13.23 seconds
+2024-12-03 12:01:48,073 - INFO - Test output for sympy__sympy-12236 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-12236/test_output.txt
+2024-12-03 12:01:48,177 - INFO - Git diff after:
+diff --git a/sympy/polys/partfrac.py b/sympy/polys/partfrac.py
+index 612b8f4607..8aa7517336 100644
+--- a/sympy/polys/partfrac.py
++++ b/sympy/polys/partfrac.py
+@@ -76,6 +76,28 @@ def apart(f, x=None, full=False, **options):
+         return f
+     else:
+         P, Q = f.as_numer_denom()
++        # Enhanced normalization for symbolic coefficients
++        if x is not None:
++            P = P.expand()
++            P = P.collect(x)
++            if not P.is_polynomial(x):
++                P = Add(*[t.collect(x) for t in P.as_ordered_terms()])
++            P = P.expand()
++            # Additional normalization for symbolic coefficients
++            P = P.collect(x, evaluate=False)
++            P = Add(*[coeff*monom for monom, coeff in P.items()])
++            
++            # Track symbolic coefficients
++            if any(t.free_symbols for t in P.as_ordered_terms()):
++                P = P.as_ordered_terms()
++                P = Add(*[t.collect(x, evaluate=False) for t in P])
++            
++            # Normalize denominator similarly
++            Q = Q.expand()
++            Q = Q.collect(x)
++            Q = Q.expand()
++            Q = Q.collect(x, evaluate=False)
++            Q = Add(*[coeff*monom for monom, coeff in Q.items()])
+ 
+     _options = options.copy()
+     options = set_defaults(options, extension=True)
+@@ -323,6 +345,28 @@ def apart_list(f, x=None, dummies=None, **options):
+         return f
+     else:
+         P, Q = f.as_numer_denom()
++        # Enhanced normalization for symbolic coefficients
++        if x is not None:
++            P = P.expand()
++            P = P.collect(x)
++            if not P.is_polynomial(x):
++                P = Add(*[t.collect(x) for t in P.as_ordered_terms()])
++            P = P.expand()
++            # Additional normalization for symbolic coefficients
++            P = P.collect(x, evaluate=False)
++            P = Add(*[coeff*monom for monom, coeff in P.items()])
++            
++            # Track symbolic coefficients
++            if any(t.free_symbols for t in P.as_ordered_terms()):
++                P = P.as_ordered_terms()
++                P = Add(*[t.collect(x, evaluate=False) for t in P])
++            
++            # Normalize denominator similarly
++            Q = Q.expand()
++            Q = Q.collect(x)
++            Q = Q.expand()
++            Q = Q.collect(x, evaluate=False)
++            Q = Add(*[coeff*monom for monom, coeff in Q.items()])
+ 
+     options = set_defaults(options, extension=True)
+     (P, Q), opt = parallel_poly_from_expr((P, Q), x, **options)
+@@ -495,4 +539,4 @@ def assemble_partfrac_list(partial_list):
+             for root in r:
+                 pfd += nf(root)/df(root)**ex
+ 
+-    return common*pfd
++    return common*pfd
+\ No newline at end of file
+2024-12-03 12:01:48,177 - INFO - Git diff changed after running eval script
+2024-12-03 12:01:48,177 - INFO - Grading answer for sympy__sympy-12236...
+2024-12-03 12:01:48,284 - INFO - report: {'sympy__sympy-12236': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_div']}, 'PASS_TO_PASS': {'success': ['test_apart_matrix', 'test_apart_full', 'test_apart_undetermined_coeffs', 'test_assemble_partfrac_list', 'test_noncommutative', 'test_Poly_from_dict', 'test_Poly_from_list', 'test_Poly_from_poly', 'test_Poly_from_expr', 'test_Poly__new__', 'test_Poly__args', 'test_Poly__gens', 'test_Poly_zero', 'test_Poly_one', 'test_Poly__unify', 'test_Poly_free_symbols', 'test_PurePoly_free_symbols', 'test_Poly__eq__', 'test_PurePoly__eq__', 'test_PurePoly_Poly', 'test_Poly_get_domain', 'test_Poly_set_domain', 'test_Poly_get_modulus', 'test_Poly_set_modulus', 'test_Poly_add_ground', 'test_Poly_sub_ground', 'test_Poly_mul_ground', 'test_Poly_quo_ground', 'test_Poly_exquo_ground', 'test_Poly_abs', 'test_Poly_neg', 'test_Poly_add', 'test_Poly_sub', 'test_Poly_mul', 'test_Poly_sqr', 'test_Poly_pow', 'test_Poly_divmod', 'test_Poly_eq_ne', 'test_Poly_nonzero', 'test_Poly_properties', 'test_Poly_is_irreducible', 'test_Poly_subs', 'test_Poly_replace', 'test_Poly_reorder', 'test_Poly_ltrim', 'test_Poly_has_only_gens', 'test_Poly_to_ring', 'test_Poly_to_field', 'test_Poly_to_exact', 'test_Poly_retract', 'test_Poly_slice', 'test_Poly_coeffs', 'test_Poly_monoms', 'test_Poly_terms', 'test_Poly_all_coeffs', 'test_Poly_all_monoms', 'test_Poly_all_terms', 'test_Poly_termwise', 'test_Poly_length', 'test_Poly_as_dict', 'test_Poly_as_expr', 'test_Poly_lift', 'test_Poly_deflate', 'test_Poly_inject', 'test_Poly_eject', 'test_Poly_exclude', 'test_Poly__gen_to_level', 'test_Poly_degree', 'test_Poly_degree_list', 'test_Poly_total_degree', 'test_Poly_homogenize', 'test_Poly_homogeneous_order', 'test_Poly_LC', 'test_Poly_TC', 'test_Poly_EC', 'test_Poly_coeff', 'test_Poly_nth', 'test_Poly_LM', 'test_Poly_LM_custom_order', 'test_Poly_EM', 'test_Poly_LT', 'test_Poly_ET', 'test_Poly_max_norm', 'test_Poly_l1_norm', 'test_Poly_clear_denoms', 'test_Poly_rat_clear_denoms', 'test_Poly_integrate', 'test_Poly_diff', 'test_issue_9585', 'test_Poly_eval', 'test_Poly___call__', 'test_parallel_poly_from_expr', 'test_pdiv', 'test_gcdex', 'test_revert', 'test_subresultants', 'test_resultant', 'test_discriminant', 'test_dispersion', 'test_gcd_list', 'test_lcm_list', 'test_gcd', 'test_gcd_numbers_vs_polys', 'test_terms_gcd', 'test_trunc', 'test_monic', 'test_content', 'test_primitive', 'test_compose', 'test_shift', 'test_transform', 'test_gff', 'test_sqf_norm', 'test_sqf', 'test_factor_large', 'test_refine_root', 'test_count_roots', 'test_Poly_root', 'test_real_roots', 'test_all_roots', 'test_ground_roots', 'test_nth_power_roots_poly', 'test_reduced', 'test_groebner', 'test_fglm', 'test_is_zero_dimensional', 'test_GroebnerBasis', 'test_poly', 'test_keep_coeff', 'test_to_rational_coeffs', 'test_factor_terms'], 'failure': ['test_apart_symbolic', 'test_apart_list']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-12236: resolved: False
+2024-12-03 12:01:48,284 - INFO - Attempting to stop container sweb.eval.sympy__sympy-12236.KortixAI...
+2024-12-03 12:02:03,717 - INFO - Attempting to remove container sweb.eval.sympy__sympy-12236.KortixAI...
+2024-12-03 12:02:03,850 - INFO - Container sweb.eval.sympy__sympy-12236.KortixAI removed.

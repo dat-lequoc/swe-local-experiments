@@ -1,0 +1,200 @@
+2024-11-20 02:45:25,025 - INFO - Environment image sweb.env.x86_64.2baaea72acc974f6c02079:latest found for django__django-11283
+Building instance image sweb.eval.x86_64.django__django-11283:latest for django__django-11283
+2024-11-20 02:46:01,022 - INFO - Creating container for django__django-11283...
+2024-11-20 02:46:01,038 - INFO - Container for django__django-11283 created: 52995d986743ad365ceb3421c80e98da1923bfbfcaaa4f865229dde747d49bfa
+2024-11-20 02:46:01,238 - INFO - Container for django__django-11283 started: 52995d986743ad365ceb3421c80e98da1923bfbfcaaa4f865229dde747d49bfa
+2024-11-20 02:46:01,238 - INFO - Intermediate patch for django__django-11283 written to logs/run_evaluation/KortixAI/KortixAI/django__django-11283/patch.diff, now applying to container...
+2024-11-20 02:46:01,467 - INFO - Failed to apply patch to container, trying again...
+2024-11-20 02:46:01,522 - INFO - >>>>> Applied Patch:
+patching file django/contrib/auth/migrations/0011_update_proxy_permissions.py
+patching file run_tests.py
+patching file test_migration.py
+patching file test_proxy_permissions.py
+patching file tests/auth_tests/migrations/0001_initial.py
+patching file tests/auth_tests/migrations/__init__.py
+patching file tests/auth_tests/models.py
+patching file tests/test_settings.py
+
+2024-11-20 02:46:02,730 - INFO - Git diff before:
+diff --git a/django/contrib/auth/migrations/0011_update_proxy_permissions.py b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+index 0e66649695..f199825df0 100644
+--- a/django/contrib/auth/migrations/0011_update_proxy_permissions.py
++++ b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+@@ -5,29 +5,68 @@ from django.db.models import Q
+ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
+     """
+     Update the content_type of proxy model permissions to use the ContentType
+-    of the proxy model.
++    of the proxy model. Handles duplicate permissions by merging them and preserving
++    user/group assignments.
+     """
+     Permission = apps.get_model('auth', 'Permission')
+     ContentType = apps.get_model('contenttypes', 'ContentType')
++    Group = apps.get_model('auth', 'Group')
++    User = apps.get_model('auth', 'User')
++
++    # Process each proxy model
+     for Model in apps.get_models():
+         opts = Model._meta
+         if not opts.proxy:
+             continue
+-        proxy_default_permissions_codenames = [
+-            '%s_%s' % (action, opts.model_name)
+-            for action in opts.default_permissions
+-        ]
+-        permissions_query = Q(codename__in=proxy_default_permissions_codenames)
+-        for codename, name in opts.permissions:
+-            permissions_query = permissions_query | Q(codename=codename, name=name)
++
+         concrete_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=True)
+         proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
+         old_content_type = proxy_content_type if reverse else concrete_content_type
+         new_content_type = concrete_content_type if reverse else proxy_content_type
+-        Permission.objects.filter(
+-            permissions_query,
+-            content_type=old_content_type,
+-        ).update(content_type=new_content_type)
++
++        # Get all permissions for this model
++        all_perms = Permission.objects.filter(
++            Q(content_type=old_content_type) | Q(content_type=new_content_type)
++        ).select_related('content_type')
++
++        # Process permissions by codename
++        processed_codenames = set()
++        for perm in all_perms:
++            if perm.codename in processed_codenames:
++                continue
++            processed_codenames.add(perm.codename)
++
++            # Find all permissions with this codename
++            duplicate_perms = all_perms.filter(codename=perm.codename).order_by('id')
++            if duplicate_perms.count() <= 1:
++                # If only one permission exists, just update its content_type if needed
++                if perm.content_type != new_content_type:
++                    perm.content_type = new_content_type
++                    perm.save(update_fields=['content_type'])
++                continue
++
++            # Get or create the target permission
++            target_perm = duplicate_perms.filter(content_type=new_content_type).first()
++            if not target_perm:
++                # If no permission exists with new content type, update the first one
++                target_perm = duplicate_perms.first()
++                target_perm.content_type = new_content_type
++                target_perm.save(update_fields=['content_type'])
++
++            # Transfer all relationships to the target permission
++            for other_perm in duplicate_perms.exclude(pk=target_perm.pk):
++                # Transfer group permissions
++                Group.objects.filter(permissions=other_perm).update(
++                    permissions=target_perm
++                )
++
++                # Transfer user permissions
++                User.objects.filter(user_permissions=other_perm).update(
++                    user_permissions=target_perm
++                )
++
++                # Delete the other permission
++                other_perm.delete()
+ 
+ 
+ def revert_proxy_model_permissions(apps, schema_editor):
+2024-11-20 02:46:02,730 - INFO - Eval script for django__django-11283 written to logs/run_evaluation/KortixAI/KortixAI/django__django-11283/eval.sh; copying to container...
+2024-11-20 02:46:08,389 - INFO - Test runtime: 5.48 seconds
+2024-11-20 02:46:08,389 - INFO - Test output for django__django-11283 written to logs/run_evaluation/KortixAI/KortixAI/django__django-11283/test_output.txt
+2024-11-20 02:46:08,447 - INFO - Git diff after:
+diff --git a/django/contrib/auth/migrations/0011_update_proxy_permissions.py b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+index 0e66649695..f199825df0 100644
+--- a/django/contrib/auth/migrations/0011_update_proxy_permissions.py
++++ b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+@@ -5,29 +5,68 @@ from django.db.models import Q
+ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
+     """
+     Update the content_type of proxy model permissions to use the ContentType
+-    of the proxy model.
++    of the proxy model. Handles duplicate permissions by merging them and preserving
++    user/group assignments.
+     """
+     Permission = apps.get_model('auth', 'Permission')
+     ContentType = apps.get_model('contenttypes', 'ContentType')
++    Group = apps.get_model('auth', 'Group')
++    User = apps.get_model('auth', 'User')
++
++    # Process each proxy model
+     for Model in apps.get_models():
+         opts = Model._meta
+         if not opts.proxy:
+             continue
+-        proxy_default_permissions_codenames = [
+-            '%s_%s' % (action, opts.model_name)
+-            for action in opts.default_permissions
+-        ]
+-        permissions_query = Q(codename__in=proxy_default_permissions_codenames)
+-        for codename, name in opts.permissions:
+-            permissions_query = permissions_query | Q(codename=codename, name=name)
++
+         concrete_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=True)
+         proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
+         old_content_type = proxy_content_type if reverse else concrete_content_type
+         new_content_type = concrete_content_type if reverse else proxy_content_type
+-        Permission.objects.filter(
+-            permissions_query,
+-            content_type=old_content_type,
+-        ).update(content_type=new_content_type)
++
++        # Get all permissions for this model
++        all_perms = Permission.objects.filter(
++            Q(content_type=old_content_type) | Q(content_type=new_content_type)
++        ).select_related('content_type')
++
++        # Process permissions by codename
++        processed_codenames = set()
++        for perm in all_perms:
++            if perm.codename in processed_codenames:
++                continue
++            processed_codenames.add(perm.codename)
++
++            # Find all permissions with this codename
++            duplicate_perms = all_perms.filter(codename=perm.codename).order_by('id')
++            if duplicate_perms.count() <= 1:
++                # If only one permission exists, just update its content_type if needed
++                if perm.content_type != new_content_type:
++                    perm.content_type = new_content_type
++                    perm.save(update_fields=['content_type'])
++                continue
++
++            # Get or create the target permission
++            target_perm = duplicate_perms.filter(content_type=new_content_type).first()
++            if not target_perm:
++                # If no permission exists with new content type, update the first one
++                target_perm = duplicate_perms.first()
++                target_perm.content_type = new_content_type
++                target_perm.save(update_fields=['content_type'])
++
++            # Transfer all relationships to the target permission
++            for other_perm in duplicate_perms.exclude(pk=target_perm.pk):
++                # Transfer group permissions
++                Group.objects.filter(permissions=other_perm).update(
++                    permissions=target_perm
++                )
++
++                # Transfer user permissions
++                User.objects.filter(user_permissions=other_perm).update(
++                    user_permissions=target_perm
++                )
++
++                # Delete the other permission
++                other_perm.delete()
+ 
+ 
+ def revert_proxy_model_permissions(apps, schema_editor):
+2024-11-20 02:46:08,447 - INFO - Grading answer for django__django-11283...
+2024-11-20 02:46:08,449 - INFO - report: {'django__django-11283': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_migrate_with_existing_target_permission (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)']}, 'PASS_TO_PASS': {'success': [], 'failure': ['test_migrate_backwards (auth_tests.test_migrations.ProxyModelWithDifferentAppLabelTests)', 'test_proxy_model_permissions_contenttype (auth_tests.test_migrations.ProxyModelWithDifferentAppLabelTests)', 'test_user_has_now_proxy_model_permissions (auth_tests.test_migrations.ProxyModelWithDifferentAppLabelTests)', 'test_user_keeps_same_permissions_after_migrating_backward (auth_tests.test_migrations.ProxyModelWithDifferentAppLabelTests)', 'test_migrate_backwards (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)', 'test_proxy_model_permissions_contenttype (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)', 'test_user_keeps_same_permissions_after_migrating_backward (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)', 'test_user_still_has_proxy_model_permissions (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11283: resolved: False
+2024-11-20 02:46:08,449 - INFO - Attempting to stop container sweb.eval.django__django-11283.KortixAI...
+2024-11-20 02:46:23,687 - INFO - Attempting to remove container sweb.eval.django__django-11283.KortixAI...
+2024-11-20 02:46:23,729 - INFO - Container sweb.eval.django__django-11283.KortixAI removed.
+2024-11-20 02:46:23,729 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-11283:latest...
+2024-11-20 02:46:24,257 - INFO - Image sweb.eval.x86_64.django__django-11283:latest removed.

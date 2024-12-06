@@ -1,0 +1,117 @@
+2024-12-03 12:12:52,904 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-24066
+Building instance image sweb.eval.x86_64.sympy__sympy-24066:latest for sympy__sympy-24066
+2024-12-03 12:13:28,635 - INFO - Creating container for sympy__sympy-24066...
+2024-12-03 12:13:28,861 - INFO - Container for sympy__sympy-24066 created: 1b6ee1a7d7150627ba4e6dc80a6ec7d4cb8e308bb51b70e822b25a82177580dd
+2024-12-03 12:13:29,517 - INFO - Container for sympy__sympy-24066 started: 1b6ee1a7d7150627ba4e6dc80a6ec7d4cb8e308bb51b70e822b25a82177580dd
+2024-12-03 12:13:29,517 - INFO - Intermediate patch for sympy__sympy-24066 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-24066/patch.diff, now applying to container...
+2024-12-03 12:13:29,957 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:13:30,040 - INFO - >>>>> Applied Patch:
+patching file sympy/physics/units/systems/si.py
+patching file sympy/physics/units/tests/test_quantities.py
+
+2024-12-03 12:13:30,773 - INFO - Git diff before:
+diff --git a/sympy/physics/units/systems/si.py b/sympy/physics/units/systems/si.py
+index 700495ad9d..2fe9e9eb66 100644
+--- a/sympy/physics/units/systems/si.py
++++ b/sympy/physics/units/systems/si.py
+@@ -12,6 +12,8 @@
+ from sympy.physics.units.quantities import Quantity
+ 
+ from sympy.core.numbers import (Rational, pi)
++from sympy.functions.elementary.exponential import exp, log
++from sympy.functions.elementary.trigonometric import sin, cos, tan, asin, acos, atan, atan2
+ from sympy.core.singleton import S
+ from sympy.functions.elementary.miscellaneous import sqrt
+ from sympy.physics.units.definitions.dimension_definitions import (
+@@ -370,4 +372,4 @@
+     'derived_dims', 'kg', 'coulomb', 'siemens', 'byte', 'magnetic_flux',
+     'atomic_mass_unit', 'm', 'kibibyte', 'kilogram', 'One', 'curie', 'u',
+     'time', 'pebibyte', 'velocity', 'ampere', 'katal',
+-]
++]
+\ No newline at end of file
+diff --git a/sympy/physics/units/tests/test_quantities.py b/sympy/physics/units/tests/test_quantities.py
+index 25a68c7be5..d168e63fd0 100644
+--- a/sympy/physics/units/tests/test_quantities.py
++++ b/sympy/physics/units/tests/test_quantities.py
+@@ -13,7 +13,7 @@
+ from sympy.physics.units import (amount_of_substance, area, convert_to, find_unit,
+                                  volume, kilometer, joule, molar_gas_constant,
+                                  vacuum_permittivity, elementary_charge, volt,
+-                                 ohm)
++                                 ohm, farad, second)
+ from sympy.physics.units.definitions import (amu, au, centimeter, coulomb,
+     day, foot, grams, hour, inch, kg, km, m, meter, millimeter,
+     minute, quart, s, second, speed_of_light, bit,
+@@ -527,6 +527,33 @@ def test_issue_22819():
+     assert dimsys_SI.get_dimensional_dependencies(area) == {length: 2}
+     assert Da.scale_factor == 1.66053906660000e-24
+ 
++def test_transcendental_functions_with_units():
++    from sympy.functions.elementary.exponential import exp
++    from sympy.functions.elementary.trigonometric import sin, cos, atan2
++    expr = second / (ohm * farad)
++    dim = SI._collect_factor_and_dimension(expr)[1]
++    assert SI.get_dimension_system().is_dimensionless(dim)
++    
++    # Test exp with dimensionless argument
++    assert SI._collect_factor_and_dimension(exp(expr))[1].name == 1
++    
++    # Test sin with dimensionless argument
++    assert SI._collect_factor_and_dimension(sin(expr))[1].name == 1
++    
++    # Test cos with dimensionless argument
++    assert SI._collect_factor_and_dimension(cos(expr))[1].name == 1
++    
++    # Test atan2 with same dimensions
++    assert SI._collect_factor_and_dimension(atan2(meter, meter))[1].name == 1
++    
++    # Test addition with transcendental function
++    assert SI._collect_factor_and_dimension(100 + exp(expr))[1].name == 1
++    
++    # Test that errors are raised for invalid dimensions
++    raises(ValueError, lambda: SI._collect_factor_and_dimension(exp(meter)))
++    raises(ValueError, lambda: SI._collect_factor_and_dimension(sin(second)))
++    raises(ValueError, lambda: SI._collect_factor_and_dimension(atan2(meter, second)))
++
+ 
+ def test_issue_20288():
+     from sympy.core.numbers import E
+@@ -569,4 +596,4 @@ def test_physics_constant():
+         assert const.is_physical_constant, f"{const} is not marked as physics constant when it should be"
+ 
+     assert not meter.is_physical_constant
+-    assert not joule.is_physical_constant
++    assert not joule.is_physical_constant
+\ No newline at end of file
+2024-12-03 12:13:30,773 - INFO - Eval script for sympy__sympy-24066 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-24066/eval.sh; copying to container...
+2024-12-03 12:13:38,503 - INFO - Test runtime: 7.37 seconds
+2024-12-03 12:13:38,503 - INFO - Test output for sympy__sympy-24066 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-24066/test_output.txt
+2024-12-03 12:13:38,587 - INFO - Git diff after:
+diff --git a/sympy/physics/units/systems/si.py b/sympy/physics/units/systems/si.py
+index 700495ad9d..2fe9e9eb66 100644
+--- a/sympy/physics/units/systems/si.py
++++ b/sympy/physics/units/systems/si.py
+@@ -12,6 +12,8 @@
+ from sympy.physics.units.quantities import Quantity
+ 
+ from sympy.core.numbers import (Rational, pi)
++from sympy.functions.elementary.exponential import exp, log
++from sympy.functions.elementary.trigonometric import sin, cos, tan, asin, acos, atan, atan2
+ from sympy.core.singleton import S
+ from sympy.functions.elementary.miscellaneous import sqrt
+ from sympy.physics.units.definitions.dimension_definitions import (
+@@ -370,4 +372,4 @@
+     'derived_dims', 'kg', 'coulomb', 'siemens', 'byte', 'magnetic_flux',
+     'atomic_mass_unit', 'm', 'kibibyte', 'kilogram', 'One', 'curie', 'u',
+     'time', 'pebibyte', 'velocity', 'ampere', 'katal',
+-]
++]
+\ No newline at end of file
+2024-12-03 12:13:38,588 - INFO - Git diff changed after running eval script
+2024-12-03 12:13:38,588 - INFO - Grading answer for sympy__sympy-24066...
+2024-12-03 12:13:38,590 - INFO - report: {'sympy__sympy-24066': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_issue_24062']}, 'PASS_TO_PASS': {'success': ['test_str_repr', 'test_eq', 'test_convert_to', 'test_Quantity_definition', 'test_abbrev', 'test_print', 'test_Quantity_eq', 'test_add_sub', 'test_quantity_abs', 'test_check_unit_consistency', 'test_mul_div', 'test_units', 'test_issue_quart', 'test_issue_5565', 'test_find_unit', 'test_Quantity_derivative', 'test_quantity_postprocessing', 'test_factor_and_dimension', 'test_dimensional_expr_of_derivative', 'test_get_dimensional_expr_with_function', 'test_binary_information', 'test_conversion_with_2_nonstandard_dimensions', 'test_eval_subs', 'test_issue_14932', 'test_issue_14547', 'test_deprecated_quantity_methods', 'test_issue_22164', 'test_issue_22819', 'test_issue_20288', 'test_prefixed_property'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-24066: resolved: False
+2024-12-03 12:13:38,590 - INFO - Attempting to stop container sweb.eval.sympy__sympy-24066.KortixAI...
+2024-12-03 12:13:53,848 - INFO - Attempting to remove container sweb.eval.sympy__sympy-24066.KortixAI...
+2024-12-03 12:13:53,927 - INFO - Container sweb.eval.sympy__sympy-24066.KortixAI removed.

@@ -1,0 +1,127 @@
+2024-12-02 12:39:33,276 - INFO - Environment image sweb.env.x86_64.e83e37f52c09532c62acfb:latest found for django__django-13768
+Building instance image sweb.eval.x86_64.django__django-13768:latest for django__django-13768
+2024-12-02 12:40:33,131 - INFO - Creating container for django__django-13768...
+2024-12-02 12:40:33,188 - INFO - Container for django__django-13768 created: 1f3fc1627831513d8aec41bb1843f65803957a871931a2eb94c0960d220a7901
+2024-12-02 12:40:33,646 - INFO - Container for django__django-13768 started: 1f3fc1627831513d8aec41bb1843f65803957a871931a2eb94c0960d220a7901
+2024-12-02 12:40:33,646 - INFO - Intermediate patch for django__django-13768 written to logs/run_evaluation/KortixAI/KortixAI/django__django-13768/patch.diff, now applying to container...
+2024-12-02 12:40:34,540 - INFO - Failed to apply patch to container, trying again...
+2024-12-02 12:40:34,764 - INFO - >>>>> Applied Patch:
+patching file django/dispatch/dispatcher.py
+patching file tests/dispatch/tests.py
+
+2024-12-02 12:40:36,293 - INFO - Git diff before:
+diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py
+index b7d9d26389..a7a14c5f42 100644
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,7 +1,10 @@
++import logging
+ import threading
+ import warnings
+ import weakref
+ 
++logger = logging.getLogger('django.dispatch')
++
+ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.inspect import func_accepts_kwargs
+ 
+@@ -208,6 +211,7 @@ class Signal:
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
++                logger.exception("Error calling receiver %r for signal %r", receiver, self)
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+@@ -291,4 +295,4 @@ def receiver(signal, **kwargs):
+         else:
+             signal.connect(func, **kwargs)
+         return func
+-    return _decorator
++    return _decorator
+\ No newline at end of file
+diff --git a/tests/dispatch/tests.py b/tests/dispatch/tests.py
+index 9b5482ed58..f199e9c851 100644
+--- a/tests/dispatch/tests.py
++++ b/tests/dispatch/tests.py
+@@ -1,7 +1,9 @@
+ import gc
+ import sys
+ import weakref
++import logging
+ from types import TracebackType
++from unittest.mock import patch
+ 
+ from django.dispatch import Signal, receiver
+ from django.test import SimpleTestCase
+@@ -174,6 +176,20 @@ class DispatcherTests(SimpleTestCase):
+         a_signal.disconnect(fails)
+         self.assertTestIsClean(a_signal)
+ 
++    @patch('django.dispatch.dispatcher.logger')
++    def test_send_robust_fail_logging(self, mock_logger):
++        """
++        Test that send_robust logs exceptions from receivers.
++        """
++        def fails(val, **kwargs):
++            raise ValueError('this')
++        a_signal.connect(fails)
++        a_signal.send_robust(sender=self, val="test")
++        mock_logger.exception.assert_called_once()
++        self.assertIn('Error calling receiver', mock_logger.exception.call_args[0][0])
++        a_signal.disconnect(fails)
++        self.assertTestIsClean(a_signal)
++
+     def test_disconnection(self):
+         receiver_1 = Callable()
+         receiver_2 = Callable()
+@@ -229,4 +245,4 @@ class ReceiverTestCase(SimpleTestCase):
+         b_signal.send(sender=self, val='b')
+         self.assertIn('a', self.state)
+         self.assertIn('b', self.state)
+-        self.assertIn('c', self.state)
++        self.assertIn('c', self.state)
+\ No newline at end of file
+2024-12-02 12:40:36,294 - INFO - Eval script for django__django-13768 written to logs/run_evaluation/KortixAI/KortixAI/django__django-13768/eval.sh; copying to container...
+2024-12-02 12:40:46,290 - INFO - Test runtime: 9.24 seconds
+2024-12-02 12:40:46,290 - INFO - Test output for django__django-13768 written to logs/run_evaluation/KortixAI/KortixAI/django__django-13768/test_output.txt
+2024-12-02 12:40:46,532 - INFO - Git diff after:
+diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py
+index b7d9d26389..a7a14c5f42 100644
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,7 +1,10 @@
++import logging
+ import threading
+ import warnings
+ import weakref
+ 
++logger = logging.getLogger('django.dispatch')
++
+ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.inspect import func_accepts_kwargs
+ 
+@@ -208,6 +211,7 @@ class Signal:
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
++                logger.exception("Error calling receiver %r for signal %r", receiver, self)
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+@@ -291,4 +295,4 @@ def receiver(signal, **kwargs):
+         else:
+             signal.connect(func, **kwargs)
+         return func
+-    return _decorator
++    return _decorator
+\ No newline at end of file
+2024-12-02 12:40:46,532 - INFO - Git diff changed after running eval script
+2024-12-02 12:40:46,532 - INFO - Grading answer for django__django-13768...
+2024-12-02 12:40:46,534 - INFO - report: {'django__django-13768': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_send_robust_fail (dispatch.tests.DispatcherTests)']}, 'PASS_TO_PASS': {'success': ['test_receiver_signal_list (dispatch.tests.ReceiverTestCase)', 'test_receiver_single_signal (dispatch.tests.ReceiverTestCase)', 'test_cached_garbaged_collected (dispatch.tests.DispatcherTests)', 'test_cannot_connect_no_kwargs (dispatch.tests.DispatcherTests)', 'test_cannot_connect_non_callable (dispatch.tests.DispatcherTests)', 'test_disconnection (dispatch.tests.DispatcherTests)', 'test_garbage_collected (dispatch.tests.DispatcherTests)', 'test_has_listeners (dispatch.tests.DispatcherTests)', 'test_multiple_registration (dispatch.tests.DispatcherTests)', 'test_send (dispatch.tests.DispatcherTests)', 'test_send_connected_no_sender (dispatch.tests.DispatcherTests)', 'test_send_different_no_sender (dispatch.tests.DispatcherTests)', 'test_send_no_receivers (dispatch.tests.DispatcherTests)', 'test_send_robust_ignored_sender (dispatch.tests.DispatcherTests)', 'test_send_robust_no_receivers (dispatch.tests.DispatcherTests)', 'test_send_robust_success (dispatch.tests.DispatcherTests)', 'test_uid_registration (dispatch.tests.DispatcherTests)', 'test_values_returned_by_disconnection (dispatch.tests.DispatcherTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13768: resolved: False
+2024-12-02 12:40:46,534 - INFO - Attempting to stop container sweb.eval.django__django-13768.KortixAI...
+2024-12-02 12:41:01,757 - INFO - Attempting to remove container sweb.eval.django__django-13768.KortixAI...
+2024-12-02 12:41:01,793 - INFO - Container sweb.eval.django__django-13768.KortixAI removed.
+2024-12-02 12:41:01,793 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13768:latest...
+2024-12-02 12:41:02,302 - INFO - Image sweb.eval.x86_64.django__django-13768:latest removed.

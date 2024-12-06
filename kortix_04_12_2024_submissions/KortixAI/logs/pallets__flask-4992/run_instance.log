@@ -1,0 +1,53 @@
+2024-12-03 04:05:18,008 - INFO - Environment image sweb.env.x86_64.613ff8f2239cd9f55ff18f:latest found for pallets__flask-4992
+Building instance image sweb.eval.x86_64.pallets__flask-4992:latest for pallets__flask-4992
+2024-12-03 04:05:32,269 - INFO - Creating container for pallets__flask-4992...
+2024-12-03 04:05:32,771 - INFO - Container for pallets__flask-4992 created: 28851dfa08989ef78ea5a5031f02d967964ef356cb01a29aeb38fec9901a43b3
+2024-12-03 04:05:33,482 - INFO - Container for pallets__flask-4992 started: 28851dfa08989ef78ea5a5031f02d967964ef356cb01a29aeb38fec9901a43b3
+2024-12-03 04:05:33,483 - INFO - Intermediate patch for pallets__flask-4992 written to logs/run_evaluation/KortixAI/KortixAI/pallets__flask-4992/patch.diff, now applying to container...
+2024-12-03 04:05:33,808 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 04:05:33,913 - INFO - >>>>> Applied Patch:
+patching file tests/test_config.py
+
+2024-12-03 04:05:34,096 - INFO - Git diff before:
+diff --git a/tests/test_config.py b/tests/test_config.py
+index 76c5d272..17b022b4 100644
+--- a/tests/test_config.py
++++ b/tests/test_config.py
+@@ -37,6 +37,16 @@ def test_config_from_file():
+     common_object_test(app)
+ 
+ 
++def test_config_from_file_binary_mode(tmp_path):
++    config_path = tmp_path / "config.bin"
++    config_data = b'{"SECRET_KEY": "devkey", "TEST_KEY": "foo"}'
++    config_path.write_bytes(config_data)
++    
++    app = flask.Flask(__name__)
++    app.config.from_file(str(config_path), load=json.loads, mode="rb")
++    common_object_test(app)
++
++
+ def test_from_prefixed_env(monkeypatch):
+     monkeypatch.setenv("FLASK_STRING", "value")
+     monkeypatch.setenv("FLASK_BOOL", "true")
+@@ -246,4 +256,4 @@ def test_from_pyfile_weird_encoding(tmpdir, encoding):
+     app = flask.Flask(__name__)
+     app.config.from_pyfile(str(f))
+     value = app.config["TEST_VALUE"]
+-    assert value == "föö"
++    assert value == "föö"
+\ No newline at end of file
+2024-12-03 04:05:34,096 - INFO - Eval script for pallets__flask-4992 written to logs/run_evaluation/KortixAI/KortixAI/pallets__flask-4992/eval.sh; copying to container...
+2024-12-03 04:05:41,352 - INFO - Test runtime: 7.04 seconds
+2024-12-03 04:05:41,352 - INFO - Test output for pallets__flask-4992 written to logs/run_evaluation/KortixAI/KortixAI/pallets__flask-4992/test_output.txt
+2024-12-03 04:05:41,448 - INFO - Git diff after:
+
+2024-12-03 04:05:41,448 - INFO - Git diff changed after running eval script
+2024-12-03 04:05:41,448 - INFO - Grading answer for pallets__flask-4992...
+2024-12-03 04:05:41,453 - INFO - report: {'pallets__flask-4992': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_config.py::test_config_from_file_toml']}, 'PASS_TO_PASS': {'success': ['tests/test_config.py::test_config_from_pyfile', 'tests/test_config.py::test_config_from_object', 'tests/test_config.py::test_config_from_file_json', 'tests/test_config.py::test_from_prefixed_env', 'tests/test_config.py::test_from_prefixed_env_custom_prefix', 'tests/test_config.py::test_from_prefixed_env_nested', 'tests/test_config.py::test_config_from_mapping', 'tests/test_config.py::test_config_from_class', 'tests/test_config.py::test_config_from_envvar', 'tests/test_config.py::test_config_from_envvar_missing', 'tests/test_config.py::test_config_missing', 'tests/test_config.py::test_config_missing_file', 'tests/test_config.py::test_custom_config_class', 'tests/test_config.py::test_session_lifetime', 'tests/test_config.py::test_get_namespace', 'tests/test_config.py::test_from_pyfile_weird_encoding[utf-8]', 'tests/test_config.py::test_from_pyfile_weird_encoding[iso-8859-15]', 'tests/test_config.py::test_from_pyfile_weird_encoding[latin-1]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pallets__flask-4992: resolved: False
+2024-12-03 04:05:41,453 - INFO - Attempting to stop container sweb.eval.pallets__flask-4992.KortixAI...
+2024-12-03 04:05:57,253 - INFO - Attempting to remove container sweb.eval.pallets__flask-4992.KortixAI...
+2024-12-03 04:05:57,473 - INFO - Container sweb.eval.pallets__flask-4992.KortixAI removed.
+2024-12-03 04:05:57,473 - INFO - Attempting to remove image sweb.eval.x86_64.pallets__flask-4992:latest...
+2024-12-03 04:05:57,550 - INFO - Image sweb.eval.x86_64.pallets__flask-4992:latest removed.

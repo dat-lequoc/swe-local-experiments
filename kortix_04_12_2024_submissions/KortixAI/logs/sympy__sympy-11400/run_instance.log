@@ -1,0 +1,102 @@
+2024-12-03 12:00:36,375 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-11400
+Building instance image sweb.eval.x86_64.sympy__sympy-11400:latest for sympy__sympy-11400
+2024-12-03 12:01:15,850 - INFO - Creating container for sympy__sympy-11400...
+2024-12-03 12:01:16,043 - INFO - Container for sympy__sympy-11400 created: fbfeb019a82a44d9f5fdce463453d7e321ea99116bdf8310cc738c8219134de6
+2024-12-03 12:01:16,560 - INFO - Container for sympy__sympy-11400 started: fbfeb019a82a44d9f5fdce463453d7e321ea99116bdf8310cc738c8219134de6
+2024-12-03 12:01:16,561 - INFO - Intermediate patch for sympy__sympy-11400 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-11400/patch.diff, now applying to container...
+2024-12-03 12:01:17,032 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:01:17,191 - INFO - >>>>> Applied Patch:
+patching file sympy/printing/ccode.py
+patching file sympy/printing/tests/test_ccode.py
+
+2024-12-03 12:01:17,765 - INFO - Git diff before:
+diff --git a/sympy/printing/ccode.py b/sympy/printing/ccode.py
+index 30a07a7b59..37e8d71ff5 100644
+--- a/sympy/printing/ccode.py
++++ b/sympy/printing/ccode.py
+@@ -248,6 +248,13 @@ def _print_For(self, expr):
+                 '{step}) {{\n{body}\n}}').format(target=target, start=start,
+                 stop=stop, step=step, body=body)
+ 
++    def _print_sinc(self, expr):
++        from sympy.functions import sin
++        from sympy import Piecewise
++        x = expr.args[0]
++        return '((%s != 0) ? (\n   sin(%s)/%s\n)\n: (\n   1\n))' % (
++            self._print(x), self._print(x), self._print(x))
++
+     def _print_sign(self, func):
+         return '((({0}) > 0) - (({0}) < 0))'.format(self._print(func.args[0]))
+ 
+@@ -398,4 +405,4 @@ def ccode(expr, assign_to=None, **settings):
+ 
+ def print_ccode(expr, **settings):
+     """Prints C representation of the given expression."""
+-    print(ccode(expr, **settings))
++    print(ccode(expr, **settings))
+\ No newline at end of file
+diff --git a/sympy/printing/tests/test_ccode.py b/sympy/printing/tests/test_ccode.py
+index d8e449d853..99f0181e3f 100644
+--- a/sympy/printing/tests/test_ccode.py
++++ b/sympy/printing/tests/test_ccode.py
+@@ -1,5 +1,6 @@
+ from sympy.core import (pi, oo, symbols, Rational, Integer,
+                         GoldenRatio, EulerGamma, Catalan, Lambda, Dummy, Eq)
++from sympy.functions import sinc
+ from sympy.functions import (Piecewise, sin, cos, Abs, exp, ceiling, sqrt,
+                              gamma, sign)
+ from sympy.sets import Range
+@@ -479,6 +480,10 @@ def test_ccode_sign():
+     expr = sign(cos(x))
+     assert ccode(expr) == '(((cos(x)) > 0) - ((cos(x)) < 0))'
+ 
++def test_ccode_sinc():
++    assert ccode(sinc(x)) == '((x != 0) ? (\n   sin(x)/x\n)\n: (\n   1\n))'
++    assert ccode(sinc(x**2)) == '((pow(x, 2) != 0) ? (\n   sin(pow(x, 2))/pow(x, 2)\n)\n: (\n   1\n))'
++
+ def test_ccode_Assignment():
+     assert ccode(Assignment(x, y + z)) == 'x = y + z;'
+     assert ccode(aug_assign(x, '+', y + z)) == 'x += y + z;'
+@@ -489,4 +494,4 @@ def test_ccode_For():
+     sol = ccode(f)
+     assert sol == ("for (x = 0; x < 10; x += 2) {\n"
+                    "   y *= x;\n"
+-                   "}")
++                   "}")
+\ No newline at end of file
+2024-12-03 12:01:17,765 - INFO - Eval script for sympy__sympy-11400 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-11400/eval.sh; copying to container...
+2024-12-03 12:01:24,143 - INFO - Test runtime: 5.93 seconds
+2024-12-03 12:01:24,143 - INFO - Test output for sympy__sympy-11400 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-11400/test_output.txt
+2024-12-03 12:01:24,336 - INFO - Git diff after:
+diff --git a/sympy/printing/ccode.py b/sympy/printing/ccode.py
+index 30a07a7b59..37e8d71ff5 100644
+--- a/sympy/printing/ccode.py
++++ b/sympy/printing/ccode.py
+@@ -248,6 +248,13 @@ def _print_For(self, expr):
+                 '{step}) {{\n{body}\n}}').format(target=target, start=start,
+                 stop=stop, step=step, body=body)
+ 
++    def _print_sinc(self, expr):
++        from sympy.functions import sin
++        from sympy import Piecewise
++        x = expr.args[0]
++        return '((%s != 0) ? (\n   sin(%s)/%s\n)\n: (\n   1\n))' % (
++            self._print(x), self._print(x), self._print(x))
++
+     def _print_sign(self, func):
+         return '((({0}) > 0) - (({0}) < 0))'.format(self._print(func.args[0]))
+ 
+@@ -398,4 +405,4 @@ def ccode(expr, assign_to=None, **settings):
+ 
+ def print_ccode(expr, **settings):
+     """Prints C representation of the given expression."""
+-    print(ccode(expr, **settings))
++    print(ccode(expr, **settings))
+\ No newline at end of file
+2024-12-03 12:01:24,336 - INFO - Git diff changed after running eval script
+2024-12-03 12:01:24,336 - INFO - Grading answer for sympy__sympy-11400...
+2024-12-03 12:01:24,339 - INFO - report: {'sympy__sympy-11400': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_ccode_sinc'], 'failure': ['test_ccode_Relational']}, 'PASS_TO_PASS': {'success': ['test_printmethod', 'test_ccode_sqrt', 'test_ccode_Pow', 'test_ccode_constants_mathh', 'test_ccode_constants_other', 'test_ccode_Rational', 'test_ccode_Integer', 'test_ccode_functions', 'test_ccode_inline_function', 'test_ccode_exceptions', 'test_ccode_user_functions', 'test_ccode_boolean', 'test_ccode_Piecewise', 'test_ccode_Piecewise_deep', 'test_ccode_ITE', 'test_ccode_settings', 'test_ccode_Indexed', 'test_ccode_Indexed_without_looking_for_contraction', 'test_ccode_loops_matrix_vector', 'test_dummy_loops', 'test_ccode_loops_add', 'test_ccode_loops_multiple_contractions', 'test_ccode_loops_addfactor', 'test_ccode_loops_multiple_terms', 'test_dereference_printing', 'test_Matrix_printing', 'test_ccode_reserved_words', 'test_ccode_sign', 'test_ccode_Assignment'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-11400: resolved: False
+2024-12-03 12:01:24,339 - INFO - Attempting to stop container sweb.eval.sympy__sympy-11400.KortixAI...
+2024-12-03 12:01:40,290 - INFO - Attempting to remove container sweb.eval.sympy__sympy-11400.KortixAI...
+2024-12-03 12:01:40,380 - INFO - Container sweb.eval.sympy__sympy-11400.KortixAI removed.

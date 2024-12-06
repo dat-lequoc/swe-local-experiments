@@ -1,0 +1,229 @@
+2024-12-03 12:05:38,316 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-16281
+Building instance image sweb.eval.x86_64.sympy__sympy-16281:latest for sympy__sympy-16281
+2024-12-03 12:06:28,388 - INFO - Creating container for sympy__sympy-16281...
+2024-12-03 12:06:28,596 - INFO - Container for sympy__sympy-16281 created: 736070ae59830d41522bd485fdf35a7a061c97df53fa00914aa8561d5e74f0be
+2024-12-03 12:06:29,039 - INFO - Container for sympy__sympy-16281 started: 736070ae59830d41522bd485fdf35a7a061c97df53fa00914aa8561d5e74f0be
+2024-12-03 12:06:29,039 - INFO - Intermediate patch for sympy__sympy-16281 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-16281/patch.diff, now applying to container...
+2024-12-03 12:06:29,364 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:06:29,437 - INFO - >>>>> Applied Patch:
+patching file sympy/printing/pretty/pretty.py
+patching file sympy/printing/pretty/tests/test_pretty.py
+
+2024-12-03 12:06:30,061 - INFO - Git diff before:
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index 6d3cc05bd3..abdda191db 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -474,14 +474,14 @@ def _print_Product(self, expr):
+         func = expr.term
+         pretty_func = self._print(func)
+ 
+-        horizontal_chr = xobj('_', 1)
+-        corner_chr = xobj('_', 1)
+-        vertical_chr = xobj('|', 1)
+-
+         if self._use_unicode:
+-            # use unicode corners
+-            horizontal_chr = xobj('-', 1)
++            horizontal_chr = xobj('─', 1)
+             corner_chr = u'\N{BOX DRAWINGS LIGHT DOWN AND HORIZONTAL}'
++            vertical_chr = u'\N{BOX DRAWINGS LIGHT VERTICAL}'
++        else:
++            horizontal_chr = xobj('_', 1)
++            corner_chr = xobj('_', 1)
++            vertical_chr = xobj('|', 1)
+ 
+         func_height = pretty_func.height()
+ 
+@@ -490,10 +490,12 @@ def _print_Product(self, expr):
+         sign_height = 0
+ 
+         for lim in expr.limits:
+-            width = (func_height + 2) * 5 // 3 - 2
++            width = (func_height + 2) * 3 // 2 - 1  # Reduced width ratio
+             sign_lines = []
+-            sign_lines.append(corner_chr + (horizontal_chr*width) + corner_chr)
+-            for i in range(func_height + 1):
++            # Extended top bar with extra character on each side
++            sign_lines.append(horizontal_chr + corner_chr + (horizontal_chr*width) + corner_chr + horizontal_chr)
++            # Remove +1 from range to eliminate bottom empty line
++            for i in range(func_height):
+                 sign_lines.append(vertical_chr + (' '*width) + vertical_chr)
+ 
+             pretty_sign = stringPict('')
+@@ -2549,4 +2551,4 @@ def pager_print(expr, **settings):
+     from locale import getpreferredencoding
+     if 'num_columns' not in settings:
+         settings['num_columns'] = 500000  # disable line wrap
+-    pager(pretty(expr, **settings).encode(getpreferredencoding()))
++    pager(pretty(expr, **settings).encode(getpreferredencoding()))
+\ No newline at end of file
+diff --git a/sympy/printing/pretty/tests/test_pretty.py b/sympy/printing/pretty/tests/test_pretty.py
+index cfaa65a7a2..6d5c9d2f73 100644
+--- a/sympy/printing/pretty/tests/test_pretty.py
++++ b/sympy/printing/pretty/tests/test_pretty.py
+@@ -36,7 +36,8 @@
+ from sympy.tensor.tensor import (TensorIndexType, tensor_indices, tensorhead,
+         TensorElement)
+ 
+-from sympy.utilities.pytest import raises, XFAIL
++from pytest import raises, mark
++XFAIL = mark.xfail
+ 
+ from sympy.vector import CoordSys3D, Gradient, Curl, Divergence, Dot, Cross
+ 
+@@ -258,6 +259,88 @@ def test_pretty_unicode_str():
+     assert pretty( u"xxx\"xxx\'xxx" ) == u'xxx"xxx\'xxx'
+     assert pretty( u"xxx\nxxx" ) == u'xxx\nxxx'
+ 
++def test_pretty_product():
++    from sympy import Product, Symbol, oo
++    n = Symbol('n')
++    # Test basic product
++    expr = Product(1, (n, 1, oo))
++    ucode_str = \
++u("""\
++  ∞  \n\
++─┬──┬─\n\
++ │  │ \n\
++ │  │ 1\n\
++ n = 1\
++""")
++    assert pretty(expr, use_unicode=True) == ucode_str
++
++    # Test product with fraction
++    expr = Product(1/n, (n, 1, oo))
++    ucode_str = \
++u("""\
++  ∞    \n\
++─┬────┬─\n\
++ │    │ 1\n\
++ │    │ ─\n\
++ │    │ n\n\
++ n = 1  \
++""")
++    assert pretty(expr, use_unicode=True) == ucode_str
++
++    # Test product with power
++    expr = Product(1/n**2, (n, 1, oo))
++    ucode_str = \
++u("""\
++  ∞      \n\
++─┬──────┬─\n\
++ │      │ 1\n\
++ │      │ ──\n\
++ │      │ n²\n\
++ n = 1    \
++""")
++    assert pretty(expr, use_unicode=True) == ucode_str
++
++def test_pretty_product():
++    from sympy import Product, Symbol, oo
++    n = Symbol('n')
++    # Test basic product
++    expr = Product(1, (n, 1, oo))
++    ucode_str = \
++u("""\
++  ∞  \n\
++─┬──┬─\n\
++ │  │ \n\
++ │  │ 1\n\
++ n = 1\
++""")
++    assert pretty(expr, use_unicode=True) == ucode_str
++
++    # Test product with fraction
++    expr = Product(1/n, (n, 1, oo))
++    ucode_str = \
++u("""\
++  ∞    \n\
++─┬────┬─\n\
++ │    │ 1\n\
++ │    │ ─\n\
++ │    │ n\n\
++ n = 1  \
++""")
++    assert pretty(expr, use_unicode=True) == ucode_str
++
++    # Test product with power
++    expr = Product(1/n**2, (n, 1, oo))
++    ucode_str = \
++u("""\
++  ∞      \n\
++─┬──────┬─\n\
++ │      │ 1\n\
++ │      │ ──\n\
++ │      │ n²\n\
++ n = 1    \
++""")
++    assert pretty(expr, use_unicode=True) == ucode_str
++
+ 
+ def test_upretty_greek():
+     assert upretty( oo ) == u'∞'
+@@ -6586,4 +6669,4 @@ def test_imaginary_unit():
+     assert pretty(1 + I, use_unicode=True, imaginary_unit='j') == u'1 + ⅉ'
+ 
+     raises(TypeError, lambda: pretty(I, imaginary_unit=I))
+-    raises(ValueError, lambda: pretty(I, imaginary_unit="kkk"))
++    raises(ValueError, lambda: pretty(I, imaginary_unit="kkk"))
+\ No newline at end of file
+2024-12-03 12:06:30,062 - INFO - Eval script for sympy__sympy-16281 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-16281/eval.sh; copying to container...
+2024-12-03 12:06:42,884 - INFO - Test runtime: 12.63 seconds
+2024-12-03 12:06:42,885 - INFO - Test output for sympy__sympy-16281 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-16281/test_output.txt
+2024-12-03 12:06:42,954 - INFO - Git diff after:
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index 6d3cc05bd3..abdda191db 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -474,14 +474,14 @@ def _print_Product(self, expr):
+         func = expr.term
+         pretty_func = self._print(func)
+ 
+-        horizontal_chr = xobj('_', 1)
+-        corner_chr = xobj('_', 1)
+-        vertical_chr = xobj('|', 1)
+-
+         if self._use_unicode:
+-            # use unicode corners
+-            horizontal_chr = xobj('-', 1)
++            horizontal_chr = xobj('─', 1)
+             corner_chr = u'\N{BOX DRAWINGS LIGHT DOWN AND HORIZONTAL}'
++            vertical_chr = u'\N{BOX DRAWINGS LIGHT VERTICAL}'
++        else:
++            horizontal_chr = xobj('_', 1)
++            corner_chr = xobj('_', 1)
++            vertical_chr = xobj('|', 1)
+ 
+         func_height = pretty_func.height()
+ 
+@@ -490,10 +490,12 @@ def _print_Product(self, expr):
+         sign_height = 0
+ 
+         for lim in expr.limits:
+-            width = (func_height + 2) * 5 // 3 - 2
++            width = (func_height + 2) * 3 // 2 - 1  # Reduced width ratio
+             sign_lines = []
+-            sign_lines.append(corner_chr + (horizontal_chr*width) + corner_chr)
+-            for i in range(func_height + 1):
++            # Extended top bar with extra character on each side
++            sign_lines.append(horizontal_chr + corner_chr + (horizontal_chr*width) + corner_chr + horizontal_chr)
++            # Remove +1 from range to eliminate bottom empty line
++            for i in range(func_height):
+                 sign_lines.append(vertical_chr + (' '*width) + vertical_chr)
+ 
+             pretty_sign = stringPict('')
+@@ -2549,4 +2551,4 @@ def pager_print(expr, **settings):
+     from locale import getpreferredencoding
+     if 'num_columns' not in settings:
+         settings['num_columns'] = 500000  # disable line wrap
+-    pager(pretty(expr, **settings).encode(getpreferredencoding()))
++    pager(pretty(expr, **settings).encode(getpreferredencoding()))
+\ No newline at end of file
+2024-12-03 12:06:42,954 - INFO - Git diff changed after running eval script
+2024-12-03 12:06:42,954 - INFO - Grading answer for sympy__sympy-16281...
+2024-12-03 12:06:42,956 - INFO - report: {'sympy__sympy-16281': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_pretty_product', 'test_issue_6359']}, 'PASS_TO_PASS': {'success': ['test_pretty_ascii_str', 'test_pretty_unicode_str', 'test_upretty_greek', 'test_upretty_multiindex', 'test_upretty_sub_super', 'test_upretty_subs_missing_in_24', 'test_missing_in_2X_issue_9047', 'test_upretty_modifiers', 'test_pretty_Cycle', 'test_pretty_basic', 'test_negative_fractions', 'test_issue_5524', 'test_pretty_ordering', 'test_EulerGamma', 'test_GoldenRatio', 'test_pretty_relational', 'test_Assignment', 'test_AugmentedAssignment', 'test_issue_7117', 'test_pretty_rational', 'test_pretty_functions', 'test_pretty_sqrt', 'test_pretty_sqrt_char_knob', 'test_pretty_sqrt_longsymbol_no_sqrt_char', 'test_pretty_KroneckerDelta', 'test_pretty_lambda', 'test_pretty_order', 'test_pretty_derivatives', 'test_pretty_integrals', 'test_pretty_matrix', 'test_pretty_ndim_arrays', 'test_tensor_TensorProduct', 'test_diffgeom_print_WedgeProduct', 'test_Adjoint', 'test_pretty_Trace_issue_9044', 'test_MatrixExpressions', 'test_pretty_dotproduct', 'test_pretty_piecewise', 'test_pretty_ITE', 'test_pretty_seq', 'test_any_object_in_sequence', 'test_print_builtin_set', 'test_pretty_sets', 'test_pretty_SetExpr', 'test_pretty_ImageSet', 'test_pretty_ConditionSet', 'test_pretty_ComplexRegion', 'test_pretty_Union_issue_10414', 'test_pretty_Intersection_issue_10414', 'test_ProductSet_paranthesis', 'test_ProductSet_prod_char_issue_10413', 'test_pretty_sequences', 'test_pretty_FourierSeries', 'test_pretty_FormalPowerSeries', 'test_pretty_limits', 'test_pretty_ComplexRootOf', 'test_pretty_RootSum', 'test_GroebnerBasis', 'test_pretty_Boolean', 'test_pretty_Domain', 'test_pretty_prec', 'test_pprint', 'test_pretty_class', 'test_pretty_no_wrap_line', 'test_settings', 'test_pretty_sum', 'test_units', 'test_pretty_Subs', 'test_gammas', 'test_beta', 'test_function_subclass_different_name', 'test_SingularityFunction', 'test_deltas', 'test_hyper', 'test_meijerg', 'test_noncommutative', 'test_pretty_special_functions', 'test_pretty_geometry', 'test_expint', 'test_elliptic_functions', 'test_RandomDomain', 'test_PrettyPoly', 'test_issue_6285', 'test_issue_6739', 'test_complicated_symbol_unchanged', 'test_categories', 'test_PrettyModules', 'test_QuotientRing', 'test_Homomorphism', 'test_Tr', 'test_pretty_Add', 'test_issue_7179', 'test_issue_7180', 'test_pretty_Complement', 'test_pretty_SymmetricDifference', 'test_pretty_Contains', 'test_issue_4335', 'test_issue_6324', 'test_issue_7927', 'test_issue_6134', 'test_issue_9877', 'test_issue_13651', 'test_pretty_primenu', 'test_pretty_primeomega', 'test_pretty_Mod', 'test_issue_11801', 'test_pretty_UnevaluatedExpr', 'test_issue_10472', 'test_MatrixElement_printing', 'test_issue_12675', 'test_MatrixSymbol_printing', 'test_degree_printing', 'test_vector_expr_pretty_printing', 'test_pretty_print_tensor_expr', 'test_pretty_print_tensor_partial_deriv', 'test_issue_15560', 'test_print_lerchphi', 'test_issue_15583', 'test_matrixSymbolBold', 'test_center_accent'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-16281: resolved: False
+2024-12-03 12:06:42,956 - INFO - Attempting to stop container sweb.eval.sympy__sympy-16281.KortixAI...
+2024-12-03 12:06:59,177 - INFO - Attempting to remove container sweb.eval.sympy__sympy-16281.KortixAI...
+2024-12-03 12:06:59,335 - INFO - Container sweb.eval.sympy__sympy-16281.KortixAI removed.

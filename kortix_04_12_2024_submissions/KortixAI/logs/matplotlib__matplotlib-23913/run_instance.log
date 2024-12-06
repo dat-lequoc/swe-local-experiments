@@ -1,0 +1,109 @@
+2024-12-03 03:55:01,555 - INFO - Environment image sweb.env.x86_64.31244378a92e3bcce809ac:latest found for matplotlib__matplotlib-23913
+Building instance image sweb.eval.x86_64.matplotlib__matplotlib-23913:latest for matplotlib__matplotlib-23913
+2024-12-03 03:58:17,759 - INFO - Creating container for matplotlib__matplotlib-23913...
+2024-12-03 03:58:18,278 - INFO - Container for matplotlib__matplotlib-23913 created: 007139a3144fc449c467efcd19c141d4b300064aa6c7115c49a0b98dc7849f97
+2024-12-03 03:58:19,125 - INFO - Container for matplotlib__matplotlib-23913 started: 007139a3144fc449c467efcd19c141d4b300064aa6c7115c49a0b98dc7849f97
+2024-12-03 03:58:19,125 - INFO - Intermediate patch for matplotlib__matplotlib-23913 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-23913/patch.diff, now applying to container...
+2024-12-03 03:58:19,626 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 03:58:19,803 - INFO - >>>>> Applied Patch:
+patching file lib/matplotlib/legend.py
+patching file lib/matplotlib/tests/test_legend.py
+
+2024-12-03 03:58:21,743 - INFO - Git diff before:
+diff --git a/lib/matplotlib/legend.py b/lib/matplotlib/legend.py
+index 9e5b903d59..ab34409171 100644
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -314,6 +314,7 @@ class Legend(Artist):
+         prop=None,           # properties for the legend texts
+         fontsize=None,       # keyword to set font size directly
+         labelcolor=None,     # keyword to set the text color
++        draggable=False,     # whether the legend can be dragged
+ 
+         # spacing & pad defined as a fraction of the font-size
+         borderpad=None,      # whitespace inside the legend border
+@@ -538,6 +539,8 @@ class Legend(Artist):
+ 
+         self.set_title(title, prop=title_prop_fp)
+         self._draggable = None
++        if draggable:
++            self.set_draggable(True)
+ 
+         # set the text color
+ 
+@@ -1258,4 +1261,4 @@ def _parse_legend_args(axs, *args, handles=None, labels=None, **kwargs):
+     else:
+         raise TypeError('Invalid arguments to legend.')
+ 
+-    return handles, labels, extra_args, kwargs
++    return handles, labels, extra_args, kwargs
+\ No newline at end of file
+diff --git a/lib/matplotlib/tests/test_legend.py b/lib/matplotlib/tests/test_legend.py
+index 16847e0be6..2e6a0a3933 100644
+--- a/lib/matplotlib/tests/test_legend.py
++++ b/lib/matplotlib/tests/test_legend.py
+@@ -782,6 +782,16 @@ def test_get_set_draggable():
+     legend.set_draggable(False)
+     assert not legend.get_draggable()
+ 
++def test_draggable_parameter():
++    # Test draggable parameter in legend creation
++    fig, ax = plt.subplots()
++    ax.plot([1, 2, 3], label='test')
++    legend = ax.legend(draggable=True)
++    assert legend.get_draggable()
++    
++    legend2 = ax.legend(draggable=False)
++    assert not legend2.get_draggable()
++
+ 
+ def test_alpha_handles():
+     x, n, hh = plt.hist([1, 2, 3], alpha=0.25, label='data', color='red')
+@@ -961,4 +971,4 @@ def test_ncol_ncols(fig_test, fig_ref):
+     strings = ["a", "b", "c", "d", "e", "f"]
+     ncols = 3
+     fig_test.legend(strings, ncol=ncols)
+-    fig_ref.legend(strings, ncols=ncols)
++    fig_ref.legend(strings, ncols=ncols)
+\ No newline at end of file
+2024-12-03 03:58:21,743 - INFO - Eval script for matplotlib__matplotlib-23913 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-23913/eval.sh; copying to container...
+2024-12-03 03:58:51,139 - INFO - Test runtime: 29.07 seconds
+2024-12-03 03:58:51,140 - INFO - Test output for matplotlib__matplotlib-23913 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-23913/test_output.txt
+2024-12-03 03:58:51,222 - INFO - Git diff after:
+diff --git a/lib/matplotlib/legend.py b/lib/matplotlib/legend.py
+index 9e5b903d59..ab34409171 100644
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -314,6 +314,7 @@ class Legend(Artist):
+         prop=None,           # properties for the legend texts
+         fontsize=None,       # keyword to set font size directly
+         labelcolor=None,     # keyword to set the text color
++        draggable=False,     # whether the legend can be dragged
+ 
+         # spacing & pad defined as a fraction of the font-size
+         borderpad=None,      # whitespace inside the legend border
+@@ -538,6 +539,8 @@ class Legend(Artist):
+ 
+         self.set_title(title, prop=title_prop_fp)
+         self._draggable = None
++        if draggable:
++            self.set_draggable(True)
+ 
+         # set the text color
+ 
+@@ -1258,4 +1261,4 @@ def _parse_legend_args(axs, *args, handles=None, labels=None, **kwargs):
+     else:
+         raise TypeError('Invalid arguments to legend.')
+ 
+-    return handles, labels, extra_args, kwargs
++    return handles, labels, extra_args, kwargs
+\ No newline at end of file
+2024-12-03 03:58:51,222 - INFO - Git diff changed after running eval script
+2024-12-03 03:58:51,222 - INFO - Grading answer for matplotlib__matplotlib-23913...
+2024-12-03 03:58:51,225 - INFO - report: {'matplotlib__matplotlib-23913': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['lib/matplotlib/tests/test_legend.py::test_legend_draggable[True]', 'lib/matplotlib/tests/test_legend.py::test_legend_draggable[False]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['lib/matplotlib/tests/test_legend.py::test_legend_ordereddict', 'lib/matplotlib/tests/test_legend.py::test_legend_auto1[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto2[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto3[png]', 'lib/matplotlib/tests/test_legend.py::test_various_labels[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_label_with_leading_underscore', 'lib/matplotlib/tests/test_legend.py::test_labels_first[png]', 'lib/matplotlib/tests/test_legend.py::test_multiple_keys[png]', 'lib/matplotlib/tests/test_legend.py::test_alpha_rgba[png]', 'lib/matplotlib/tests/test_legend.py::test_alpha_rcparam[png]', 'lib/matplotlib/tests/test_legend.py::test_fancy[png]', 'lib/matplotlib/tests/test_legend.py::test_framealpha[png]', 'lib/matplotlib/tests/test_legend.py::test_rc[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_expand[png]', 'lib/matplotlib/tests/test_legend.py::test_hatching[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_remove', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_no_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_positional_handles_labels', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_positional_handles_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_positional_labels_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_three_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_handler_map', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_kwargs_handles_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_kwargs_labels_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_kwargs_handles_labels', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_warn_mixed_args_and_kwargs', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_parasite', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_handle_label', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_no_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_label_arg', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_label_three_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_label_three_args_pluskw', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_kw_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_warn_args_kwargs', 'lib/matplotlib/tests/test_legend.py::test_legend_stackplot[png]', 'lib/matplotlib/tests/test_legend.py::test_cross_figure_patch_legend', 'lib/matplotlib/tests/test_legend.py::test_nanscatter', 'lib/matplotlib/tests/test_legend.py::test_legend_repeatcheckok', 'lib/matplotlib/tests/test_legend.py::test_not_covering_scatter[png]', 'lib/matplotlib/tests/test_legend.py::test_not_covering_scatter_transform[png]', 'lib/matplotlib/tests/test_legend.py::test_linecollection_scaled_dashes', 'lib/matplotlib/tests/test_legend.py::test_handler_numpoints', 'lib/matplotlib/tests/test_legend.py::test_text_nohandler_warning', 'lib/matplotlib/tests/test_legend.py::test_empty_bar_chart_with_legend', 'lib/matplotlib/tests/test_legend.py::test_shadow_framealpha', 'lib/matplotlib/tests/test_legend.py::test_legend_title_empty', 'lib/matplotlib/tests/test_legend.py::test_legend_proper_window_extent', 'lib/matplotlib/tests/test_legend.py::test_window_extent_cached_renderer', 'lib/matplotlib/tests/test_legend.py::test_legend_title_fontprop_fontsize', 'lib/matplotlib/tests/test_legend.py::test_legend_alignment[center]', 'lib/matplotlib/tests/test_legend.py::test_legend_alignment[left]', 'lib/matplotlib/tests/test_legend.py::test_legend_alignment[right]', 'lib/matplotlib/tests/test_legend.py::test_legend_set_alignment[center]', 'lib/matplotlib/tests/test_legend.py::test_legend_set_alignment[left]', 'lib/matplotlib/tests/test_legend.py::test_legend_set_alignment[right]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_single[red]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_single[none]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_single[color2]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_list', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_linecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_markeredgecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_markerfacecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_single[red]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_single[none]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_single[color2]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_linecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markeredgecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markeredgecolor_short', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markerfacecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markerfacecolor_short', 'lib/matplotlib/tests/test_legend.py::test_get_set_draggable', 'lib/matplotlib/tests/test_legend.py::test_alpha_handles', 'lib/matplotlib/tests/test_legend.py::test_warn_big_data_best_loc', 'lib/matplotlib/tests/test_legend.py::test_no_warn_big_data_when_loc_specified', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_multiple_label[label_array0]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_multiple_label[label_array1]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_multiple_label[label_array2]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_single_label[one]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_single_label[1]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_single_label[int]', 'lib/matplotlib/tests/test_legend.py::test_plot_single_input_multiple_label[label_array0]', 'lib/matplotlib/tests/test_legend.py::test_plot_single_input_multiple_label[label_array1]', 'lib/matplotlib/tests/test_legend.py::test_plot_single_input_multiple_label[label_array2]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_label_incorrect_length_exception', 'lib/matplotlib/tests/test_legend.py::test_legend_face_edgecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_text_axes', 'lib/matplotlib/tests/test_legend.py::test_handlerline2d', 'lib/matplotlib/tests/test_legend.py::test_subfigure_legend', 'lib/matplotlib/tests/test_legend.py::test_setting_alpha_keeps_polycollection_color', 'lib/matplotlib/tests/test_legend.py::test_legend_markers_from_line2d', 'lib/matplotlib/tests/test_legend.py::test_ncol_ncols[png]'], 'failure': ['lib/matplotlib/tests/test_legend.py::test_legend_auto1[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto2[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto3[pdf]', 'lib/matplotlib/tests/test_legend.py::test_various_labels[pdf]', 'lib/matplotlib/tests/test_legend.py::test_fancy[pdf]', 'lib/matplotlib/tests/test_legend.py::test_framealpha[pdf]', 'lib/matplotlib/tests/test_legend.py::test_rc[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_expand[pdf]', 'lib/matplotlib/tests/test_legend.py::test_hatching[pdf]', 'lib/matplotlib/tests/test_legend.py::test_ncol_ncols[pdf]']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-23913: resolved: False
+2024-12-03 03:58:51,225 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-23913.KortixAI...
+2024-12-03 03:59:06,896 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-23913.KortixAI...
+2024-12-03 03:59:07,060 - INFO - Container sweb.eval.matplotlib__matplotlib-23913.KortixAI removed.
+2024-12-03 03:59:07,060 - INFO - Attempting to remove image sweb.eval.x86_64.matplotlib__matplotlib-23913:latest...
+2024-12-03 03:59:08,039 - INFO - Image sweb.eval.x86_64.matplotlib__matplotlib-23913:latest removed.

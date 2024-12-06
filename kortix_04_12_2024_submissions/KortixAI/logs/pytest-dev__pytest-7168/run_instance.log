@@ -1,0 +1,90 @@
+2024-12-03 05:54:14,636 - INFO - Environment image sweb.env.x86_64.5d1fda9d55d65d8a4e5bdb:latest found for pytest-dev__pytest-7168
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-7168:latest for pytest-dev__pytest-7168
+2024-12-03 05:54:28,892 - INFO - Creating container for pytest-dev__pytest-7168...
+2024-12-03 05:54:29,233 - INFO - Container for pytest-dev__pytest-7168 created: 31be0d075996ac58d36e487dc50167678922a7d0da12164f6d006de15d6fae30
+2024-12-03 05:54:29,584 - INFO - Container for pytest-dev__pytest-7168 started: 31be0d075996ac58d36e487dc50167678922a7d0da12164f6d006de15d6fae30
+2024-12-03 05:54:29,584 - INFO - Intermediate patch for pytest-dev__pytest-7168 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-7168/patch.diff, now applying to container...
+2024-12-03 05:54:29,827 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 05:54:29,884 - INFO - >>>>> Applied Patch:
+patching file src/_pytest/_io/saferepr.py
+patching file testing/io/test_saferepr.py
+
+2024-12-03 05:54:30,031 - INFO - Git diff before:
+diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py
+index 23af4d0bb..9dfc50e02 100644
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -14,6 +14,8 @@ def _try_repr_or_str(obj):
+ 
+ def _format_repr_exception(exc: BaseException, obj: Any) -> str:
+     try:
++        if isinstance(exc, RuntimeError) and str(exc) == "No active exception to reraise":
++            return "<[%s() raised bare 'raise' statement]>" % obj.__class__.__name__
+         exc_info = _try_repr_or_str(exc)
+     except (KeyboardInterrupt, SystemExit):
+         raise
+@@ -100,4 +102,4 @@ class AlwaysDispatchingPrettyPrinter(pprint.PrettyPrinter):
+ def _pformat_dispatch(object, indent=1, width=80, depth=None, *, compact=False):
+     return AlwaysDispatchingPrettyPrinter(
+         indent=indent, width=width, depth=depth, compact=compact
+-    ).pformat(object)
++    ).pformat(object)
+\ No newline at end of file
+diff --git a/testing/io/test_saferepr.py b/testing/io/test_saferepr.py
+index 06084202e..bae8c7f05 100644
+--- a/testing/io/test_saferepr.py
++++ b/testing/io/test_saferepr.py
+@@ -149,8 +149,18 @@ def test_unicode():
+     reprval = "'£€'"
+     assert saferepr(val) == reprval
+ 
++def test_bare_raise_in_repr():
++    class BareRaiseRepr:
++        def __repr__(self):
++            raise
++    
++    obj = BareRaiseRepr()
++    result = saferepr(obj)
++    assert "bare 'raise' statement" in result
++    assert "BareRaiseRepr" in result
++
+ 
+ def test_pformat_dispatch():
+     assert _pformat_dispatch("a") == "'a'"
+     assert _pformat_dispatch("a" * 10, width=5) == "'aaaaaaaaaa'"
+-    assert _pformat_dispatch("foo bar", width=5) == "('foo '\n 'bar')"
++    assert _pformat_dispatch("foo bar", width=5) == "('foo '\n 'bar')"
+\ No newline at end of file
+2024-12-03 05:54:30,031 - INFO - Eval script for pytest-dev__pytest-7168 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-7168/eval.sh; copying to container...
+2024-12-03 05:54:36,504 - INFO - Test runtime: 6.28 seconds
+2024-12-03 05:54:36,505 - INFO - Test output for pytest-dev__pytest-7168 written to logs/run_evaluation/KortixAI/KortixAI/pytest-dev__pytest-7168/test_output.txt
+2024-12-03 05:54:36,570 - INFO - Git diff after:
+diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py
+index 23af4d0bb..9dfc50e02 100644
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -14,6 +14,8 @@ def _try_repr_or_str(obj):
+ 
+ def _format_repr_exception(exc: BaseException, obj: Any) -> str:
+     try:
++        if isinstance(exc, RuntimeError) and str(exc) == "No active exception to reraise":
++            return "<[%s() raised bare 'raise' statement]>" % obj.__class__.__name__
+         exc_info = _try_repr_or_str(exc)
+     except (KeyboardInterrupt, SystemExit):
+         raise
+@@ -100,4 +102,4 @@ class AlwaysDispatchingPrettyPrinter(pprint.PrettyPrinter):
+ def _pformat_dispatch(object, indent=1, width=80, depth=None, *, compact=False):
+     return AlwaysDispatchingPrettyPrinter(
+         indent=indent, width=width, depth=depth, compact=compact
+-    ).pformat(object)
++    ).pformat(object)
+\ No newline at end of file
+2024-12-03 05:54:36,570 - INFO - Git diff changed after running eval script
+2024-12-03 05:54:36,570 - INFO - Grading answer for pytest-dev__pytest-7168...
+2024-12-03 05:54:36,572 - INFO - report: {'pytest-dev__pytest-7168': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['testing/io/test_saferepr.py::test_simple_repr', 'testing/io/test_saferepr.py::test_maxsize', 'testing/io/test_saferepr.py::test_maxsize_error_on_instance', 'testing/io/test_saferepr.py::test_exceptions', 'testing/io/test_saferepr.py::test_baseexception', 'testing/io/test_saferepr.py::test_buggy_builtin_repr', 'testing/io/test_saferepr.py::test_big_repr', 'testing/io/test_saferepr.py::test_repr_on_newstyle', 'testing/io/test_saferepr.py::test_unicode', 'testing/io/test_saferepr.py::test_pformat_dispatch', 'testing/io/test_saferepr.py::test_broken_getattribute']}, 'PASS_TO_PASS': {'success': [], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-7168: resolved: False
+2024-12-03 05:54:36,572 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-7168.KortixAI...
+2024-12-03 05:54:53,866 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-7168.KortixAI...
+2024-12-03 05:54:53,954 - INFO - Container sweb.eval.pytest-dev__pytest-7168.KortixAI removed.
+2024-12-03 05:54:53,954 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-7168:latest...
+2024-12-03 05:54:54,241 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-7168:latest removed.

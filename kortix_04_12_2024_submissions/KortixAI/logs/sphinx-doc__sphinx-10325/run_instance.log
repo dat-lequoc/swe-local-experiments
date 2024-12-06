@@ -1,0 +1,380 @@
+2024-12-03 11:50:25,170 - INFO - Environment image sweb.env.x86_64.c6d251a05e0af7688b64fd:latest found for sphinx-doc__sphinx-10325
+Building instance image sweb.eval.x86_64.sphinx-doc__sphinx-10325:latest for sphinx-doc__sphinx-10325
+2024-12-03 11:51:15,046 - INFO - Creating container for sphinx-doc__sphinx-10325...
+2024-12-03 11:51:15,213 - INFO - Container for sphinx-doc__sphinx-10325 created: cf3f43b1439d441b2b4f87f541cd756f14cb9f4c6ca0107821584609d950e7b5
+2024-12-03 11:51:15,615 - INFO - Container for sphinx-doc__sphinx-10325 started: cf3f43b1439d441b2b4f87f541cd756f14cb9f4c6ca0107821584609d950e7b5
+2024-12-03 11:51:15,615 - INFO - Intermediate patch for sphinx-doc__sphinx-10325 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-10325/patch.diff, now applying to container...
+2024-12-03 11:51:16,014 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 11:51:16,152 - INFO - >>>>> Applied Patch:
+patching file sphinx/ext/autodoc/__init__.py
+patching file tests/test_ext_autodoc.py
+patching file tox.ini
+Reversed (or previously applied) patch detected!  Assuming -R.
+
+2024-12-03 11:51:16,714 - INFO - Git diff before:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 62631f7ff..19f9e3d7f 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -109,12 +109,21 @@ def exclude_members_option(arg: Any) -> Union[object, Set[str]]:
+     return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+-def inherited_members_option(arg: Any) -> Union[object, Set[str]]:
+-    """Used to convert the :members: option to auto directives."""
++def inherited_members_option(arg: Any) -> Union[str, List[str]]:
++    """Used to convert the :inherited-members: option to auto directives.
++    
++    Accepts:
++    - None/True: Include all inherited members (returns 'object')
++    - str: Single class name to exclude
++    - comma-separated str: Multiple class names to exclude
++    """
+     if arg in (None, True):
+         return 'object'
+-    else:
+-        return arg
++    elif isinstance(arg, str):
++        if ',' in arg:
++            return [name.strip() for name in arg.split(',')]
++        return arg.strip()
++    return arg
+ 
+ 
+ def member_order_option(arg: Any) -> Optional[str]:
+@@ -636,6 +645,23 @@ class Documenter:
+             for line, src in zip(more_content.data, more_content.items):
+                 self.add_line(line, src[0], src[1])
+ 
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
+     def get_object_members(self, want_all: bool) -> Tuple[bool, ObjectMembers]:
+         """Return `(members_check_module, members)` where `members` is a
+         list of `(membername, member)` pairs of the members of *self.object*.
+@@ -664,6 +690,57 @@ class Documenter:
+             return False, [(m.name, m.value) for m in members.values()
+                            if m.directly_defined]
+ 
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
+     def filter_members(self, members: ObjectMembers, want_all: bool
+                        ) -> List[Tuple[str, Any, bool]]:
+         """Filter the given member list.
+@@ -681,11 +758,17 @@ class Documenter:
+         """
+         def is_filtered_inherited_member(name: str, obj: Any) -> bool:
+             if inspect.isclass(self.object):
++                bases = self.options.inherited_members
++                if isinstance(bases, str):
++                    bases = [bases]
++                    
+                 for cls in self.object.__mro__:
+-                    if cls.__name__ == self.options.inherited_members and cls != self.object:
+-                        # given member is a member of specified *super class*
+-                        return True
+-                    elif name in cls.__dict__:
++                    # Check if this class should be excluded
++                    for base in bases:
++                        if self._is_class_member_from(cls, base) and cls != self.object:
++                            return True
++                            
++                    if name in cls.__dict__:
+                         return False
+                     elif name in self.get_attr(cls, '__annotations__', {}):
+                         return False
+@@ -2900,4 +2983,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
+     app.setup_extension('sphinx.ext.autodoc.type_comment')
+     app.setup_extension('sphinx.ext.autodoc.typehints')
+ 
+-    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
++    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
+\ No newline at end of file
+diff --git a/tests/test_ext_autodoc.py b/tests/test_ext_autodoc.py
+index 1f1c7e9e7..698196956 100644
+--- a/tests/test_ext_autodoc.py
++++ b/tests/test_ext_autodoc.py
+@@ -769,6 +769,25 @@ def test_autodoc_inherited_members(app):
+         '   .. py:method:: Derived.inheritedstaticmeth(cls)',
+     ]
+ 
++def test_autodoc_inherited_members_multiple_bases(app):
++    # Test with single base class
++    options = {"members": None,
++               "inherited-members": "Base"}
++    actual = do_autodoc(app, 'class', 'target.inheritance.Derived', options)
++    assert list(filter(lambda l: 'method::' in l, actual)) == []
++
++    # Test with multiple base classes
++    options = {"members": None,
++               "inherited-members": "Base,object"}
++    actual = do_autodoc(app, 'class', 'target.inheritance.Derived', options)
++    assert list(filter(lambda l: 'method::' in l, actual)) == []
++
++    # Test with qualified name
++    options = {"members": None,
++               "inherited-members": "target.inheritance.Base"}
++    actual = do_autodoc(app, 'class', 'target.inheritance.Derived', options)
++    assert list(filter(lambda l: 'method::' in l, actual)) == []
++
+ 
+ @pytest.mark.sphinx('html', testroot='ext-autodoc')
+ def test_autodoc_inherited_members_Base(app):
+@@ -2507,4 +2526,4 @@ def test_canonical(app):
+         '',
+         '      docstring',
+         '',
+-    ]
++    ]
+\ No newline at end of file
+2024-12-03 11:51:16,714 - INFO - Eval script for sphinx-doc__sphinx-10325 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-10325/eval.sh; copying to container...
+2024-12-03 11:51:25,574 - INFO - Test runtime: 8.37 seconds
+2024-12-03 11:51:25,574 - INFO - Test output for sphinx-doc__sphinx-10325 written to logs/run_evaluation/KortixAI/KortixAI/sphinx-doc__sphinx-10325/test_output.txt
+2024-12-03 11:51:25,760 - INFO - Git diff after:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 62631f7ff..19f9e3d7f 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -109,12 +109,21 @@ def exclude_members_option(arg: Any) -> Union[object, Set[str]]:
+     return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+-def inherited_members_option(arg: Any) -> Union[object, Set[str]]:
+-    """Used to convert the :members: option to auto directives."""
++def inherited_members_option(arg: Any) -> Union[str, List[str]]:
++    """Used to convert the :inherited-members: option to auto directives.
++    
++    Accepts:
++    - None/True: Include all inherited members (returns 'object')
++    - str: Single class name to exclude
++    - comma-separated str: Multiple class names to exclude
++    """
+     if arg in (None, True):
+         return 'object'
+-    else:
+-        return arg
++    elif isinstance(arg, str):
++        if ',' in arg:
++            return [name.strip() for name in arg.split(',')]
++        return arg.strip()
++    return arg
+ 
+ 
+ def member_order_option(arg: Any) -> Optional[str]:
+@@ -636,6 +645,23 @@ class Documenter:
+             for line, src in zip(more_content.data, more_content.items):
+                 self.add_line(line, src[0], src[1])
+ 
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
+     def get_object_members(self, want_all: bool) -> Tuple[bool, ObjectMembers]:
+         """Return `(members_check_module, members)` where `members` is a
+         list of `(membername, member)` pairs of the members of *self.object*.
+@@ -664,6 +690,57 @@ class Documenter:
+             return False, [(m.name, m.value) for m in members.values()
+                            if m.directly_defined]
+ 
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
++    def _is_class_member_from(self, member_class: Any, base_name: str) -> bool:
++        """Check if a member comes from a specific base class.
++        
++        Args:
++            member_class: The class to check
++            base_name: The base class name (can be qualified or unqualified)
++        """
++        if not member_class:
++            return False
++            
++        for cls in getattr(member_class, '__mro__', []):
++            # Check both qualified and unqualified names
++            if (cls.__module__ + "." + cls.__name__ == base_name or
++                cls.__name__ == base_name):
++                return True
++        return False
++
+     def filter_members(self, members: ObjectMembers, want_all: bool
+                        ) -> List[Tuple[str, Any, bool]]:
+         """Filter the given member list.
+@@ -681,11 +758,17 @@ class Documenter:
+         """
+         def is_filtered_inherited_member(name: str, obj: Any) -> bool:
+             if inspect.isclass(self.object):
++                bases = self.options.inherited_members
++                if isinstance(bases, str):
++                    bases = [bases]
++                    
+                 for cls in self.object.__mro__:
+-                    if cls.__name__ == self.options.inherited_members and cls != self.object:
+-                        # given member is a member of specified *super class*
+-                        return True
+-                    elif name in cls.__dict__:
++                    # Check if this class should be excluded
++                    for base in bases:
++                        if self._is_class_member_from(cls, base) and cls != self.object:
++                            return True
++                            
++                    if name in cls.__dict__:
+                         return False
+                     elif name in self.get_attr(cls, '__annotations__', {}):
+                         return False
+@@ -2900,4 +2983,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
+     app.setup_extension('sphinx.ext.autodoc.type_comment')
+     app.setup_extension('sphinx.ext.autodoc.typehints')
+ 
+-    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
++    return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
+\ No newline at end of file
+diff --git a/tests/test_ext_autodoc.py b/tests/test_ext_autodoc.py
+index 1f1c7e9e7..698196956 100644
+--- a/tests/test_ext_autodoc.py
++++ b/tests/test_ext_autodoc.py
+@@ -769,6 +769,25 @@ def test_autodoc_inherited_members(app):
+         '   .. py:method:: Derived.inheritedstaticmeth(cls)',
+     ]
+ 
++def test_autodoc_inherited_members_multiple_bases(app):
++    # Test with single base class
++    options = {"members": None,
++               "inherited-members": "Base"}
++    actual = do_autodoc(app, 'class', 'target.inheritance.Derived', options)
++    assert list(filter(lambda l: 'method::' in l, actual)) == []
++
++    # Test with multiple base classes
++    options = {"members": None,
++               "inherited-members": "Base,object"}
++    actual = do_autodoc(app, 'class', 'target.inheritance.Derived', options)
++    assert list(filter(lambda l: 'method::' in l, actual)) == []
++
++    # Test with qualified name
++    options = {"members": None,
++               "inherited-members": "target.inheritance.Base"}
++    actual = do_autodoc(app, 'class', 'target.inheritance.Derived', options)
++    assert list(filter(lambda l: 'method::' in l, actual)) == []
++
+ 
+ @pytest.mark.sphinx('html', testroot='ext-autodoc')
+ def test_autodoc_inherited_members_Base(app):
+@@ -2507,4 +2526,4 @@ def test_canonical(app):
+         '',
+         '      docstring',
+         '',
+-    ]
++    ]
+\ No newline at end of file
+2024-12-03 11:51:25,761 - INFO - Grading answer for sphinx-doc__sphinx-10325...
+2024-12-03 11:51:25,770 - INFO - report: {'sphinx-doc__sphinx-10325': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_automodule.py::test_automodule_inherited_members']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_automodule.py::test_empty_all', 'tests/test_ext_autodoc_automodule.py::test_automodule', 'tests/test_ext_autodoc_automodule.py::test_automodule_undoc_members', 'tests/test_ext_autodoc_automodule.py::test_automodule_special_members', 'tests/test_ext_autodoc_automodule.py::test_subclass_of_mocked_object']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-10325: resolved: False
+2024-12-03 11:51:25,771 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-10325.KortixAI...
+2024-12-03 11:51:41,291 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-10325.KortixAI...
+2024-12-03 11:51:41,360 - INFO - Container sweb.eval.sphinx-doc__sphinx-10325.KortixAI removed.

@@ -1,0 +1,112 @@
+2024-12-03 03:55:00,639 - INFO - Environment image sweb.env.x86_64.7037e8c448a4b8ebfe9b13:latest found for matplotlib__matplotlib-23476
+Building instance image sweb.eval.x86_64.matplotlib__matplotlib-23476:latest for matplotlib__matplotlib-23476
+2024-12-03 03:58:09,181 - INFO - Creating container for matplotlib__matplotlib-23476...
+2024-12-03 03:58:10,024 - INFO - Container for matplotlib__matplotlib-23476 created: a85ee874a5bb9fd083a08f3fb3132469e535644ccfc7fcaeb68675a47d3d20a6
+2024-12-03 03:58:11,398 - INFO - Container for matplotlib__matplotlib-23476 started: a85ee874a5bb9fd083a08f3fb3132469e535644ccfc7fcaeb68675a47d3d20a6
+2024-12-03 03:58:11,399 - INFO - Intermediate patch for matplotlib__matplotlib-23476 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-23476/patch.diff, now applying to container...
+2024-12-03 03:58:11,677 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 03:58:11,742 - INFO - >>>>> Applied Patch:
+patching file lib/matplotlib/backends/backend_macosx.py
+patching file lib/matplotlib/tests/test_pickle.py
+
+2024-12-03 03:58:13,369 - INFO - Git diff before:
+diff --git a/lib/matplotlib/backends/backend_macosx.py b/lib/matplotlib/backends/backend_macosx.py
+index 700d1d4c58..df1f00c728 100644
+--- a/lib/matplotlib/backends/backend_macosx.py
++++ b/lib/matplotlib/backends/backend_macosx.py
+@@ -101,6 +101,13 @@ class FigureCanvasMac(FigureCanvasAgg, _macosx.FigureCanvas, FigureCanvasBase):
+         ResizeEvent("resize_event", self)._process()
+         self.draw_idle()
+ 
++    def _set_device_pixel_ratio(self, ratio):
++        """Set the device pixel ratio and update figure DPI accordingly."""
++        super()._set_device_pixel_ratio(ratio)
++        # Only update DPI if it hasn't been explicitly preserved
++        if not hasattr(self.figure, '_stored_dpi'):
++            self.figure._dpi = self.figure._dpi
++
+ 
+ class NavigationToolbar2Mac(_macosx.NavigationToolbar2, NavigationToolbar2):
+ 
+@@ -179,4 +186,4 @@ class _BackendMac(_Backend):
+ 
+     @staticmethod
+     def mainloop():
+-        _macosx.show()
++        _macosx.show()
+\ No newline at end of file
+diff --git a/lib/matplotlib/tests/test_pickle.py b/lib/matplotlib/tests/test_pickle.py
+index 0d0a5e5977..12f2b77e85 100644
+--- a/lib/matplotlib/tests/test_pickle.py
++++ b/lib/matplotlib/tests/test_pickle.py
+@@ -237,3 +237,13 @@ def test_dynamic_norm():
+ def test_vertexselector():
+     line, = plt.plot([0, 1], picker=True)
+     pickle.loads(pickle.dumps(VertexSelector(line)))
++
++def test_figure_dpi_preservation():
++    """Test that figure DPI is preserved after pickling/unpickling."""
++    fig = plt.figure(dpi=200)
++    # Store original DPI
++    original_dpi = fig.dpi
++    # Pickle and unpickle multiple times
++    for _ in range(3):
++        fig = pickle.loads(pickle.dumps(fig))
++        assert fig.dpi == original_dpi, "DPI changed after pickle/unpickle cycle"
+\ No newline at end of file
+2024-12-03 03:58:13,370 - INFO - Eval script for matplotlib__matplotlib-23476 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-23476/eval.sh; copying to container...
+2024-12-03 03:58:48,223 - INFO - Test runtime: 34.63 seconds
+2024-12-03 03:58:48,223 - INFO - Test output for matplotlib__matplotlib-23476 written to logs/run_evaluation/KortixAI/KortixAI/matplotlib__matplotlib-23476/test_output.txt
+2024-12-03 03:58:48,411 - INFO - Git diff after:
+diff --git a/lib/matplotlib/backends/backend_macosx.py b/lib/matplotlib/backends/backend_macosx.py
+index 700d1d4c58..df1f00c728 100644
+--- a/lib/matplotlib/backends/backend_macosx.py
++++ b/lib/matplotlib/backends/backend_macosx.py
+@@ -101,6 +101,13 @@ class FigureCanvasMac(FigureCanvasAgg, _macosx.FigureCanvas, FigureCanvasBase):
+         ResizeEvent("resize_event", self)._process()
+         self.draw_idle()
+ 
++    def _set_device_pixel_ratio(self, ratio):
++        """Set the device pixel ratio and update figure DPI accordingly."""
++        super()._set_device_pixel_ratio(ratio)
++        # Only update DPI if it hasn't been explicitly preserved
++        if not hasattr(self.figure, '_stored_dpi'):
++            self.figure._dpi = self.figure._dpi
++
+ 
+ class NavigationToolbar2Mac(_macosx.NavigationToolbar2, NavigationToolbar2):
+ 
+@@ -179,4 +186,4 @@ class _BackendMac(_Backend):
+ 
+     @staticmethod
+     def mainloop():
+-        _macosx.show()
++        _macosx.show()
+\ No newline at end of file
+diff --git a/lib/matplotlib/tests/test_pickle.py b/lib/matplotlib/tests/test_pickle.py
+index 0d0a5e5977..12f2b77e85 100644
+--- a/lib/matplotlib/tests/test_pickle.py
++++ b/lib/matplotlib/tests/test_pickle.py
+@@ -237,3 +237,13 @@ def test_dynamic_norm():
+ def test_vertexselector():
+     line, = plt.plot([0, 1], picker=True)
+     pickle.loads(pickle.dumps(VertexSelector(line)))
++
++def test_figure_dpi_preservation():
++    """Test that figure DPI is preserved after pickling/unpickling."""
++    fig = plt.figure(dpi=200)
++    # Store original DPI
++    original_dpi = fig.dpi
++    # Pickle and unpickle multiple times
++    for _ in range(3):
++        fig = pickle.loads(pickle.dumps(fig))
++        assert fig.dpi == original_dpi, "DPI changed after pickle/unpickle cycle"
+\ No newline at end of file
+2024-12-03 03:58:48,411 - INFO - Grading answer for matplotlib__matplotlib-23476...
+2024-12-03 03:58:48,417 - INFO - report: {'matplotlib__matplotlib-23476': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['lib/matplotlib/tests/test_figure.py::test_unpickle_with_device_pixel_ratio']}, 'PASS_TO_PASS': {'success': ['lib/matplotlib/tests/test_figure.py::test_align_labels[png]', 'lib/matplotlib/tests/test_figure.py::test_align_labels_stray_axes', 'lib/matplotlib/tests/test_figure.py::test_figure_label', 'lib/matplotlib/tests/test_figure.py::test_fignum_exists', 'lib/matplotlib/tests/test_figure.py::test_clf_keyword', 'lib/matplotlib/tests/test_figure.py::test_figure[png]', 'lib/matplotlib/tests/test_figure.py::test_figure_legend[png]', 'lib/matplotlib/tests/test_figure.py::test_gca', 'lib/matplotlib/tests/test_figure.py::test_add_subplot_subclass', 'lib/matplotlib/tests/test_figure.py::test_add_subplot_invalid', 'lib/matplotlib/tests/test_figure.py::test_suptitle[png]', 'lib/matplotlib/tests/test_figure.py::test_suptitle_fontproperties', 'lib/matplotlib/tests/test_figure.py::test_alpha[png]', 'lib/matplotlib/tests/test_figure.py::test_too_many_figures', 'lib/matplotlib/tests/test_figure.py::test_iterability_axes_argument', 'lib/matplotlib/tests/test_figure.py::test_set_fig_size', 'lib/matplotlib/tests/test_figure.py::test_axes_remove', 'lib/matplotlib/tests/test_figure.py::test_figaspect', 'lib/matplotlib/tests/test_figure.py::test_autofmt_xdate[both]', 'lib/matplotlib/tests/test_figure.py::test_autofmt_xdate[major]', 'lib/matplotlib/tests/test_figure.py::test_autofmt_xdate[minor]', 'lib/matplotlib/tests/test_figure.py::test_change_dpi', 'lib/matplotlib/tests/test_figure.py::test_invalid_figure_size[1-nan]', 'lib/matplotlib/tests/test_figure.py::test_invalid_figure_size[-1-1]', 'lib/matplotlib/tests/test_figure.py::test_invalid_figure_size[inf-1]', 'lib/matplotlib/tests/test_figure.py::test_invalid_figure_add_axes', 'lib/matplotlib/tests/test_figure.py::test_subplots_shareax_loglabels', 'lib/matplotlib/tests/test_figure.py::test_savefig', 'lib/matplotlib/tests/test_figure.py::test_savefig_warns', 'lib/matplotlib/tests/test_figure.py::test_savefig_backend', 'lib/matplotlib/tests/test_figure.py::test_savefig_pixel_ratio[Agg]', 'lib/matplotlib/tests/test_figure.py::test_savefig_pixel_ratio[Cairo]', 'lib/matplotlib/tests/test_figure.py::test_figure_repr', 'lib/matplotlib/tests/test_figure.py::test_valid_layouts', 'lib/matplotlib/tests/test_figure.py::test_invalid_layouts', 'lib/matplotlib/tests/test_figure.py::test_add_artist[png]', 'lib/matplotlib/tests/test_figure.py::test_fspath[png]', 'lib/matplotlib/tests/test_figure.py::test_fspath[pdf]', 'lib/matplotlib/tests/test_figure.py::test_fspath[ps]', 'lib/matplotlib/tests/test_figure.py::test_fspath[eps]', 'lib/matplotlib/tests/test_figure.py::test_fspath[svg]', 'lib/matplotlib/tests/test_figure.py::test_tightbbox', 'lib/matplotlib/tests/test_figure.py::test_axes_removal', 'lib/matplotlib/tests/test_figure.py::test_removed_axis', 'lib/matplotlib/tests/test_figure.py::test_figure_clear[clear]', 'lib/matplotlib/tests/test_figure.py::test_figure_clear[clf]', 'lib/matplotlib/tests/test_figure.py::test_clf_not_redefined', 'lib/matplotlib/tests/test_figure.py::test_picking_does_not_stale', 'lib/matplotlib/tests/test_figure.py::test_add_subplot_twotuple', 'lib/matplotlib/tests/test_figure.py::test_animated_with_canvas_change[png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_basic[x0-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_basic[x1-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_all_nested[png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_nested[png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_nested_tuple[png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_empty[x0-None-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_empty[x1-SKIP-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_empty[x2-0-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_empty[x3-None-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_empty[x4-SKIP-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_empty[x5-0-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_fail_list_of_str', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_subplot_kw[subplot_kw0-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_subplot_kw[subplot_kw1-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_subplot_kw[None-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_string_parser', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_single_str_input[AAA\\nBBB-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_single_str_input[\\nAAA\\nBBB\\n-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_single_str_input[ABC\\nDEF-png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_fail[x0-(?m)we', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_fail[x1-There', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_fail[AAA\\nc\\nBBB-All', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_fail[x3-All', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_hashable_keys[png]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_user_order[abc]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_user_order[cab]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_user_order[bca]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_user_order[cba]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_user_order[acb]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_user_order[bac]', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_nested_user_order', 'lib/matplotlib/tests/test_figure.py::TestSubplotMosaic::test_share_all', 'lib/matplotlib/tests/test_figure.py::test_reused_gridspec', 'lib/matplotlib/tests/test_figure.py::test_subfigure[png]', 'lib/matplotlib/tests/test_figure.py::test_subfigure_tightbbox', 'lib/matplotlib/tests/test_figure.py::test_subfigure_dpi', 'lib/matplotlib/tests/test_figure.py::test_subfigure_ss[png]', 'lib/matplotlib/tests/test_figure.py::test_subfigure_double[png]', 'lib/matplotlib/tests/test_figure.py::test_subfigure_spanning', 'lib/matplotlib/tests/test_figure.py::test_subfigure_ticks', 'lib/matplotlib/tests/test_figure.py::test_subfigure_scatter_size[png]', 'lib/matplotlib/tests/test_figure.py::test_subfigure_pdf', 'lib/matplotlib/tests/test_figure.py::test_add_subplot_kwargs', 'lib/matplotlib/tests/test_figure.py::test_add_axes_kwargs', 'lib/matplotlib/tests/test_figure.py::test_ginput', 'lib/matplotlib/tests/test_figure.py::test_waitforbuttonpress', 'lib/matplotlib/tests/test_figure.py::test_kwargs_pass', 'lib/matplotlib/tests/test_figure.py::test_deepcopy'], 'failure': ['lib/matplotlib/tests/test_figure.py::test_figure[pdf]', 'lib/matplotlib/tests/test_figure.py::test_figure_legend[pdf]', 'lib/matplotlib/tests/test_figure.py::test_suptitle[pdf]', 'lib/matplotlib/tests/test_figure.py::test_add_artist[pdf]', 'lib/matplotlib/tests/test_figure.py::test_animated_with_canvas_change[pdf]', 'lib/matplotlib/tests/test_figure.py::test_animated_with_canvas_change[eps]']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-23476: resolved: False
+2024-12-03 03:58:48,418 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-23476.KortixAI...
+2024-12-03 03:59:04,149 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-23476.KortixAI...
+2024-12-03 03:59:04,722 - INFO - Container sweb.eval.matplotlib__matplotlib-23476.KortixAI removed.
+2024-12-03 03:59:04,722 - INFO - Attempting to remove image sweb.eval.x86_64.matplotlib__matplotlib-23476:latest...
+2024-12-03 03:59:05,491 - INFO - Image sweb.eval.x86_64.matplotlib__matplotlib-23476:latest removed.

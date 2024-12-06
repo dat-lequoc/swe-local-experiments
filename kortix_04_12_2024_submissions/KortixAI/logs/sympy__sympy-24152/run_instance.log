@@ -1,0 +1,95 @@
+2024-12-03 12:13:03,720 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-24152
+Building instance image sweb.eval.x86_64.sympy__sympy-24152:latest for sympy__sympy-24152
+2024-12-03 12:13:40,344 - INFO - Creating container for sympy__sympy-24152...
+2024-12-03 12:13:40,666 - INFO - Container for sympy__sympy-24152 created: fe4d3f5ca2a515a69ce99d277bda6eddc227c16e87be09a410ec79282bd2c78c
+2024-12-03 12:13:41,003 - INFO - Container for sympy__sympy-24152 started: fe4d3f5ca2a515a69ce99d277bda6eddc227c16e87be09a410ec79282bd2c78c
+2024-12-03 12:13:41,003 - INFO - Intermediate patch for sympy__sympy-24152 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-24152/patch.diff, now applying to container...
+2024-12-03 12:13:41,322 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:13:41,390 - INFO - >>>>> Applied Patch:
+patching file sympy/physics/quantum/tensorproduct.py
+patching file sympy/physics/quantum/tests/test_tensorproduct.py
+
+2024-12-03 12:13:42,033 - INFO - Git diff before:
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 78accaf295..7b1953c017 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -246,9 +246,10 @@ def _eval_expand_tensorproduct(self, **hints):
+             if isinstance(args[i], Add):
+                 for aa in args[i].args:
+                     tp = TensorProduct(*args[:i] + (aa,) + args[i + 1:])
+-                    if isinstance(tp, TensorProduct):
+-                        tp = tp._eval_expand_tensorproduct()
+-                    add_args.append(tp)
++                    c_part, nc_part = tp.args_cnc()
++                    if len(nc_part) == 1 and isinstance(nc_part[0], TensorProduct):
++                        nc_part = (nc_part[0]._eval_expand_tensorproduct(),)
++                    add_args.append(Mul(*c_part)*Mul(*nc_part))
+                 break
+ 
+         if add_args:
+@@ -417,4 +418,4 @@ def tensor_product_simp(e, **hints):
+     elif isinstance(e, AntiCommutator):
+         return AntiCommutator(*[tensor_product_simp(arg) for arg in e.args])
+     else:
+-        return e
++        return e
+\ No newline at end of file
+diff --git a/sympy/physics/quantum/tests/test_tensorproduct.py b/sympy/physics/quantum/tests/test_tensorproduct.py
+index f1765640ea..644c7b3789 100644
+--- a/sympy/physics/quantum/tests/test_tensorproduct.py
++++ b/sympy/physics/quantum/tests/test_tensorproduct.py
+@@ -44,6 +44,10 @@ def test_tensor_product_abstract():
+ def test_tensor_product_expand():
+     assert TP(A + B, B + C).expand(tensorproduct=True) == \
+         TP(A, B) + TP(A, C) + TP(B, B) + TP(B, C)
++    
++    # Test expansion with scalar factors
++    assert TP(2*A - B, C + D).expand(tensorproduct=True) == \
++        2*TP(A, C) + 2*TP(A, D) - TP(B, C) - TP(B, D)
+ 
+ 
+ def test_tensor_product_commutator():
+@@ -117,4 +121,4 @@ def test_eval_trace():
+     assert t.doit() == ( 1.0*A*Dagger(A)*Tr(B*Dagger(B)) +
+                         1.0*A*Dagger(C)*Tr(B*Dagger(D)) +
+                         1.0*C*Dagger(A)*Tr(D*Dagger(B)) +
+-                        1.0*C*Dagger(C)*Tr(D*Dagger(D)))
++                        1.0*C*Dagger(C)*Tr(D*Dagger(D)))
+\ No newline at end of file
+2024-12-03 12:13:42,034 - INFO - Eval script for sympy__sympy-24152 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-24152/eval.sh; copying to container...
+2024-12-03 12:13:46,901 - INFO - Test runtime: 4.66 seconds
+2024-12-03 12:13:46,901 - INFO - Test output for sympy__sympy-24152 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-24152/test_output.txt
+2024-12-03 12:13:46,955 - INFO - Git diff after:
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 78accaf295..7b1953c017 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -246,9 +246,10 @@ def _eval_expand_tensorproduct(self, **hints):
+             if isinstance(args[i], Add):
+                 for aa in args[i].args:
+                     tp = TensorProduct(*args[:i] + (aa,) + args[i + 1:])
+-                    if isinstance(tp, TensorProduct):
+-                        tp = tp._eval_expand_tensorproduct()
+-                    add_args.append(tp)
++                    c_part, nc_part = tp.args_cnc()
++                    if len(nc_part) == 1 and isinstance(nc_part[0], TensorProduct):
++                        nc_part = (nc_part[0]._eval_expand_tensorproduct(),)
++                    add_args.append(Mul(*c_part)*Mul(*nc_part))
+                 break
+ 
+         if add_args:
+@@ -417,4 +418,4 @@ def tensor_product_simp(e, **hints):
+     elif isinstance(e, AntiCommutator):
+         return AntiCommutator(*[tensor_product_simp(arg) for arg in e.args])
+     else:
+-        return e
++        return e
+\ No newline at end of file
+2024-12-03 12:13:46,955 - INFO - Git diff changed after running eval script
+2024-12-03 12:13:46,955 - INFO - Grading answer for sympy__sympy-24152...
+2024-12-03 12:13:46,958 - INFO - report: {'sympy__sympy-24152': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_tensor_product_expand'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_sparse_matrices', 'test_tensor_product_dagger', 'test_tensor_product_abstract', 'test_tensor_product_commutator', 'test_tensor_product_simp', 'test_issue_5923'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-24152: resolved: True
+2024-12-03 12:13:46,958 - INFO - Attempting to stop container sweb.eval.sympy__sympy-24152.KortixAI...
+2024-12-03 12:14:02,221 - INFO - Attempting to remove container sweb.eval.sympy__sympy-24152.KortixAI...
+2024-12-03 12:14:02,280 - INFO - Container sweb.eval.sympy__sympy-24152.KortixAI removed.

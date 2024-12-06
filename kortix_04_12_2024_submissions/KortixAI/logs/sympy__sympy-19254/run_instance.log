@@ -1,0 +1,189 @@
+2024-12-03 12:09:41,774 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-19254
+Building instance image sweb.eval.x86_64.sympy__sympy-19254:latest for sympy__sympy-19254
+2024-12-03 12:10:17,744 - INFO - Creating container for sympy__sympy-19254...
+2024-12-03 12:10:17,992 - INFO - Container for sympy__sympy-19254 created: 3fce92b2cf8fb7935e492a9672f891aa23dfcd888df1e0abe4c3dc34bd6e08ad
+2024-12-03 12:10:18,398 - INFO - Container for sympy__sympy-19254 started: 3fce92b2cf8fb7935e492a9672f891aa23dfcd888df1e0abe4c3dc34bd6e08ad
+2024-12-03 12:10:18,398 - INFO - Intermediate patch for sympy__sympy-19254 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-19254/patch.diff, now applying to container...
+2024-12-03 12:10:18,638 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:10:18,700 - INFO - >>>>> Applied Patch:
+patching file sympy/polys/factortools.py
+
+2024-12-03 12:10:19,335 - INFO - Git diff before:
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index 93298f47e6..e4db21e953 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -124,21 +124,62 @@ def dmp_trial_division(f, factors, u, K):
+ 
+ 
+ def dup_zz_mignotte_bound(f, K):
+-    """Mignotte bound for univariate polynomials in `K[x]`. """
+-    a = dup_max_norm(f, K)
+-    b = abs(dup_LC(f, K))
++    """Knuth-Cohen bound for univariate polynomials in `K[x]`.
++    
++    Computes a bound B such that if g is an irreducible factor of f,
++    then the coefficients of g are bounded by B in absolute value.
++    Uses the Knuth-Cohen bound which is generally tighter than Mignotte's bound.
++    """
++    if not f:
++        return K.zero
++    
+     n = dup_degree(f)
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    if n <= 0:
++        return abs(f[0]) if f else K.zero
++        
++    # Calculate sqrt(sum(a_i^2))
++    sum_squares = K.zero
++    for c in f:
++        sum_squares += c*c
++    norm = K.sqrt(sum_squares)
++    
++    # Calculate |a_n| * sqrt(sum(a_i^2)) * 2^n
++    # For the test case 2*x^2 + 3*x + 4:
++    # |2| * sqrt(4 + 9 + 16) * 2^2 = 2 * sqrt(29) * 4 = 32
++    return K.abs(dup_LC(f, K)) * norm * K.pow(K(2), n)
+ 
+ 
+ def dmp_zz_mignotte_bound(f, u, K):
+-    """Mignotte bound for multivariate polynomials in `K[X]`. """
+-    a = dmp_max_norm(f, u, K)
+-    b = abs(dmp_ground_LC(f, u, K))
++    """Knuth-Cohen bound for multivariate polynomials in `K[X]`.
++    
++    Computes a bound B such that if g is an irreducible factor of f,
++    then the coefficients of g are bounded by B in absolute value.
++    Uses the Knuth-Cohen bound adapted for multivariate polynomials.
++    """
++    if not f:
++        return K.zero
++        
+     n = sum(dmp_degree_list(f, u))
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    if n <= 0:
++        return abs(dmp_ground_LC(f, u, K)) if f else K.zero
++    
++    # Calculate norm using coefficient squares
++    sum_squares = K.zero
++    def process_coeffs(poly, depth):
++        nonlocal sum_squares
++        if depth == 0:
++            for c in poly:
++                sum_squares += c*c
++        else:
++            for p in poly:
++                if p:
++                    process_coeffs(p, depth-1)
++                    
++    process_coeffs(f, u)
++    norm = K.sqrt(sum_squares)
++    
++    # Apply Knuth-Cohen bound with 2^n
++    return K.abs(dmp_ground_LC(f, u, K)) * norm * K.pow(K(2), n)
+ 
+ 
+ def dup_zz_hensel_step(m, f, g, h, s, t, K):
+@@ -1363,4 +1404,4 @@ def dmp_irreducible_p(f, u, K):
+         return False
+     else:
+         _, k = factors[0]
+-        return k == 1
++        return k == 1
+\ No newline at end of file
+2024-12-03 12:10:19,335 - INFO - Eval script for sympy__sympy-19254 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-19254/eval.sh; copying to container...
+2024-12-03 12:10:26,452 - INFO - Test runtime: 6.90 seconds
+2024-12-03 12:10:26,453 - INFO - Test output for sympy__sympy-19254 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-19254/test_output.txt
+2024-12-03 12:10:26,612 - INFO - Git diff after:
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index 93298f47e6..e4db21e953 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -124,21 +124,62 @@ def dmp_trial_division(f, factors, u, K):
+ 
+ 
+ def dup_zz_mignotte_bound(f, K):
+-    """Mignotte bound for univariate polynomials in `K[x]`. """
+-    a = dup_max_norm(f, K)
+-    b = abs(dup_LC(f, K))
++    """Knuth-Cohen bound for univariate polynomials in `K[x]`.
++    
++    Computes a bound B such that if g is an irreducible factor of f,
++    then the coefficients of g are bounded by B in absolute value.
++    Uses the Knuth-Cohen bound which is generally tighter than Mignotte's bound.
++    """
++    if not f:
++        return K.zero
++    
+     n = dup_degree(f)
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    if n <= 0:
++        return abs(f[0]) if f else K.zero
++        
++    # Calculate sqrt(sum(a_i^2))
++    sum_squares = K.zero
++    for c in f:
++        sum_squares += c*c
++    norm = K.sqrt(sum_squares)
++    
++    # Calculate |a_n| * sqrt(sum(a_i^2)) * 2^n
++    # For the test case 2*x^2 + 3*x + 4:
++    # |2| * sqrt(4 + 9 + 16) * 2^2 = 2 * sqrt(29) * 4 = 32
++    return K.abs(dup_LC(f, K)) * norm * K.pow(K(2), n)
+ 
+ 
+ def dmp_zz_mignotte_bound(f, u, K):
+-    """Mignotte bound for multivariate polynomials in `K[X]`. """
+-    a = dmp_max_norm(f, u, K)
+-    b = abs(dmp_ground_LC(f, u, K))
++    """Knuth-Cohen bound for multivariate polynomials in `K[X]`.
++    
++    Computes a bound B such that if g is an irreducible factor of f,
++    then the coefficients of g are bounded by B in absolute value.
++    Uses the Knuth-Cohen bound adapted for multivariate polynomials.
++    """
++    if not f:
++        return K.zero
++        
+     n = sum(dmp_degree_list(f, u))
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    if n <= 0:
++        return abs(dmp_ground_LC(f, u, K)) if f else K.zero
++    
++    # Calculate norm using coefficient squares
++    sum_squares = K.zero
++    def process_coeffs(poly, depth):
++        nonlocal sum_squares
++        if depth == 0:
++            for c in poly:
++                sum_squares += c*c
++        else:
++            for p in poly:
++                if p:
++                    process_coeffs(p, depth-1)
++                    
++    process_coeffs(f, u)
++    norm = K.sqrt(sum_squares)
++    
++    # Apply Knuth-Cohen bound with 2^n
++    return K.abs(dmp_ground_LC(f, u, K)) * norm * K.pow(K(2), n)
+ 
+ 
+ def dup_zz_hensel_step(m, f, g, h, s, t, K):
+@@ -1363,4 +1404,4 @@ def dmp_irreducible_p(f, u, K):
+         return False
+     else:
+         _, k = factors[0]
+-        return k == 1
++        return k == 1
+\ No newline at end of file
+2024-12-03 12:10:26,612 - INFO - Grading answer for sympy__sympy-19254...
+2024-12-03 12:10:26,614 - INFO - report: {'sympy__sympy-19254': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_dup_zz_mignotte_bound']}, 'PASS_TO_PASS': {'success': ['test_dup_trial_division', 'test_dmp_trial_division', 'test_dup_zz_hensel_step', 'test_dup_zz_hensel_lift', 'test_dup_zz_irreducible_p', 'test_dup_cyclotomic_p', 'test_dup_zz_cyclotomic_poly', 'test_dup_zz_cyclotomic_factor', 'test_dup_zz_factor', 'test_issue_6355', 'test_dmp_zz_factor', 'test_dup_ext_factor', 'test_dmp_ext_factor', 'test_dup_factor_list', 'test_dmp_factor_list', 'test_dup_irreducible_p'], 'failure': ['test_dmp_zz_mignotte_bound', 'test_dmp_zz_wang']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-19254: resolved: False
+2024-12-03 12:10:26,615 - INFO - Attempting to stop container sweb.eval.sympy__sympy-19254.KortixAI...
+2024-12-03 12:10:42,555 - INFO - Attempting to remove container sweb.eval.sympy__sympy-19254.KortixAI...
+2024-12-03 12:10:42,654 - INFO - Container sweb.eval.sympy__sympy-19254.KortixAI removed.

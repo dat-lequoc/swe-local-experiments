@@ -1,0 +1,73 @@
+2024-12-03 11:49:41,818 - INFO - Environment image sweb.env.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-14894
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-14894:latest for scikit-learn__scikit-learn-14894
+2024-12-03 11:58:49,963 - INFO - Creating container for scikit-learn__scikit-learn-14894...
+2024-12-03 11:58:50,425 - INFO - Container for scikit-learn__scikit-learn-14894 created: d9d33cae5a1282b3805e56636d1751cdc677b0b6a1388c0295d7ee6ab85a9746
+2024-12-03 11:58:51,791 - INFO - Container for scikit-learn__scikit-learn-14894 started: d9d33cae5a1282b3805e56636d1751cdc677b0b6a1388c0295d7ee6ab85a9746
+2024-12-03 11:58:51,791 - INFO - Intermediate patch for scikit-learn__scikit-learn-14894 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-14894/patch.diff, now applying to container...
+2024-12-03 11:58:52,131 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 11:58:52,214 - INFO - >>>>> Applied Patch:
+patching file sklearn/svm/tests/test_sparse.py
+
+2024-12-03 11:58:52,635 - INFO - Git diff before:
+diff --git a/sklearn/svm/tests/test_sparse.py b/sklearn/svm/tests/test_sparse.py
+index 7cf6e8af2..5625f953f 100644
+--- a/sklearn/svm/tests/test_sparse.py
++++ b/sklearn/svm/tests/test_sparse.py
+@@ -360,3 +360,20 @@ def test_consistent_proba():
+     with ignore_warnings(category=ConvergenceWarning):
+         proba_2 = a.fit(X, Y).predict_proba(X)
+     assert_array_almost_equal(proba_1, proba_2)
++
++def test_empty_support_vectors():
++    # Test handling of empty support vectors in sparse case
++    X = np.array([[0, 1, 0, 0],
++                  [0, 0, 0, 1],
++                  [0, 0, 1, 0],
++                  [0, 0, 0, 1]])
++    y = np.array([0.04, 0.04, 0.10, 0.16])
++    X_sp = sparse.csr_matrix(X)
++    
++    # Configure SVR to potentially result in empty support vectors
++    model = svm.SVR(C=316.227766017, kernel='linear', max_iter=15000)
++    model.fit(X_sp, y)
++    
++    # Verify that dual_coef_ has correct shape and type
++    assert sparse.issparse(model.dual_coef_)
++    assert model.dual_coef_.shape[1] == X.shape[1]
+\ No newline at end of file
+2024-12-03 11:58:52,635 - INFO - Eval script for scikit-learn__scikit-learn-14894 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-14894/eval.sh; copying to container...
+2024-12-03 11:59:06,576 - INFO - Test runtime: 13.63 seconds
+2024-12-03 11:59:06,577 - INFO - Test output for scikit-learn__scikit-learn-14894 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-14894/test_output.txt
+2024-12-03 11:59:06,641 - INFO - Git diff after:
+diff --git a/sklearn/svm/tests/test_sparse.py b/sklearn/svm/tests/test_sparse.py
+index 7cf6e8af2..5625f953f 100644
+--- a/sklearn/svm/tests/test_sparse.py
++++ b/sklearn/svm/tests/test_sparse.py
+@@ -360,3 +360,20 @@ def test_consistent_proba():
+     with ignore_warnings(category=ConvergenceWarning):
+         proba_2 = a.fit(X, Y).predict_proba(X)
+     assert_array_almost_equal(proba_1, proba_2)
++
++def test_empty_support_vectors():
++    # Test handling of empty support vectors in sparse case
++    X = np.array([[0, 1, 0, 0],
++                  [0, 0, 0, 1],
++                  [0, 0, 1, 0],
++                  [0, 0, 0, 1]])
++    y = np.array([0.04, 0.04, 0.10, 0.16])
++    X_sp = sparse.csr_matrix(X)
++    
++    # Configure SVR to potentially result in empty support vectors
++    model = svm.SVR(C=316.227766017, kernel='linear', max_iter=15000)
++    model.fit(X_sp, y)
++    
++    # Verify that dual_coef_ has correct shape and type
++    assert sparse.issparse(model.dual_coef_)
++    assert model.dual_coef_.shape[1] == X.shape[1]
+\ No newline at end of file
+2024-12-03 11:59:06,641 - INFO - Grading answer for scikit-learn__scikit-learn-14894...
+2024-12-03 11:59:06,646 - INFO - report: {'scikit-learn__scikit-learn-14894': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/svm/tests/test_svm.py::test_sparse_fit_support_vectors_empty']}, 'PASS_TO_PASS': {'success': ['sklearn/svm/tests/test_svm.py::test_libsvm_parameters', 'sklearn/svm/tests/test_svm.py::test_libsvm_iris', 'sklearn/svm/tests/test_svm.py::test_precomputed', 'sklearn/svm/tests/test_svm.py::test_svr', 'sklearn/svm/tests/test_svm.py::test_linearsvr', 'sklearn/svm/tests/test_svm.py::test_linearsvr_fit_sampleweight', 'sklearn/svm/tests/test_svm.py::test_svr_errors', 'sklearn/svm/tests/test_svm.py::test_oneclass', 'sklearn/svm/tests/test_svm.py::test_oneclass_decision_function', 'sklearn/svm/tests/test_svm.py::test_oneclass_score_samples', 'sklearn/svm/tests/test_svm.py::test_tweak_params', 'sklearn/svm/tests/test_svm.py::test_probability', 'sklearn/svm/tests/test_svm.py::test_decision_function', 'sklearn/svm/tests/test_svm.py::test_decision_function_shape', 'sklearn/svm/tests/test_svm.py::test_svr_predict', 'sklearn/svm/tests/test_svm.py::test_weight', 'sklearn/svm/tests/test_svm.py::test_svm_classifier_sided_sample_weight[estimator0]', 'sklearn/svm/tests/test_svm.py::test_svm_classifier_sided_sample_weight[estimator1]', 'sklearn/svm/tests/test_svm.py::test_svm_regressor_sided_sample_weight[estimator0]', 'sklearn/svm/tests/test_svm.py::test_svm_regressor_sided_sample_weight[estimator1]', 'sklearn/svm/tests/test_svm.py::test_svm_equivalence_sample_weight_C', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-SVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-OneClassSVM]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-SVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-OneClassSVM]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-1-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-1-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-2-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-2-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-1-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-1-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-2-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-2-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-1-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-1-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-1-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-2-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-2-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-2-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_auto_weight', 'sklearn/svm/tests/test_svm.py::test_bad_input', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[SVC-data0]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[NuSVC-data1]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[SVR-data2]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[NuSVR-data3]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[OneClassSVM-data4]', 'sklearn/svm/tests/test_svm.py::test_unicode_kernel', 'sklearn/svm/tests/test_svm.py::test_sparse_precomputed', 'sklearn/svm/tests/test_svm.py::test_linearsvc_parameters', 'sklearn/svm/tests/test_svm.py::test_linearsvx_loss_penalty_deprecations', 'sklearn/svm/tests/test_svm.py::test_linear_svx_uppercase_loss_penality_raises_error', 'sklearn/svm/tests/test_svm.py::test_linearsvc', 'sklearn/svm/tests/test_svm.py::test_linearsvc_crammer_singer', 'sklearn/svm/tests/test_svm.py::test_linearsvc_fit_sampleweight', 'sklearn/svm/tests/test_svm.py::test_crammer_singer_binary', 'sklearn/svm/tests/test_svm.py::test_linearsvc_iris', 'sklearn/svm/tests/test_svm.py::test_dense_liblinear_intercept_handling', 'sklearn/svm/tests/test_svm.py::test_liblinear_set_coef', 'sklearn/svm/tests/test_svm.py::test_immutable_coef_property', 'sklearn/svm/tests/test_svm.py::test_linearsvc_verbose', 'sklearn/svm/tests/test_svm.py::test_svc_clone_with_callable_kernel', 'sklearn/svm/tests/test_svm.py::test_svc_bad_kernel', 'sklearn/svm/tests/test_svm.py::test_timeout', 'sklearn/svm/tests/test_svm.py::test_unfitted', 'sklearn/svm/tests/test_svm.py::test_consistent_proba', 'sklearn/svm/tests/test_svm.py::test_linear_svm_convergence_warnings', 'sklearn/svm/tests/test_svm.py::test_svr_coef_sign', 'sklearn/svm/tests/test_svm.py::test_linear_svc_intercept_scaling', 'sklearn/svm/tests/test_svm.py::test_lsvc_intercept_scaling_zero', 'sklearn/svm/tests/test_svm.py::test_hasattr_predict_proba', 'sklearn/svm/tests/test_svm.py::test_decision_function_shape_two_class', 'sklearn/svm/tests/test_svm.py::test_ovr_decision_function', 'sklearn/svm/tests/test_svm.py::test_svc_invalid_break_ties_param[SVC]', 'sklearn/svm/tests/test_svm.py::test_svc_invalid_break_ties_param[NuSVC]', 'sklearn/svm/tests/test_svm.py::test_svc_ovr_tie_breaking[SVC]', 'sklearn/svm/tests/test_svm.py::test_svc_ovr_tie_breaking[NuSVC]', 'sklearn/svm/tests/test_svm.py::test_gamma_auto', 'sklearn/svm/tests/test_svm.py::test_gamma_scale', 'sklearn/svm/tests/test_svm.py::test_n_support_oneclass_svr'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-14894: resolved: False
+2024-12-03 11:59:06,647 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-14894.KortixAI...
+2024-12-03 11:59:22,193 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-14894.KortixAI...
+2024-12-03 11:59:22,318 - INFO - Container sweb.eval.scikit-learn__scikit-learn-14894.KortixAI removed.

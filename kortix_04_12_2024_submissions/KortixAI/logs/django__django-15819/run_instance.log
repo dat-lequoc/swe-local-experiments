@@ -1,0 +1,150 @@
+2024-12-03 03:51:18,832 - INFO - Environment image sweb.env.x86_64.a33dddf55cdff5d8e23374:latest found for django__django-15819
+Building instance image sweb.eval.x86_64.django__django-15819:latest for django__django-15819
+2024-12-03 03:52:38,651 - INFO - Creating container for django__django-15819...
+2024-12-03 03:52:39,228 - INFO - Container for django__django-15819 created: 5f7ed540df5ac32f3ab307f245521d921adbb685b9b325b34a9901a66dd88178
+2024-12-03 03:52:40,346 - INFO - Container for django__django-15819 started: 5f7ed540df5ac32f3ab307f245521d921adbb685b9b325b34a9901a66dd88178
+2024-12-03 03:52:40,346 - INFO - Intermediate patch for django__django-15819 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15819/patch.diff, now applying to container...
+2024-12-03 03:52:40,899 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 03:52:41,058 - INFO - >>>>> Applied Patch:
+patching file django/core/management/commands/inspectdb.py
+patching file tests/inspectdb/tests.py
+
+2024-12-03 03:52:42,451 - INFO - Git diff before:
+diff --git a/django/core/management/commands/inspectdb.py b/django/core/management/commands/inspectdb.py
+index f33bcbdccf..201464b63a 100644
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -55,6 +55,7 @@ class Command(BaseCommand):
+         connection = connections[options["database"]]
+         # 'table_name_filter' is a stealth option
+         table_name_filter = options.get("table_name_filter")
++        self.relation_counts = {}
+ 
+         def table2model(table_name):
+             return re.sub(r"[^a-zA-Z0-9]", "", table_name.title())
+@@ -170,13 +171,22 @@ class Command(BaseCommand):
+                             rel_type = "OneToOneField"
+                         else:
+                             rel_type = "ForeignKey"
+-                            ref_pk_column = (
+-                                connection.introspection.get_primary_key_column(
+-                                    cursor, ref_db_table
+-                                )
++                        
++                        # Track relations to handle related_name
++                        rel_key = (ref_db_table, table_name)
++                        self.relation_counts[rel_key] = self.relation_counts.get(rel_key, 0) + 1
++                        if self.relation_counts[rel_key] > 1:
++                            extra_params["related_name"] = "%s_%s_set" % (
++                                table2model(table_name).lower(),
++                                att_name,
+                             )
+-                            if ref_pk_column and ref_pk_column != ref_db_column:
+-                                extra_params["to_field"] = ref_db_column
++                        ref_pk_column = (
++                            connection.introspection.get_primary_key_column(
++                                cursor, ref_db_table
++                            )
++                        )
++                        if ref_pk_column and ref_pk_column != ref_db_column:
++                            extra_params["to_field"] = ref_db_column
+                         rel_to = (
+                             "self"
+                             if ref_db_table == table_name
+@@ -383,4 +393,4 @@ class Command(BaseCommand):
+         if unique_together:
+             tup = "(" + ", ".join(unique_together) + ",)"
+             meta += ["        unique_together = %s" % tup]
+-        return meta
++        return meta
+\ No newline at end of file
+diff --git a/tests/inspectdb/tests.py b/tests/inspectdb/tests.py
+index 9bf3c432e5..ced82deb2e 100644
+--- a/tests/inspectdb/tests.py
++++ b/tests/inspectdb/tests.py
+@@ -71,6 +71,17 @@ class InspectDBTestCase(TestCase):
+ 
+         return assertFieldType
+ 
++    def test_related_name_generation(self):
++        """
++        Test that inspectdb generates related_name for multiple foreign keys
++        to the same model.
++        """
++        out = StringIO()
++        call_command("inspectdb", "inspectdb_message", stdout=out)
++        output = out.getvalue()
++        # Check that related_name is added for the foreign key
++        self.assertIn("related_name='inspectdbmessage_from_field_set'", output)
++
+     def test_field_types(self):
+         """Test introspection of various Django field types"""
+         assertFieldType = self.make_field_type_asserter()
+@@ -614,4 +625,4 @@ class InspectDBTransactionalTests(TransactionTestCase):
+             )
+         finally:
+             with connection.cursor() as cursor:
+-                cursor.execute("DROP TABLE %s" % table_name)
++                cursor.execute("DROP TABLE %s" % table_name)
+\ No newline at end of file
+2024-12-03 03:52:42,451 - INFO - Eval script for django__django-15819 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15819/eval.sh; copying to container...
+2024-12-03 03:52:54,434 - INFO - Test runtime: 11.68 seconds
+2024-12-03 03:52:54,435 - INFO - Test output for django__django-15819 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15819/test_output.txt
+2024-12-03 03:52:54,499 - INFO - Git diff after:
+diff --git a/django/core/management/commands/inspectdb.py b/django/core/management/commands/inspectdb.py
+index f33bcbdccf..201464b63a 100644
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -55,6 +55,7 @@ class Command(BaseCommand):
+         connection = connections[options["database"]]
+         # 'table_name_filter' is a stealth option
+         table_name_filter = options.get("table_name_filter")
++        self.relation_counts = {}
+ 
+         def table2model(table_name):
+             return re.sub(r"[^a-zA-Z0-9]", "", table_name.title())
+@@ -170,13 +171,22 @@ class Command(BaseCommand):
+                             rel_type = "OneToOneField"
+                         else:
+                             rel_type = "ForeignKey"
+-                            ref_pk_column = (
+-                                connection.introspection.get_primary_key_column(
+-                                    cursor, ref_db_table
+-                                )
++                        
++                        # Track relations to handle related_name
++                        rel_key = (ref_db_table, table_name)
++                        self.relation_counts[rel_key] = self.relation_counts.get(rel_key, 0) + 1
++                        if self.relation_counts[rel_key] > 1:
++                            extra_params["related_name"] = "%s_%s_set" % (
++                                table2model(table_name).lower(),
++                                att_name,
+                             )
+-                            if ref_pk_column and ref_pk_column != ref_db_column:
+-                                extra_params["to_field"] = ref_db_column
++                        ref_pk_column = (
++                            connection.introspection.get_primary_key_column(
++                                cursor, ref_db_table
++                            )
++                        )
++                        if ref_pk_column and ref_pk_column != ref_db_column:
++                            extra_params["to_field"] = ref_db_column
+                         rel_to = (
+                             "self"
+                             if ref_db_table == table_name
+@@ -383,4 +393,4 @@ class Command(BaseCommand):
+         if unique_together:
+             tup = "(" + ", ".join(unique_together) + ",)"
+             meta += ["        unique_together = %s" % tup]
+-        return meta
++        return meta
+\ No newline at end of file
+2024-12-03 03:52:54,499 - INFO - Git diff changed after running eval script
+2024-12-03 03:52:54,499 - INFO - Grading answer for django__django-15819...
+2024-12-03 03:52:54,506 - INFO - report: {'django__django-15819': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_same_relations (inspectdb.tests.InspectDBTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_composite_primary_key (inspectdb.tests.InspectDBTransactionalTests)', 'inspectdb --include-views creates models for database views.', 'test_attribute_name_not_python_keyword (inspectdb.tests.InspectDBTestCase)', 'test_char_field_db_collation (inspectdb.tests.InspectDBTestCase)', 'Introspection of columns with a custom field (#21090)', 'Introspection of column names consist/start with digits (#16536/#17676)', 'Test introspection of various Django field types', 'test_foreign_key_to_field (inspectdb.tests.InspectDBTestCase)', 'Introspection errors should not crash the command, and the error should', 'test_json_field (inspectdb.tests.InspectDBTestCase)', 'By default the command generates models with `Meta.managed = False`.', 'Introspection of column names containing special characters,', 'test_stealth_table_name_filter_option (inspectdb.tests.InspectDBTestCase)', 'Introspection of table names containing special characters,', 'inspectdb can inspect a subset of tables by passing the table names as', 'test_table_with_func_unique_constraint (inspectdb.tests.InspectDBTestCase)', 'test_text_field_db_collation (inspectdb.tests.InspectDBTestCase)', 'test_unique_together_meta (inspectdb.tests.InspectDBTestCase)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15819: resolved: True
+2024-12-03 03:52:54,506 - INFO - Attempting to stop container sweb.eval.django__django-15819.KortixAI...
+2024-12-03 03:53:10,219 - INFO - Attempting to remove container sweb.eval.django__django-15819.KortixAI...
+2024-12-03 03:53:10,672 - INFO - Container sweb.eval.django__django-15819.KortixAI removed.
+2024-12-03 03:53:10,672 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15819:latest...
+2024-12-03 03:53:13,526 - INFO - Image sweb.eval.x86_64.django__django-15819:latest removed.

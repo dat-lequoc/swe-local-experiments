@@ -1,0 +1,109 @@
+2024-12-03 12:09:06,854 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-18835
+Building instance image sweb.eval.x86_64.sympy__sympy-18835:latest for sympy__sympy-18835
+2024-12-03 12:09:58,365 - INFO - Creating container for sympy__sympy-18835...
+2024-12-03 12:09:58,527 - INFO - Container for sympy__sympy-18835 created: 59b0760580daf7d4d005955d56d6637dd4d8d1b37b79f26ef190373e3fecb300
+2024-12-03 12:09:59,224 - INFO - Container for sympy__sympy-18835 started: 59b0760580daf7d4d005955d56d6637dd4d8d1b37b79f26ef190373e3fecb300
+2024-12-03 12:09:59,224 - INFO - Intermediate patch for sympy__sympy-18835 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-18835/patch.diff, now applying to container...
+2024-12-03 12:10:00,033 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:10:00,285 - INFO - >>>>> Applied Patch:
+patching file sympy/utilities/iterables.py
+patching file sympy/utilities/tests/test_iterables.py
+
+2024-12-03 12:10:01,181 - INFO - Git diff before:
+diff --git a/sympy/utilities/iterables.py b/sympy/utilities/iterables.py
+index d96e76263b..1db37fce31 100644
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -2106,10 +2106,20 @@ def uniq(seq, result=None):
+     >>> list(uniq([[1], [2, 1], [1]]))
+     [[1], [2, 1]]
+     """
++    try:
++        # Try to get initial length
++        initial_len = len(seq)
++        has_len = True
++    except TypeError:
++        has_len = False
++    
+     try:
+         seen = set()
+         result = result or []
+         for i, s in enumerate(seq):
++            # Check for modification
++            if has_len and len(seq) != initial_len:
++                raise RuntimeError("sequence changed size during iteration")
+             if not (s in seen or seen.add(s)):
+                 yield s
+     except TypeError:
+@@ -2712,4 +2722,4 @@ def roundrobin(*iterables):
+                 yield next()
+         except StopIteration:
+             pending -= 1
+-            nexts = itertools.cycle(itertools.islice(nexts, pending))
++            nexts = itertools.cycle(itertools.islice(nexts, pending))
+\ No newline at end of file
+diff --git a/sympy/utilities/tests/test_iterables.py b/sympy/utilities/tests/test_iterables.py
+index 030db33239..d021ffabd1 100644
+--- a/sympy/utilities/tests/test_iterables.py
++++ b/sympy/utilities/tests/test_iterables.py
+@@ -701,6 +701,10 @@ def test_uniq():
+     assert list(uniq([[1], [2, 1], [1]])) == [[1], [2, 1]]
+     assert list(uniq(permutations(i for i in [[1], 2, 2]))) == \
+         [([1], 2, 2), (2, [1], 2), (2, 2, [1])]
++    
++    # Test sequence modification detection
++    lst = [1, 2, 3, 2, 1]
++    raises(RuntimeError, lambda: list(uniq(lst)) and lst.pop())
+     assert list(uniq([2, 3, 2, 4, [2], [1], [2], [3], [1]])) == \
+         [2, 3, 4, [2], [1], [3]]
+ 
+@@ -823,4 +827,4 @@ def test_ibin():
+     assert ibin(3, str=True) == '11'
+     assert ibin(3, 3, str=True) == '011'
+     assert list(ibin(2, 'all')) == [(0, 0), (0, 1), (1, 0), (1, 1)]
+-    assert list(ibin(2, 'all', str=True)) == ['00', '01', '10', '11']
++    assert list(ibin(2, 'all', str=True)) == ['00', '01', '10', '11']
+\ No newline at end of file
+2024-12-03 12:10:01,182 - INFO - Eval script for sympy__sympy-18835 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-18835/eval.sh; copying to container...
+2024-12-03 12:10:08,071 - INFO - Test runtime: 6.36 seconds
+2024-12-03 12:10:08,072 - INFO - Test output for sympy__sympy-18835 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-18835/test_output.txt
+2024-12-03 12:10:08,154 - INFO - Git diff after:
+diff --git a/sympy/utilities/iterables.py b/sympy/utilities/iterables.py
+index d96e76263b..1db37fce31 100644
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -2106,10 +2106,20 @@ def uniq(seq, result=None):
+     >>> list(uniq([[1], [2, 1], [1]]))
+     [[1], [2, 1]]
+     """
++    try:
++        # Try to get initial length
++        initial_len = len(seq)
++        has_len = True
++    except TypeError:
++        has_len = False
++    
+     try:
+         seen = set()
+         result = result or []
+         for i, s in enumerate(seq):
++            # Check for modification
++            if has_len and len(seq) != initial_len:
++                raise RuntimeError("sequence changed size during iteration")
+             if not (s in seen or seen.add(s)):
+                 yield s
+     except TypeError:
+@@ -2712,4 +2722,4 @@ def roundrobin(*iterables):
+                 yield next()
+         except StopIteration:
+             pending -= 1
+-            nexts = itertools.cycle(itertools.islice(nexts, pending))
++            nexts = itertools.cycle(itertools.islice(nexts, pending))
+\ No newline at end of file
+2024-12-03 12:10:08,154 - INFO - Git diff changed after running eval script
+2024-12-03 12:10:08,154 - INFO - Grading answer for sympy__sympy-18835...
+2024-12-03 12:10:08,156 - INFO - report: {'sympy__sympy-18835': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_uniq']}, 'PASS_TO_PASS': {'success': ['test_is_palindromic', 'test_postorder_traversal', 'test_flatten', 'test_iproduct', 'test_group', 'test_subsets', 'test_variations', 'test_cartes', 'test_filter_symbols', 'test_numbered_symbols', 'test_sift', 'test_take', 'test_dict_merge', 'test_prefixes', 'test_postfixes', 'test_topological_sort', 'test_strongly_connected_components', 'test_connected_components', 'test_rotate', 'test_multiset_partitions', 'test_multiset_combinations', 'test_multiset_permutations', 'test_partitions', 'test_binary_partitions', 'test_bell_perm', 'test_involutions', 'test_derangements', 'test_necklaces', 'test_bracelets', 'test_generate_oriented_forest', 'test_unflatten', 'test_common_prefix_suffix', 'test_minlex', 'test_ordered', 'test_runs', 'test_reshape', 'test_kbins', 'test_has_dups', 'test__partition', 'test_ordered_partitions', 'test_rotations'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-18835: resolved: False
+2024-12-03 12:10:08,157 - INFO - Attempting to stop container sweb.eval.sympy__sympy-18835.KortixAI...
+2024-12-03 12:10:23,843 - INFO - Attempting to remove container sweb.eval.sympy__sympy-18835.KortixAI...
+2024-12-03 12:10:23,939 - INFO - Container sweb.eval.sympy__sympy-18835.KortixAI removed.

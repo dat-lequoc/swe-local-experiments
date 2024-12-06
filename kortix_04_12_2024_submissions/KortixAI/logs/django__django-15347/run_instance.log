@@ -1,0 +1,95 @@
+2024-12-02 12:44:13,471 - INFO - Environment image sweb.env.x86_64.934a137824256b612e9dc5:latest found for django__django-15347
+Building instance image sweb.eval.x86_64.django__django-15347:latest for django__django-15347
+2024-12-02 12:45:04,409 - INFO - Creating container for django__django-15347...
+2024-12-02 12:45:04,517 - INFO - Container for django__django-15347 created: 8b5f42d1e6f085d7f0730cea59884e5bf96739829a06c1a4a4fd0fb1f55d5dd2
+2024-12-02 12:45:05,602 - INFO - Container for django__django-15347 started: 8b5f42d1e6f085d7f0730cea59884e5bf96739829a06c1a4a4fd0fb1f55d5dd2
+2024-12-02 12:45:05,602 - INFO - Intermediate patch for django__django-15347 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15347/patch.diff, now applying to container...
+2024-12-02 12:45:08,292 - INFO - Failed to apply patch to container, trying again...
+2024-12-02 12:45:08,910 - INFO - >>>>> Applied Patch:
+patching file django/contrib/messages/storage/cookie.py
+patching file tests/messages_tests/test_cookie.py
+
+2024-12-02 12:45:10,934 - INFO - Git diff before:
+diff --git a/django/contrib/messages/storage/cookie.py b/django/contrib/messages/storage/cookie.py
+index 1d390c71dd..2fb3d6a636 100644
+--- a/django/contrib/messages/storage/cookie.py
++++ b/django/contrib/messages/storage/cookie.py
+@@ -19,7 +19,7 @@ class MessageEncoder(json.JSONEncoder):
+             # Using 0/1 here instead of False/True to produce more compact json
+             is_safedata = 1 if isinstance(obj.message, SafeData) else 0
+             message = [self.message_key, is_safedata, obj.level, obj.message]
+-            if obj.extra_tags:
++            if obj.extra_tags is not None:
+                 message.append(obj.extra_tags)
+             return message
+         return super().default(obj)
+@@ -166,4 +166,4 @@ class CookieStorage(BaseStorage):
+         # Mark the data as used (so it gets removed) since something was wrong
+         # with the data.
+         self.used = True
+-        return None
++        return None
+\ No newline at end of file
+diff --git a/tests/messages_tests/test_cookie.py b/tests/messages_tests/test_cookie.py
+index 53cf693f61..99b87331e0 100644
+--- a/tests/messages_tests/test_cookie.py
++++ b/tests/messages_tests/test_cookie.py
+@@ -163,6 +163,18 @@ class CookieTests(BaseTests, SimpleTestCase):
+         decoded_messages = json.loads(value, cls=MessageDecoder)
+         self.assertEqual(messages, decoded_messages)
+ 
++    def test_empty_extra_tags_serialization(self):
++        """
++        A message with empty string extra_tags maintains the empty string after
++        serialization/deserialization rather than becoming None.
++        """
++        storage = self.get_storage()
++        message = Message(constants.INFO, "Test", extra_tags="")
++        encoded = storage._encode([message])
++        decoded = storage._decode(encoded)
++        self.assertEqual(decoded[0].extra_tags, "")
++        self.assertIsNotNone(decoded[0].extra_tags)
++
+     def test_safedata(self):
+         """
+         A message containing SafeData is keeping its safe status when
+@@ -176,4 +188,4 @@ class CookieTests(BaseTests, SimpleTestCase):
+ 
+         storage = self.get_storage()
+         self.assertIsInstance(encode_decode(mark_safe("<b>Hello Django!</b>")), SafeData)
+-        self.assertNotIsInstance(encode_decode("<b>Hello Django!</b>"), SafeData)
++        self.assertNotIsInstance(encode_decode("<b>Hello Django!</b>"), SafeData)
+\ No newline at end of file
+2024-12-02 12:45:10,934 - INFO - Eval script for django__django-15347 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15347/eval.sh; copying to container...
+2024-12-02 12:45:23,219 - INFO - Test runtime: 10.04 seconds
+2024-12-02 12:45:23,219 - INFO - Test output for django__django-15347 written to logs/run_evaluation/KortixAI/KortixAI/django__django-15347/test_output.txt
+2024-12-02 12:45:23,992 - INFO - Git diff after:
+diff --git a/django/contrib/messages/storage/cookie.py b/django/contrib/messages/storage/cookie.py
+index 1d390c71dd..2fb3d6a636 100644
+--- a/django/contrib/messages/storage/cookie.py
++++ b/django/contrib/messages/storage/cookie.py
+@@ -19,7 +19,7 @@ class MessageEncoder(json.JSONEncoder):
+             # Using 0/1 here instead of False/True to produce more compact json
+             is_safedata = 1 if isinstance(obj.message, SafeData) else 0
+             message = [self.message_key, is_safedata, obj.level, obj.message]
+-            if obj.extra_tags:
++            if obj.extra_tags is not None:
+                 message.append(obj.extra_tags)
+             return message
+         return super().default(obj)
+@@ -166,4 +166,4 @@ class CookieStorage(BaseStorage):
+         # Mark the data as used (so it gets removed) since something was wrong
+         # with the data.
+         self.used = True
+-        return None
++        return None
+\ No newline at end of file
+2024-12-02 12:45:23,992 - INFO - Git diff changed after running eval script
+2024-12-02 12:45:23,992 - INFO - Grading answer for django__django-15347...
+2024-12-02 12:45:24,002 - INFO - report: {'django__django-15347': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ["A message's extra_tags attribute is correctly preserved when retrieved"], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_add (messages_tests.test_cookie.CookieTests)', 'test_add_lazy_translation (messages_tests.test_cookie.CookieTests)', 'test_add_update (messages_tests.test_cookie.CookieTests)', 'test_context_processor_message_levels (messages_tests.test_cookie.CookieTests)', 'CookieStorage honors SESSION_COOKIE_DOMAIN, SESSION_COOKIE_SECURE, and', 'test_custom_tags (messages_tests.test_cookie.CookieTests)', 'test_default_level (messages_tests.test_cookie.CookieTests)', 'test_existing_add (messages_tests.test_cookie.CookieTests)', 'test_existing_add_read_update (messages_tests.test_cookie.CookieTests)', "Reading the existing storage doesn't cause the data to be lost.", 'test_existing_read_add_update (messages_tests.test_cookie.CookieTests)', 'With the message middleware enabled, messages are properly stored and', 'test_get (messages_tests.test_cookie.CookieTests)', 'test_get_bad_cookie (messages_tests.test_cookie.CookieTests)', 'test_high_level (messages_tests.test_cookie.CookieTests)', 'A complex nested data structure containing Message', 'test_level_tag (messages_tests.test_cookie.CookieTests)', 'test_low_level (messages_tests.test_cookie.CookieTests)', 'If the data exceeds what is allowed in a cookie, older messages are', 'test_message_rfc6265 (messages_tests.test_cookie.CookieTests)', 'When the middleware is disabled, an exception is raised when one', 'When the middleware is disabled, an exception is not raised', 'Messages persist properly when multiple POSTs are made before a GET.', 'test_no_update (messages_tests.test_cookie.CookieTests)', 'test_repr (messages_tests.test_cookie.CookieTests)', 'A message containing SafeData is keeping its safe status when', 'test_settings_level (messages_tests.test_cookie.CookieTests)', 'test_tags (messages_tests.test_cookie.CookieTests)', 'test_with_template_response (messages_tests.test_cookie.CookieTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15347: resolved: True
+2024-12-02 12:45:24,005 - INFO - Attempting to stop container sweb.eval.django__django-15347.KortixAI...
+2024-12-02 12:45:39,537 - INFO - Attempting to remove container sweb.eval.django__django-15347.KortixAI...
+2024-12-02 12:45:39,581 - INFO - Container sweb.eval.django__django-15347.KortixAI removed.
+2024-12-02 12:45:39,581 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15347:latest...
+2024-12-02 12:45:40,170 - INFO - Image sweb.eval.x86_64.django__django-15347:latest removed.

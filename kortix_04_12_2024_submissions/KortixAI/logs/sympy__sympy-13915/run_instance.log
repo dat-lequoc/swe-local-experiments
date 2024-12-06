@@ -1,0 +1,81 @@
+2024-12-03 12:03:08,920 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-13915
+Building instance image sweb.eval.x86_64.sympy__sympy-13915:latest for sympy__sympy-13915
+2024-12-03 12:03:52,733 - INFO - Creating container for sympy__sympy-13915...
+2024-12-03 12:03:53,685 - INFO - Container for sympy__sympy-13915 created: cc47abfa9702f2cd760fe0dfc35a6f67562012c5f70514c19a4f1cf2910a9d5a
+2024-12-03 12:03:54,327 - INFO - Container for sympy__sympy-13915 started: cc47abfa9702f2cd760fe0dfc35a6f67562012c5f70514c19a4f1cf2910a9d5a
+2024-12-03 12:03:54,327 - INFO - Intermediate patch for sympy__sympy-13915 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-13915/patch.diff, now applying to container...
+2024-12-03 12:03:54,895 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:03:55,007 - INFO - >>>>> Applied Patch:
+patching file sympy/core/tests/test_subs.py
+
+2024-12-03 12:03:55,701 - INFO - Git diff before:
+diff --git a/sympy/core/tests/test_subs.py b/sympy/core/tests/test_subs.py
+index 90abb9e374..4be139b5e1 100644
+--- a/sympy/core/tests/test_subs.py
++++ b/sympy/core/tests/test_subs.py
+@@ -621,6 +621,18 @@ def test_issue_4680():
+     N = Symbol('N')
+     assert N.subs(dict(N=3)) == 3
+ 
++def test_undefined_substitution():
++    # Test substitutions that lead to undefined expressions
++    a, b = symbols('a b')
++    expr = (1/(a+b) + 1/(a-b))/(1/(a+b) - 1/(a-b))
++    # When b->a, both numerator and denominator contain undefined terms
++    assert expr.subs(b, a) == nan
++    # Test simpler undefined case
++    assert (1/x).subs(x, 0) == zoo
++    # Test complex undefined case
++    expr2 = 1/(a**2 - b**2)
++    assert expr2.subs(b, a) == zoo
++
+ 
+ def test_issue_6158():
+     assert (x - 1).subs(1, y) == x - y
+@@ -778,4 +790,4 @@ def test_issue_12657():
+     assert (x < -oo).subs(list(reversed(reps))) == (x < 1)
+     reps = [(-oo, 2), (oo, 1)]
+     assert (x < oo).subs(reps) == (x < 1)
+-    assert (x < oo).subs(list(reversed(reps))) == (x < 1)
++    assert (x < oo).subs(list(reversed(reps))) == (x < 1)
+\ No newline at end of file
+2024-12-03 12:03:55,701 - INFO - Eval script for sympy__sympy-13915 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-13915/eval.sh; copying to container...
+2024-12-03 12:04:05,595 - INFO - Test runtime: 9.59 seconds
+2024-12-03 12:04:05,595 - INFO - Test output for sympy__sympy-13915 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-13915/test_output.txt
+2024-12-03 12:04:05,715 - INFO - Git diff after:
+diff --git a/sympy/core/tests/test_subs.py b/sympy/core/tests/test_subs.py
+index 90abb9e374..4be139b5e1 100644
+--- a/sympy/core/tests/test_subs.py
++++ b/sympy/core/tests/test_subs.py
+@@ -621,6 +621,18 @@ def test_issue_4680():
+     N = Symbol('N')
+     assert N.subs(dict(N=3)) == 3
+ 
++def test_undefined_substitution():
++    # Test substitutions that lead to undefined expressions
++    a, b = symbols('a b')
++    expr = (1/(a+b) + 1/(a-b))/(1/(a+b) - 1/(a-b))
++    # When b->a, both numerator and denominator contain undefined terms
++    assert expr.subs(b, a) == nan
++    # Test simpler undefined case
++    assert (1/x).subs(x, 0) == zoo
++    # Test complex undefined case
++    expr2 = 1/(a**2 - b**2)
++    assert expr2.subs(b, a) == zoo
++
+ 
+ def test_issue_6158():
+     assert (x - 1).subs(1, y) == x - y
+@@ -778,4 +790,4 @@ def test_issue_12657():
+     assert (x < -oo).subs(list(reversed(reps))) == (x < 1)
+     reps = [(-oo, 2), (oo, 1)]
+     assert (x < oo).subs(reps) == (x < 1)
+-    assert (x < oo).subs(list(reversed(reps))) == (x < 1)
++    assert (x < oo).subs(list(reversed(reps))) == (x < 1)
+\ No newline at end of file
+2024-12-03 12:04:05,715 - INFO - Grading answer for sympy__sympy-13915...
+2024-12-03 12:04:05,725 - INFO - report: {'sympy__sympy-13915': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_Mul_does_not_cancel_infinities']}, 'PASS_TO_PASS': {'success': ['test_bug1', 'test_Symbol', 'test_arit0', 'test_pow2', 'test_pow3', 'test_mod_pow', 'test_pow_E', 'test_pow_issue_3516', 'test_pow_im', 'test_real_mul', 'test_ncmul', 'test_ncpow', 'test_powerbug', 'test_Mul_doesnt_expand_exp', 'test_Add_Mul_is_integer', 'test_Add_Mul_is_finite', 'test_Mul_is_even_odd', 'test_evenness_in_ternary_integer_product_with_even', 'test_oddness_in_ternary_integer_product_with_even', 'test_Mul_is_rational', 'test_Add_is_rational', 'test_Add_is_even_odd', 'test_Mul_is_negative_positive', 'test_Mul_is_negative_positive_2', 'test_Mul_is_nonpositive_nonnegative', 'test_Pow_is_zero', 'test_Mul_hermitian_antihermitian', 'test_Add_is_comparable', 'test_Mul_is_comparable', 'test_Pow_is_comparable', 'test_Add_is_positive_2', 'test_Add_is_irrational', 'test_issue_3531b', 'test_bug3', 'test_suppressed_evaluation', 'test_Add_as_coeff_mul', 'test_Pow_as_coeff_mul_doesnt_expand', 'test_issue_3514', 'test_make_args', 'test_issue_5126', 'test_Rational_as_content_primitive', 'test_Add_as_content_primitive', 'test_Mul_as_content_primitive', 'test_Pow_as_content_primitive', 'test_issue_5460', 'test_product_irrational', 'test_issue_5919', 'test_Mod_is_integer', 'test_issue_6001', 'test_polar', 'test_issue_6040', 'test_issue_6082', 'test_issue_6077', 'test_mul_flatten_oo', 'test_add_flatten', 'test_issue_5160_6087_6089_6090', 'test_float_int', 'test_issue_6611a', 'test_denest_add_mul', 'test_mul_zero_detection', 'test_Mul_with_zero_infinite', 'test_issue_8247_8354'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13915: resolved: False
+2024-12-03 12:04:05,725 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13915.KortixAI...
+2024-12-03 12:04:21,158 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13915.KortixAI...
+2024-12-03 12:04:21,226 - INFO - Container sweb.eval.sympy__sympy-13915.KortixAI removed.

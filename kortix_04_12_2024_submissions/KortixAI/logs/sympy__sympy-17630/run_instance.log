@@ -1,0 +1,110 @@
+2024-12-03 12:06:42,688 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-17630
+Building instance image sweb.eval.x86_64.sympy__sympy-17630:latest for sympy__sympy-17630
+2024-12-03 12:07:17,138 - INFO - Creating container for sympy__sympy-17630...
+2024-12-03 12:07:17,295 - INFO - Container for sympy__sympy-17630 created: 317dcdfbeaafa3e99f9ef17ba962ed73c071dd3c9f8dd0a427baf0affca0a1d8
+2024-12-03 12:07:17,863 - INFO - Container for sympy__sympy-17630 started: 317dcdfbeaafa3e99f9ef17ba962ed73c071dd3c9f8dd0a427baf0affca0a1d8
+2024-12-03 12:07:17,863 - INFO - Intermediate patch for sympy__sympy-17630 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-17630/patch.diff, now applying to container...
+2024-12-03 12:07:18,473 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:07:18,619 - INFO - >>>>> Applied Patch:
+patching file sympy/matrices/expressions/blockmatrix.py
+patching file sympy/matrices/expressions/tests/test_blockmatrix.py
+
+2024-12-03 12:07:19,589 - INFO - Git diff before:
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index 95302a05ca..712866a265 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -164,7 +164,16 @@ def structurally_equal(self, other):
+     def _blockmul(self, other):
+         if (isinstance(other, BlockMatrix) and
+                 self.colblocksizes == other.rowblocksizes):
+-            return BlockMatrix(self.blocks*other.blocks)
++            # Ensure multiplication preserves ZeroMatrix type
++            result = self.blocks*other.blocks
++            # Convert any Zero objects back to ZeroMatrix with proper dimensions
++            for i in range(result.shape[0]):
++                for j in range(result.shape[1]):
++                    if result[i,j].is_zero:
++                        rows = self.rowblocksizes[i]
++                        cols = other.colblocksizes[j]
++                        result[i,j] = ZeroMatrix(rows, cols)
++            return BlockMatrix(result)
+ 
+         return self * other
+ 
+@@ -569,4 +578,4 @@ def blockcut(expr, rowsizes, colsizes):
+     colbounds = bounds(colsizes)
+     return BlockMatrix([[MatrixSlice(expr, rowbound, colbound)
+                          for colbound in colbounds]
+-                         for rowbound in rowbounds])
++                         for rowbound in rowbounds])
+\ No newline at end of file
+diff --git a/sympy/matrices/expressions/tests/test_blockmatrix.py b/sympy/matrices/expressions/tests/test_blockmatrix.py
+index 1e1033affc..a0b7b19207 100644
+--- a/sympy/matrices/expressions/tests/test_blockmatrix.py
++++ b/sympy/matrices/expressions/tests/test_blockmatrix.py
+@@ -58,6 +58,17 @@ def test_BlockMatrix():
+     X = BlockMatrix(Matrix([[A, B], [C, D]]))
+ 
+     assert X.__class__(*X.args) == X
++    
++    # Test multiplication with zero blocks
++    a = MatrixSymbol("a", 2, 2)
++    z = ZeroMatrix(2, 2)
++    b = BlockMatrix([[a, z], [z, z]])
++    b2 = b._blockmul(b)
++    b3 = b2._blockmul(b)
++    assert isinstance(b2.blocks[0, 1], MatrixExpr)
++    assert isinstance(b3.blocks[0, 1], MatrixExpr)
++    assert b2.blocks[0, 1].is_ZeroMatrix
++    assert b3.blocks[0, 1].is_ZeroMatrix
+ 
+     # block_collapse does nothing on normal inputs
+     E = MatrixSymbol('E', n, m)
+@@ -221,4 +232,4 @@ def test_block_collapse_type():
+     assert block_collapse(Inverse(bm1)).__class__ == BlockDiagMatrix
+     assert block_collapse(Transpose(bm1)).__class__ == BlockDiagMatrix
+     assert bc_transpose(Transpose(bm1)).__class__ == BlockDiagMatrix
+-    assert bc_inverse(Inverse(bm1)).__class__ == BlockDiagMatrix
++    assert bc_inverse(Inverse(bm1)).__class__ == BlockDiagMatrix
+\ No newline at end of file
+2024-12-03 12:07:19,589 - INFO - Eval script for sympy__sympy-17630 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-17630/eval.sh; copying to container...
+2024-12-03 12:07:27,412 - INFO - Test runtime: 7.41 seconds
+2024-12-03 12:07:27,412 - INFO - Test output for sympy__sympy-17630 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-17630/test_output.txt
+2024-12-03 12:07:27,594 - INFO - Git diff after:
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index 95302a05ca..712866a265 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -164,7 +164,16 @@ def structurally_equal(self, other):
+     def _blockmul(self, other):
+         if (isinstance(other, BlockMatrix) and
+                 self.colblocksizes == other.rowblocksizes):
+-            return BlockMatrix(self.blocks*other.blocks)
++            # Ensure multiplication preserves ZeroMatrix type
++            result = self.blocks*other.blocks
++            # Convert any Zero objects back to ZeroMatrix with proper dimensions
++            for i in range(result.shape[0]):
++                for j in range(result.shape[1]):
++                    if result[i,j].is_zero:
++                        rows = self.rowblocksizes[i]
++                        cols = other.colblocksizes[j]
++                        result[i,j] = ZeroMatrix(rows, cols)
++            return BlockMatrix(result)
+ 
+         return self * other
+ 
+@@ -569,4 +578,4 @@ def blockcut(expr, rowsizes, colsizes):
+     colbounds = bounds(colsizes)
+     return BlockMatrix([[MatrixSlice(expr, rowbound, colbound)
+                          for colbound in colbounds]
+-                         for rowbound in rowbounds])
++                         for rowbound in rowbounds])
+\ No newline at end of file
+2024-12-03 12:07:27,594 - INFO - Git diff changed after running eval script
+2024-12-03 12:07:27,594 - INFO - Grading answer for sympy__sympy-17630...
+2024-12-03 12:07:27,598 - INFO - report: {'sympy__sympy-17630': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_issue_17624', 'test_zero_matrix_add']}, 'PASS_TO_PASS': {'success': ['test_bc_matmul', 'test_bc_matadd', 'test_bc_transpose', 'test_bc_dist_diag', 'test_block_plus_ident', 'test_BlockMatrix', 'test_block_collapse_explicit_matrices', 'test_BlockMatrix_trace', 'test_BlockMatrix_Determinant', 'test_squareBlockMatrix', 'test_BlockDiagMatrix', 'test_blockcut', 'test_reblock_2x2', 'test_deblock', 'test_sort_key', 'test_matadd_sympify', 'test_matadd_of_matrices', 'test_doit_args', 'test_generic_identity'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17630: resolved: False
+2024-12-03 12:07:27,598 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17630.KortixAI...
+2024-12-03 12:07:43,050 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17630.KortixAI...
+2024-12-03 12:07:43,202 - INFO - Container sweb.eval.sympy__sympy-17630.KortixAI removed.

@@ -1,0 +1,121 @@
+2024-12-03 06:01:21,950 - INFO - Environment image sweb.env.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-13439
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-13439:latest for scikit-learn__scikit-learn-13439
+2024-12-03 06:06:39,812 - INFO - Creating container for scikit-learn__scikit-learn-13439...
+2024-12-03 06:06:39,971 - INFO - Container for scikit-learn__scikit-learn-13439 created: c033307ad350909eed04117bde94cecfe19735a4116c336c69325567611fd735
+2024-12-03 06:06:40,261 - INFO - Container for scikit-learn__scikit-learn-13439 started: c033307ad350909eed04117bde94cecfe19735a4116c336c69325567611fd735
+2024-12-03 06:06:40,262 - INFO - Intermediate patch for scikit-learn__scikit-learn-13439 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13439/patch.diff, now applying to container...
+2024-12-03 06:06:40,483 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 06:06:40,542 - INFO - >>>>> Applied Patch:
+patching file sklearn/pipeline.py
+patching file sklearn/tests/test_pipeline.py
+
+2024-12-03 06:06:40,811 - INFO - Git diff before:
+diff --git a/sklearn/pipeline.py b/sklearn/pipeline.py
+index 7eaf9a46f..97a289f90 100644
+--- a/sklearn/pipeline.py
++++ b/sklearn/pipeline.py
+@@ -160,6 +160,9 @@ class Pipeline(_BaseComposition):
+         return self
+ 
+     def _validate_steps(self):
++        if not self.steps:
++            return
++            
+         names, estimators = zip(*self.steps)
+ 
+         # validate names
+@@ -228,6 +231,10 @@ class Pipeline(_BaseComposition):
+         # Use Bunch object to improve autocomplete
+         return Bunch(**dict(self.steps))
+ 
++    def __len__(self):
++        """Returns the length of the Pipeline - the number of steps."""
++        return len(self.steps)
++
+     @property
+     def _final_estimator(self):
+         estimator = self.steps[-1][1]
+@@ -928,4 +935,4 @@ def make_union(*transformers, **kwargs):
+         # change its type spec in make_union
+         raise TypeError('Unknown keyword arguments: "{}"'
+                         .format(list(kwargs.keys())[0]))
+-    return FeatureUnion(_name_estimators(transformers), n_jobs=n_jobs)
++    return FeatureUnion(_name_estimators(transformers), n_jobs=n_jobs)
+\ No newline at end of file
+diff --git a/sklearn/tests/test_pipeline.py b/sklearn/tests/test_pipeline.py
+index 8d6fe8f70..1764e2186 100644
+--- a/sklearn/tests/test_pipeline.py
++++ b/sklearn/tests/test_pipeline.py
+@@ -154,6 +154,20 @@ class DummyEstimatorParams(BaseEstimator):
+         return self
+ 
+ 
++def test_pipeline_len():
++    # Test pipeline length
++    pipe = Pipeline([])
++    assert_equal(len(pipe), 0)
++    
++    pipe = Pipeline([('name', None)])
++    assert_equal(len(pipe), 1)
++    
++    pipe = Pipeline([('t1', Transf()), ('t2', None), ('t3', Transf())])
++    assert_equal(len(pipe), 3)
++    
++    pipe = Pipeline([('t1', 'passthrough'), ('t2', Transf())])
++    assert_equal(len(pipe), 2)
++
+ def test_pipeline_init():
+     # Test the various init parameters of the pipeline.
+     assert_raises(TypeError, Pipeline)
+@@ -1070,4 +1084,4 @@ def test_make_pipeline_memory():
+     pipeline = make_pipeline(DummyTransf(), SVC())
+     assert pipeline.memory is None
+ 
+-    shutil.rmtree(cachedir)
++    shutil.rmtree(cachedir)
+\ No newline at end of file
+2024-12-03 06:06:40,811 - INFO - Eval script for scikit-learn__scikit-learn-13439 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13439/eval.sh; copying to container...
+2024-12-03 06:06:45,884 - INFO - Test runtime: 4.91 seconds
+2024-12-03 06:06:45,885 - INFO - Test output for scikit-learn__scikit-learn-13439 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-13439/test_output.txt
+2024-12-03 06:06:45,945 - INFO - Git diff after:
+diff --git a/sklearn/pipeline.py b/sklearn/pipeline.py
+index 7eaf9a46f..97a289f90 100644
+--- a/sklearn/pipeline.py
++++ b/sklearn/pipeline.py
+@@ -160,6 +160,9 @@ class Pipeline(_BaseComposition):
+         return self
+ 
+     def _validate_steps(self):
++        if not self.steps:
++            return
++            
+         names, estimators = zip(*self.steps)
+ 
+         # validate names
+@@ -228,6 +231,10 @@ class Pipeline(_BaseComposition):
+         # Use Bunch object to improve autocomplete
+         return Bunch(**dict(self.steps))
+ 
++    def __len__(self):
++        """Returns the length of the Pipeline - the number of steps."""
++        return len(self.steps)
++
+     @property
+     def _final_estimator(self):
+         estimator = self.steps[-1][1]
+@@ -928,4 +935,4 @@ def make_union(*transformers, **kwargs):
+         # change its type spec in make_union
+         raise TypeError('Unknown keyword arguments: "{}"'
+                         .format(list(kwargs.keys())[0]))
+-    return FeatureUnion(_name_estimators(transformers), n_jobs=n_jobs)
++    return FeatureUnion(_name_estimators(transformers), n_jobs=n_jobs)
+\ No newline at end of file
+2024-12-03 06:06:45,945 - INFO - Git diff changed after running eval script
+2024-12-03 06:06:45,945 - INFO - Grading answer for scikit-learn__scikit-learn-13439...
+2024-12-03 06:06:45,953 - INFO - report: {'scikit-learn__scikit-learn-13439': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/tests/test_pipeline.py::test_make_pipeline_memory'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/tests/test_pipeline.py::test_pipeline_init', 'sklearn/tests/test_pipeline.py::test_pipeline_init_tuple', 'sklearn/tests/test_pipeline.py::test_pipeline_methods_anova', 'sklearn/tests/test_pipeline.py::test_pipeline_fit_params', 'sklearn/tests/test_pipeline.py::test_pipeline_sample_weight_supported', 'sklearn/tests/test_pipeline.py::test_pipeline_sample_weight_unsupported', 'sklearn/tests/test_pipeline.py::test_pipeline_raise_set_params_error', 'sklearn/tests/test_pipeline.py::test_pipeline_methods_pca_svm', 'sklearn/tests/test_pipeline.py::test_pipeline_methods_preprocessing_svm', 'sklearn/tests/test_pipeline.py::test_fit_predict_on_pipeline', 'sklearn/tests/test_pipeline.py::test_fit_predict_on_pipeline_without_fit_predict', 'sklearn/tests/test_pipeline.py::test_fit_predict_with_intermediate_fit_params', 'sklearn/tests/test_pipeline.py::test_predict_with_predict_params', 'sklearn/tests/test_pipeline.py::test_feature_union', 'sklearn/tests/test_pipeline.py::test_make_union', 'sklearn/tests/test_pipeline.py::test_make_union_kwargs', 'sklearn/tests/test_pipeline.py::test_pipeline_transform', 'sklearn/tests/test_pipeline.py::test_pipeline_fit_transform', 'sklearn/tests/test_pipeline.py::test_pipeline_slice', 'sklearn/tests/test_pipeline.py::test_pipeline_index', 'sklearn/tests/test_pipeline.py::test_set_pipeline_steps', 'sklearn/tests/test_pipeline.py::test_pipeline_named_steps', 'sklearn/tests/test_pipeline.py::test_pipeline_correctly_adjusts_steps[None]', 'sklearn/tests/test_pipeline.py::test_pipeline_correctly_adjusts_steps[passthrough]', 'sklearn/tests/test_pipeline.py::test_set_pipeline_step_passthrough[None]', 'sklearn/tests/test_pipeline.py::test_set_pipeline_step_passthrough[passthrough]', 'sklearn/tests/test_pipeline.py::test_pipeline_ducktyping', 'sklearn/tests/test_pipeline.py::test_make_pipeline', 'sklearn/tests/test_pipeline.py::test_feature_union_weights', 'sklearn/tests/test_pipeline.py::test_feature_union_parallel', 'sklearn/tests/test_pipeline.py::test_feature_union_feature_names', 'sklearn/tests/test_pipeline.py::test_classes_property', 'sklearn/tests/test_pipeline.py::test_set_feature_union_steps', 'sklearn/tests/test_pipeline.py::test_set_feature_union_step_drop[drop]', 'sklearn/tests/test_pipeline.py::test_set_feature_union_step_drop[None]', 'sklearn/tests/test_pipeline.py::test_step_name_validation', 'sklearn/tests/test_pipeline.py::test_set_params_nested_pipeline', 'sklearn/tests/test_pipeline.py::test_pipeline_wrong_memory', 'sklearn/tests/test_pipeline.py::test_pipeline_with_cache_attribute', 'sklearn/tests/test_pipeline.py::test_pipeline_memory'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-13439: resolved: True
+2024-12-03 06:06:45,953 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-13439.KortixAI...
+2024-12-03 06:07:01,610 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-13439.KortixAI...
+2024-12-03 06:07:01,750 - INFO - Container sweb.eval.scikit-learn__scikit-learn-13439.KortixAI removed.
+2024-12-03 06:07:01,750 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-13439:latest...
+2024-12-03 06:07:01,979 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-13439:latest removed.

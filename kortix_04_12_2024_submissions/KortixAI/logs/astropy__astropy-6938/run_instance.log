@@ -1,0 +1,50 @@
+2024-11-20 02:16:10,080 - INFO - Environment image sweb.env.x86_64.c70974ae7654c7a2c98577:latest found for astropy__astropy-6938
+Building instance image sweb.eval.x86_64.astropy__astropy-6938:latest for astropy__astropy-6938
+2024-11-20 02:18:01,303 - INFO - Creating container for astropy__astropy-6938...
+2024-11-20 02:18:01,317 - INFO - Container for astropy__astropy-6938 created: 4e393b2f31dc07577f2795ac05f709b64863439bc08de0686f98c3c2608deef5
+2024-11-20 02:18:01,490 - INFO - Container for astropy__astropy-6938 started: 4e393b2f31dc07577f2795ac05f709b64863439bc08de0686f98c3c2608deef5
+2024-11-20 02:18:01,490 - INFO - Intermediate patch for astropy__astropy-6938 written to logs/run_evaluation/KortixAI/KortixAI/astropy__astropy-6938/patch.diff, now applying to container...
+2024-11-20 02:18:01,695 - INFO - Failed to apply patch to container, trying again...
+2024-11-20 02:18:01,747 - INFO - >>>>> Applied Patch:
+patching file astropy/io/fits/fitsrec.py
+patching file reproduce_error.py
+
+2024-11-20 02:18:02,169 - INFO - Git diff before:
+diff --git a/astropy/io/fits/fitsrec.py b/astropy/io/fits/fitsrec.py
+index 574b4073b1..8890e158e2 100644
+--- a/astropy/io/fits/fitsrec.py
++++ b/astropy/io/fits/fitsrec.py
+@@ -1261,7 +1261,7 @@ class FITS_rec(np.recarray):
+ 
+         # Replace exponent separator in floating point numbers
+         if 'D' in format:
+-            output_field.replace(encode_ascii('E'), encode_ascii('D'))
++            output_field[:] = output_field.replace(encode_ascii('E'), encode_ascii('D'))
+ 
+ 
+ def _get_recarray_field(array, key):
+2024-11-20 02:18:02,170 - INFO - Eval script for astropy__astropy-6938 written to logs/run_evaluation/KortixAI/KortixAI/astropy__astropy-6938/eval.sh; copying to container...
+2024-11-20 02:18:09,136 - INFO - Test runtime: 6.82 seconds
+2024-11-20 02:18:09,136 - INFO - Test output for astropy__astropy-6938 written to logs/run_evaluation/KortixAI/KortixAI/astropy__astropy-6938/test_output.txt
+2024-11-20 02:18:09,195 - INFO - Git diff after:
+diff --git a/astropy/io/fits/fitsrec.py b/astropy/io/fits/fitsrec.py
+index 574b4073b1..8890e158e2 100644
+--- a/astropy/io/fits/fitsrec.py
++++ b/astropy/io/fits/fitsrec.py
+@@ -1261,7 +1261,7 @@ class FITS_rec(np.recarray):
+ 
+         # Replace exponent separator in floating point numbers
+         if 'D' in format:
+-            output_field.replace(encode_ascii('E'), encode_ascii('D'))
++            output_field[:] = output_field.replace(encode_ascii('E'), encode_ascii('D'))
+ 
+ 
+ def _get_recarray_field(array, key):
+2024-11-20 02:18:09,195 - INFO - Grading answer for astropy__astropy-6938...
+2024-11-20 02:18:09,205 - INFO - report: {'astropy__astropy-6938': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_ascii_table_data', 'astropy/io/fits/tests/test_table.py::TestTableFunctions::test_ascii_table'], 'failure': []}, 'PASS_TO_PASS': {'success': ['astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_sample_file', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_image_create', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_scaled_data', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_scaled_data_auto_rescale', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_uint16_data', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_groups_hdu_data', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_open_with_no_keywords', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_writeto_convenience', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_hdu_writeto', 'astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_datasum_only', 'astropy/io/fits/tests/test_table.py::test_regression_scalar_indexing'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-6938: resolved: True
+2024-11-20 02:18:09,205 - INFO - Attempting to stop container sweb.eval.astropy__astropy-6938.KortixAI...
+2024-11-20 02:18:24,356 - INFO - Attempting to remove container sweb.eval.astropy__astropy-6938.KortixAI...
+2024-11-20 02:18:24,376 - INFO - Container sweb.eval.astropy__astropy-6938.KortixAI removed.
+2024-11-20 02:18:24,377 - INFO - Attempting to remove image sweb.eval.x86_64.astropy__astropy-6938:latest...
+2024-11-20 02:18:24,537 - INFO - Image sweb.eval.x86_64.astropy__astropy-6938:latest removed.

@@ -1,0 +1,193 @@
+2024-12-03 05:51:26,850 - INFO - Environment image sweb.env.x86_64.a0efca7a0fe6719dbf65c2:latest found for mwaskom__seaborn-3407
+Building instance image sweb.eval.x86_64.mwaskom__seaborn-3407:latest for mwaskom__seaborn-3407
+2024-12-03 05:51:59,562 - INFO - Creating container for mwaskom__seaborn-3407...
+2024-12-03 05:51:59,709 - INFO - Container for mwaskom__seaborn-3407 created: 3b1ffb91e10d892531c09a1578f9a3f83e9ca7f80ab47a2620d0ff49df05a5b1
+2024-12-03 05:52:00,233 - INFO - Container for mwaskom__seaborn-3407 started: 3b1ffb91e10d892531c09a1578f9a3f83e9ca7f80ab47a2620d0ff49df05a5b1
+2024-12-03 05:52:00,233 - INFO - Intermediate patch for mwaskom__seaborn-3407 written to logs/run_evaluation/KortixAI/KortixAI/mwaskom__seaborn-3407/patch.diff, now applying to container...
+2024-12-03 05:52:00,796 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 05:52:00,959 - INFO - >>>>> Applied Patch:
+patching file seaborn/axisgrid.py
+patching file tests/test_axisgrid.py
+
+2024-12-03 05:52:01,279 - INFO - Git diff before:
+diff --git a/seaborn/axisgrid.py b/seaborn/axisgrid.py
+index 75349099..8e39ba49 100644
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -1487,7 +1487,7 @@ class PairGrid(Grid):
+             else:
+                 plt.sca(ax)
+ 
+-            vector = self.data[var]
++            vector = self._get_column_var(var)
+             if self._hue_var is not None:
+                 hue = self.data[self._hue_var]
+             else:
+@@ -1516,7 +1516,8 @@ class PairGrid(Grid):
+         fixed_color = kwargs.pop("color", None)
+ 
+         for var, ax in zip(self.diag_vars, self.diag_axes):
+-            hue_grouped = self.data[var].groupby(self.hue_vals)
++            vector = self._get_column_var(var)
++            hue_grouped = vector.groupby(self.hue_vals)
+ 
+             plot_kwargs = kwargs.copy()
+             if str(func.__module__).startswith("seaborn"):
+@@ -1661,11 +1662,30 @@ class PairGrid(Grid):
+         for ax, label in zip(self.axes[:, 0], self.y_vars):
+             ax.set_ylabel(label)
+ 
++    def _get_column_var(self, var):
++        """Get data for a variable, handling both single and MultiIndex columns."""
++        if isinstance(self.data.columns, pd.MultiIndex):
++            if isinstance(var, tuple):
++                return self.data[var]
++            # Find matching columns at first level
++            matches = [col for col in self.data.columns if col[0] == var]
++            if len(matches) == 1:
++                return self.data[matches[0]]
++            elif len(matches) > 1:
++                # If multiple matches, use the first one
++                return self.data[matches[0]]
++        return self.data[var]
++
+     def _find_numeric_cols(self, data):
+         """Find which variables in a DataFrame are numeric."""
+         numeric_cols = []
+-        for col in data:
+-            if variable_type(data[col]) == "numeric":
++        for col in data.columns:
++            # Handle both single and multi-index columns
++            if isinstance(col, tuple):
++                col_data = data[col]
++            else:
++                col_data = data[col]
++            if variable_type(col_data) == "numeric":
+                 numeric_cols.append(col)
+         return numeric_cols
+ 
+@@ -2396,4 +2416,4 @@ Examples
+     params=_param_docs,
+     returns=_core_docs["returns"],
+     seealso=_core_docs["seealso"],
+-)
++)
+\ No newline at end of file
+diff --git a/tests/test_axisgrid.py b/tests/test_axisgrid.py
+index ce8b0eaa..e6386e3b 100644
+--- a/tests/test_axisgrid.py
++++ b/tests/test_axisgrid.py
+@@ -710,6 +710,30 @@ class TestFacetGrid:
+ 
+ class TestPairGrid:
+ 
++    def test_multiindex_columns(self):
++        """Test that PairGrid works with MultiIndex columns."""
++        data = {
++            ("A", "1"): np.random.rand(100),
++            ("A", "2"): np.random.rand(100),
++            ("B", "1"): np.random.rand(100),
++            ("B", "2"): np.random.rand(100),
++        }
++        df = pd.DataFrame(data)
++        
++        # Test basic PairGrid functionality
++        g = ag.PairGrid(df)
++        assert g.data is not None
++        assert len(g.x_vars) > 0
++        assert len(g.y_vars) > 0
++        g.map_diag(plt.hist)
++        g.map_offdiag(plt.scatter)
++        
++        # Test pairplot with MultiIndex
++        g = ag.pairplot(df)
++        assert isinstance(g, ag.PairGrid)
++        assert g.data is not None
++        assert len(g.axes.flat) > 0
++
+     rs = np.random.RandomState(sum(map(ord, "PairGrid")))
+     df = pd.DataFrame(dict(x=rs.normal(size=60),
+                            y=rs.randint(0, 4, size=(60)),
+@@ -1842,4 +1866,4 @@ class TestJointPlot:
+         ax = plt.gca()
+         with pytest.warns(UserWarning):
+             g = ag.jointplot(data=long_df, x="x", y="y", ax=ax)
+-        assert g.ax_joint.collections
++        assert g.ax_joint.collections
+\ No newline at end of file
+2024-12-03 05:52:01,279 - INFO - Eval script for mwaskom__seaborn-3407 written to logs/run_evaluation/KortixAI/KortixAI/mwaskom__seaborn-3407/eval.sh; copying to container...
+2024-12-03 05:53:58,556 - INFO - Test runtime: 116.89 seconds
+2024-12-03 05:53:58,556 - INFO - Test output for mwaskom__seaborn-3407 written to logs/run_evaluation/KortixAI/KortixAI/mwaskom__seaborn-3407/test_output.txt
+2024-12-03 05:53:58,618 - INFO - Git diff after:
+diff --git a/seaborn/axisgrid.py b/seaborn/axisgrid.py
+index 75349099..8e39ba49 100644
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -1487,7 +1487,7 @@ class PairGrid(Grid):
+             else:
+                 plt.sca(ax)
+ 
+-            vector = self.data[var]
++            vector = self._get_column_var(var)
+             if self._hue_var is not None:
+                 hue = self.data[self._hue_var]
+             else:
+@@ -1516,7 +1516,8 @@ class PairGrid(Grid):
+         fixed_color = kwargs.pop("color", None)
+ 
+         for var, ax in zip(self.diag_vars, self.diag_axes):
+-            hue_grouped = self.data[var].groupby(self.hue_vals)
++            vector = self._get_column_var(var)
++            hue_grouped = vector.groupby(self.hue_vals)
+ 
+             plot_kwargs = kwargs.copy()
+             if str(func.__module__).startswith("seaborn"):
+@@ -1661,11 +1662,30 @@ class PairGrid(Grid):
+         for ax, label in zip(self.axes[:, 0], self.y_vars):
+             ax.set_ylabel(label)
+ 
++    def _get_column_var(self, var):
++        """Get data for a variable, handling both single and MultiIndex columns."""
++        if isinstance(self.data.columns, pd.MultiIndex):
++            if isinstance(var, tuple):
++                return self.data[var]
++            # Find matching columns at first level
++            matches = [col for col in self.data.columns if col[0] == var]
++            if len(matches) == 1:
++                return self.data[matches[0]]
++            elif len(matches) > 1:
++                # If multiple matches, use the first one
++                return self.data[matches[0]]
++        return self.data[var]
++
+     def _find_numeric_cols(self, data):
+         """Find which variables in a DataFrame are numeric."""
+         numeric_cols = []
+-        for col in data:
+-            if variable_type(data[col]) == "numeric":
++        for col in data.columns:
++            # Handle both single and multi-index columns
++            if isinstance(col, tuple):
++                col_data = data[col]
++            else:
++                col_data = data[col]
++            if variable_type(col_data) == "numeric":
+                 numeric_cols.append(col)
+         return numeric_cols
+ 
+@@ -2396,4 +2416,4 @@ Examples
+     params=_param_docs,
+     returns=_core_docs["returns"],
+     seealso=_core_docs["seealso"],
+-)
++)
+\ No newline at end of file
+2024-12-03 05:53:58,618 - INFO - Git diff changed after running eval script
+2024-12-03 05:53:58,618 - INFO - Grading answer for mwaskom__seaborn-3407...
+2024-12-03 05:53:58,619 - INFO - report: {'mwaskom__seaborn-3407': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_axisgrid.py::TestPairGrid::test_pairplot_column_multiindex']}, 'PASS_TO_PASS': {'success': ['tests/test_axisgrid.py::TestFacetGrid::test_self_data', 'tests/test_axisgrid.py::TestFacetGrid::test_self_figure', 'tests/test_axisgrid.py::TestFacetGrid::test_self_axes', 'tests/test_axisgrid.py::TestFacetGrid::test_axes_array_size', 'tests/test_axisgrid.py::TestFacetGrid::test_single_axes', 'tests/test_axisgrid.py::TestFacetGrid::test_col_wrap', 'tests/test_axisgrid.py::TestFacetGrid::test_normal_axes', 'tests/test_axisgrid.py::TestFacetGrid::test_wrapped_axes', 'tests/test_axisgrid.py::TestFacetGrid::test_axes_dict', 'tests/test_axisgrid.py::TestFacetGrid::test_figure_size', 'tests/test_axisgrid.py::TestFacetGrid::test_figure_size_with_legend', 'tests/test_axisgrid.py::TestFacetGrid::test_legend_data', 'tests/test_axisgrid.py::TestFacetGrid::test_legend_data_missing_level', 'tests/test_axisgrid.py::TestFacetGrid::test_get_boolean_legend_data', 'tests/test_axisgrid.py::TestFacetGrid::test_legend_tuples', 'tests/test_axisgrid.py::TestFacetGrid::test_legend_options', 'tests/test_axisgrid.py::TestFacetGrid::test_legendout_with_colwrap', 'tests/test_axisgrid.py::TestFacetGrid::test_legend_tight_layout', 'tests/test_axisgrid.py::TestFacetGrid::test_subplot_kws', 'tests/test_axisgrid.py::TestFacetGrid::test_gridspec_kws', 'tests/test_axisgrid.py::TestFacetGrid::test_gridspec_kws_col_wrap', 'tests/test_axisgrid.py::TestFacetGrid::test_data_generator', 'tests/test_axisgrid.py::TestFacetGrid::test_map', 'tests/test_axisgrid.py::TestFacetGrid::test_map_dataframe', 'tests/test_axisgrid.py::TestFacetGrid::test_set', 'tests/test_axisgrid.py::TestFacetGrid::test_set_titles', 'tests/test_axisgrid.py::TestFacetGrid::test_set_titles_margin_titles', 'tests/test_axisgrid.py::TestFacetGrid::test_set_ticklabels', 'tests/test_axisgrid.py::TestFacetGrid::test_set_axis_labels', 'tests/test_axisgrid.py::TestFacetGrid::test_axis_lims', 'tests/test_axisgrid.py::TestFacetGrid::test_data_orders', 'tests/test_axisgrid.py::TestFacetGrid::test_palette', 'tests/test_axisgrid.py::TestFacetGrid::test_hue_kws', 'tests/test_axisgrid.py::TestFacetGrid::test_dropna', 'tests/test_axisgrid.py::TestFacetGrid::test_categorical_column_missing_categories', 'tests/test_axisgrid.py::TestFacetGrid::test_categorical_warning', 'tests/test_axisgrid.py::TestFacetGrid::test_refline', 'tests/test_axisgrid.py::TestFacetGrid::test_apply', 'tests/test_axisgrid.py::TestFacetGrid::test_pipe', 'tests/test_axisgrid.py::TestFacetGrid::test_tick_params', 'tests/test_axisgrid.py::TestPairGrid::test_self_data', 'tests/test_axisgrid.py::TestPairGrid::test_ignore_datelike_data', 'tests/test_axisgrid.py::TestPairGrid::test_self_figure', 'tests/test_axisgrid.py::TestPairGrid::test_self_axes', 'tests/test_axisgrid.py::TestPairGrid::test_default_axes', 'tests/test_axisgrid.py::TestPairGrid::test_specific_square_axes[vars0]', 'tests/test_axisgrid.py::TestPairGrid::test_specific_square_axes[vars1]', 'tests/test_axisgrid.py::TestPairGrid::test_remove_hue_from_default', 'tests/test_axisgrid.py::TestPairGrid::test_specific_nonsquare_axes[x_vars0-y_vars0]', 'tests/test_axisgrid.py::TestPairGrid::test_specific_nonsquare_axes[x_vars1-z]', 'tests/test_axisgrid.py::TestPairGrid::test_specific_nonsquare_axes[x_vars2-y_vars2]', 'tests/test_axisgrid.py::TestPairGrid::test_corner', 'tests/test_axisgrid.py::TestPairGrid::test_size', 'tests/test_axisgrid.py::TestPairGrid::test_empty_grid', 'tests/test_axisgrid.py::TestPairGrid::test_map', 'tests/test_axisgrid.py::TestPairGrid::test_map_nonsquare', 'tests/test_axisgrid.py::TestPairGrid::test_map_lower', 'tests/test_axisgrid.py::TestPairGrid::test_map_upper', 'tests/test_axisgrid.py::TestPairGrid::test_map_mixed_funcsig', 'tests/test_axisgrid.py::TestPairGrid::test_map_diag', 'tests/test_axisgrid.py::TestPairGrid::test_map_diag_rectangular', 'tests/test_axisgrid.py::TestPairGrid::test_map_diag_color', 'tests/test_axisgrid.py::TestPairGrid::test_map_diag_palette', 'tests/test_axisgrid.py::TestPairGrid::test_map_diag_and_offdiag', 'tests/test_axisgrid.py::TestPairGrid::test_diag_sharey', 'tests/test_axisgrid.py::TestPairGrid::test_map_diag_matplotlib', 'tests/test_axisgrid.py::TestPairGrid::test_palette', 'tests/test_axisgrid.py::TestPairGrid::test_hue_kws', 'tests/test_axisgrid.py::TestPairGrid::test_hue_order', 'tests/test_axisgrid.py::TestPairGrid::test_hue_order_missing_level', 'tests/test_axisgrid.py::TestPairGrid::test_hue_in_map', 'tests/test_axisgrid.py::TestPairGrid::test_nondefault_index', 'tests/test_axisgrid.py::TestPairGrid::test_dropna[scatterplot]', 'tests/test_axisgrid.py::TestPairGrid::test_dropna[scatter]', 'tests/test_axisgrid.py::TestPairGrid::test_histplot_legend', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot_reg', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot_reg_hue', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot_diag_kde', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot_kde', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot_hist', 'tests/test_axisgrid.py::TestPairGrid::test_pairplot_markers', 'tests/test_axisgrid.py::TestPairGrid::test_corner_despine', 'tests/test_axisgrid.py::TestPairGrid::test_corner_set', 'tests/test_axisgrid.py::TestPairGrid::test_legend', 'tests/test_axisgrid.py::TestPairGrid::test_tick_params', 'tests/test_axisgrid.py::TestJointGrid::test_margin_grid_from_lists', 'tests/test_axisgrid.py::TestJointGrid::test_margin_grid_from_arrays', 'tests/test_axisgrid.py::TestJointGrid::test_margin_grid_from_series', 'tests/test_axisgrid.py::TestJointGrid::test_margin_grid_from_dataframe', 'tests/test_axisgrid.py::TestJointGrid::test_margin_grid_from_dataframe_bad_variable', 'tests/test_axisgrid.py::TestJointGrid::test_margin_grid_axis_labels', 'tests/test_axisgrid.py::TestJointGrid::test_dropna', 'tests/test_axisgrid.py::TestJointGrid::test_axlims', 'tests/test_axisgrid.py::TestJointGrid::test_marginal_ticks', 'tests/test_axisgrid.py::TestJointGrid::test_bivariate_plot', 'tests/test_axisgrid.py::TestJointGrid::test_univariate_plot', 'tests/test_axisgrid.py::TestJointGrid::test_univariate_plot_distplot', 'tests/test_axisgrid.py::TestJointGrid::test_univariate_plot_matplotlib', 'tests/test_axisgrid.py::TestJointGrid::test_plot', 'tests/test_axisgrid.py::TestJointGrid::test_space', 'tests/test_axisgrid.py::TestJointGrid::test_hue[True]', 'tests/test_axisgrid.py::TestJointGrid::test_hue[False]', 'tests/test_axisgrid.py::TestJointGrid::test_refline', 'tests/test_axisgrid.py::TestJointPlot::test_scatter', 'tests/test_axisgrid.py::TestJointPlot::test_scatter_hue', 'tests/test_axisgrid.py::TestJointPlot::test_reg', 'tests/test_axisgrid.py::TestJointPlot::test_resid', 'tests/test_axisgrid.py::TestJointPlot::test_hist', 'tests/test_axisgrid.py::TestJointPlot::test_hex', 'tests/test_axisgrid.py::TestJointPlot::test_kde', 'tests/test_axisgrid.py::TestJointPlot::test_kde_hue', 'tests/test_axisgrid.py::TestJointPlot::test_color', 'tests/test_axisgrid.py::TestJointPlot::test_palette', 'tests/test_axisgrid.py::TestJointPlot::test_hex_customise', 'tests/test_axisgrid.py::TestJointPlot::test_bad_kind', 'tests/test_axisgrid.py::TestJointPlot::test_unsupported_hue_kind', 'tests/test_axisgrid.py::TestJointPlot::test_leaky_dict', 'tests/test_axisgrid.py::TestJointPlot::test_distplot_kwarg_warning', 'tests/test_axisgrid.py::TestJointPlot::test_ax_warning'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for mwaskom__seaborn-3407: resolved: False
+2024-12-03 05:53:58,620 - INFO - Attempting to stop container sweb.eval.mwaskom__seaborn-3407.KortixAI...
+2024-12-03 05:54:13,966 - INFO - Attempting to remove container sweb.eval.mwaskom__seaborn-3407.KortixAI...
+2024-12-03 05:54:14,052 - INFO - Container sweb.eval.mwaskom__seaborn-3407.KortixAI removed.
+2024-12-03 05:54:14,052 - INFO - Attempting to remove image sweb.eval.x86_64.mwaskom__seaborn-3407:latest...
+2024-12-03 05:54:14,633 - INFO - Image sweb.eval.x86_64.mwaskom__seaborn-3407:latest removed.

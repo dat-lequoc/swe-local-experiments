@@ -1,0 +1,171 @@
+2024-12-03 12:00:40,725 - INFO - Environment image sweb.env.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-11897
+Building instance image sweb.eval.x86_64.sympy__sympy-11897:latest for sympy__sympy-11897
+2024-12-03 12:01:32,103 - INFO - Creating container for sympy__sympy-11897...
+2024-12-03 12:01:33,223 - INFO - Container for sympy__sympy-11897 created: 93ee298b3e94f7402dde8d924d73b1ebfa2e04ea76d2be633b33bec6e0075da5
+2024-12-03 12:01:33,998 - INFO - Container for sympy__sympy-11897 started: 93ee298b3e94f7402dde8d924d73b1ebfa2e04ea76d2be633b33bec6e0075da5
+2024-12-03 12:01:33,999 - INFO - Intermediate patch for sympy__sympy-11897 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-11897/patch.diff, now applying to container...
+2024-12-03 12:01:34,280 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 12:01:34,349 - INFO - >>>>> Applied Patch:
+patching file sympy/printing/latex.py
+patching file sympy/printing/tests/test_latex.py
+
+2024-12-03 12:01:34,729 - INFO - Git diff before:
+diff --git a/sympy/printing/latex.py b/sympy/printing/latex.py
+index 1edc712358..52f958296a 100644
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -357,6 +357,20 @@ def _print_Mul(self, expr):
+             tex = ""
+ 
+         from sympy.simplify import fraction
++        from sympy import exp
++        
++        # Special handling for exp(-x) cases
++        if len(expr.args) == 2 and expr.args[0].func == exp and expr.args[0].args[0].is_Mul and _coeff_isneg(expr.args[0].args[0]):
++            base = expr.args[0]
++            rest = expr.args[1]
++            exp_arg = -base.args[0]
++            tex += r"e^{-%s}" % self._print(exp_arg)
++            if rest != 1:
++                tex += self._settings['mul_symbol_latex'] + self._print(rest)
++            if include_parens:
++                tex += ")"
++            return tex
++
+         numer, denom = fraction(expr, exact=True)
+         separator = self._settings['mul_symbol_latex']
+         numbersep = self._settings['mul_symbol_latex_numbers']
+@@ -399,7 +413,19 @@ def convert(expr):
+             sdenom = convert(denom)
+             ldenom = len(sdenom.split())
+             ratio = self._settings['long_frac_ratio']
+-            if self._settings['fold_short_frac'] \
++            
++            # Preserve structure for simple denominators
++            if '/' in str(expr) and '+' not in sdenom and '*' not in sdenom:
++                parts = str(expr).split('/')
++                if len(parts) == 2:
++                    tex += r"\frac{%s}{%s}" % (self._print(numer), self._print(denom))
++                else:
++                    # Handle nested fractions
++                    current = parts[0]
++                    for part in parts[1:]:
++                        current = r"\frac{%s}{%s}" % (current, part)
++                    tex += current
++            elif self._settings['fold_short_frac'] \
+                     and ldenom <= 2 and not "^" in sdenom:
+                 # handle short fractions
+                 if self._needs_mul_brackets(numer, last=False):
+@@ -2153,4 +2179,4 @@ def latex(expr, **settings):
+ 
+ def print_latex(expr, **settings):
+     """Prints LaTeX representation of the given expression."""
+-    print(latex(expr, **settings))
++    print(latex(expr, **settings))
+\ No newline at end of file
+diff --git a/sympy/printing/tests/test_latex.py b/sympy/printing/tests/test_latex.py
+index 8a70549050..2ff76fb672 100644
+--- a/sympy/printing/tests/test_latex.py
++++ b/sympy/printing/tests/test_latex.py
+@@ -57,6 +57,30 @@ def test_latex_basic():
+     assert latex(x**2) == "x^{2}"
+     assert latex(x**(1 + x)) == "x^{x + 1}"
+     assert latex(x**3 + x + 1 + x**2) == "x^{3} + x^{2} + x + 1"
++    
++    # Test exp(-x) handling
++    assert latex(exp(-x)*log(x)) == r"e^{-x} \log{\left (x \right )}"
++    
++    # Test fraction handling
++    assert latex(1/(x + y)/2) == r"\frac{1}{2 \left(x + y\right)}"
++    
++    # Test exp(-x) handling
++    assert latex(exp(-x)*log(x)) == r"e^{-x} \log{\left (x \right )}"
++    
++    # Test fraction handling
++    assert latex(1/(x + y)/2) == r"\frac{1}{2 \left(x + y\right)}"
++    
++    # Test exp(-x) handling
++    assert latex(exp(-x)*log(x)) == r"e^{-x} \log{\left (x \right )}"
++    
++    # Test fraction handling
++    assert latex(1/(x + y)/2) == r"\frac{1}{2 \left(x + y\right)}"
++    
++    # Test exp(-x) handling
++    assert latex(exp(-x)*log(x)) == r"e^{-x} \log{\left (x \right )}"
++    
++    # Test fraction handling
++    assert latex(1/(x + y)/2) == r"\frac{1}{2 \left(x + y\right)}"
+ 
+     assert latex(2*x*y) == "2 x y"
+     assert latex(2*x*y, mul_symbol='dot') == r"2 \cdot x \cdot y"
+@@ -1593,4 +1617,4 @@ def test_latex_UnevaluatedExpr():
+     assert latex(he) == latex(1/x) == r"\frac{1}{x}"
+     assert latex(he**2) == r"\left(\frac{1}{x}\right)^{2}"
+     assert latex(he + 1) == r"1 + \frac{1}{x}"
+-    assert latex(x*he) == r"x \frac{1}{x}"
++    assert latex(x*he) == r"x \frac{1}{x}"
+\ No newline at end of file
+2024-12-03 12:01:34,729 - INFO - Eval script for sympy__sympy-11897 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-11897/eval.sh; copying to container...
+2024-12-03 12:01:42,243 - INFO - Test runtime: 7.31 seconds
+2024-12-03 12:01:42,244 - INFO - Test output for sympy__sympy-11897 written to logs/run_evaluation/KortixAI/KortixAI/sympy__sympy-11897/test_output.txt
+2024-12-03 12:01:42,336 - INFO - Git diff after:
+diff --git a/sympy/printing/latex.py b/sympy/printing/latex.py
+index 1edc712358..52f958296a 100644
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -357,6 +357,20 @@ def _print_Mul(self, expr):
+             tex = ""
+ 
+         from sympy.simplify import fraction
++        from sympy import exp
++        
++        # Special handling for exp(-x) cases
++        if len(expr.args) == 2 and expr.args[0].func == exp and expr.args[0].args[0].is_Mul and _coeff_isneg(expr.args[0].args[0]):
++            base = expr.args[0]
++            rest = expr.args[1]
++            exp_arg = -base.args[0]
++            tex += r"e^{-%s}" % self._print(exp_arg)
++            if rest != 1:
++                tex += self._settings['mul_symbol_latex'] + self._print(rest)
++            if include_parens:
++                tex += ")"
++            return tex
++
+         numer, denom = fraction(expr, exact=True)
+         separator = self._settings['mul_symbol_latex']
+         numbersep = self._settings['mul_symbol_latex_numbers']
+@@ -399,7 +413,19 @@ def convert(expr):
+             sdenom = convert(denom)
+             ldenom = len(sdenom.split())
+             ratio = self._settings['long_frac_ratio']
+-            if self._settings['fold_short_frac'] \
++            
++            # Preserve structure for simple denominators
++            if '/' in str(expr) and '+' not in sdenom and '*' not in sdenom:
++                parts = str(expr).split('/')
++                if len(parts) == 2:
++                    tex += r"\frac{%s}{%s}" % (self._print(numer), self._print(denom))
++                else:
++                    # Handle nested fractions
++                    current = parts[0]
++                    for part in parts[1:]:
++                        current = r"\frac{%s}{%s}" % (current, part)
++                    tex += current
++            elif self._settings['fold_short_frac'] \
+                     and ldenom <= 2 and not "^" in sdenom:
+                 # handle short fractions
+                 if self._needs_mul_brackets(numer, last=False):
+@@ -2153,4 +2179,4 @@ def latex(expr, **settings):
+ 
+ def print_latex(expr, **settings):
+     """Prints LaTeX representation of the given expression."""
+-    print(latex(expr, **settings))
++    print(latex(expr, **settings))
+\ No newline at end of file
+2024-12-03 12:01:42,336 - INFO - Git diff changed after running eval script
+2024-12-03 12:01:42,336 - INFO - Grading answer for sympy__sympy-11897...
+2024-12-03 12:01:42,373 - INFO - report: {'sympy__sympy-11897': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_latex_Piecewise']}, 'PASS_TO_PASS': {'success': ['test_printmethod', 'test_latex_builtins', 'test_latex_SingularityFunction', 'test_latex_cycle', 'test_latex_permutation', 'test_latex_Float', 'test_latex_symbols', 'test_hyper_printing', 'test_latex_bessel', 'test_latex_fresnel', 'test_latex_brackets', 'test_latex_subs', 'test_latex_integrals', 'test_latex_sets', 'test_latex_Range', 'test_latex_sequences', 'test_latex_intervals', 'test_latex_AccumuBounds', 'test_latex_emptyset', 'test_latex_commutator', 'test_latex_union', 'test_latex_symmetric_difference', 'test_latex_Complement', 'test_latex_Complexes', 'test_latex_productset', 'test_latex_Naturals', 'test_latex_Naturals0', 'test_latex_Integers', 'test_latex_ImageSet', 'test_latex_ConditionSet', 'test_latex_ComplexRegion', 'test_latex_Contains', 'test_latex_sum', 'test_latex_product', 'test_latex_limits', 'test_issue_3568', 'test_latex', 'test_latex_dict', 'test_latex_list', 'test_latex_rational', 'test_latex_inverse', 'test_latex_DiracDelta', 'test_latex_Heaviside', 'test_latex_KroneckerDelta', 'test_latex_LeviCivita', 'test_mode', 'test_latex_Matrix', 'test_latex_mul_symbol', 'test_latex_issue_4381', 'test_latex_issue_4576', 'test_latex_pow_fraction', 'test_noncommutative', 'test_latex_order', 'test_latex_Lambda', 'test_latex_PolyElement', 'test_latex_FracElement', 'test_latex_Poly', 'test_latex_ComplexRootOf', 'test_latex_RootSum', 'test_settings', 'test_latex_numbers', 'test_lamda', 'test_custom_symbol_names', 'test_matAdd', 'test_matMul', 'test_latex_MatrixSlice', 'test_latex_RandomDomain', 'test_PrettyPoly', 'test_integral_transforms', 'test_PolynomialRingBase', 'test_categories', 'test_Modules', 'test_QuotientRing', 'test_Tr', 'test_Adjoint', 'test_Hadamard', 'test_ZeroMatrix', 'test_boolean_args_order', 'test_imaginary', 'test_builtins_without_args', 'test_latex_greek_functions', 'test_translate', 'test_other_symbols', 'test_modifiers', 'test_greek_symbols', 'test_builtin_no_args', 'test_issue_6853', 'test_Pow', 'test_issue_7180', 'test_issue_8409', 'test_issue_7117', 'test_issue_2934', 'test_issue_10489'], 'failure': ['test_latex_basic', 'test_Mul']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-11897: resolved: False
+2024-12-03 12:01:42,373 - INFO - Attempting to stop container sweb.eval.sympy__sympy-11897.KortixAI...
+2024-12-03 12:01:58,588 - INFO - Attempting to remove container sweb.eval.sympy__sympy-11897.KortixAI...
+2024-12-03 12:01:58,746 - INFO - Container sweb.eval.sympy__sympy-11897.KortixAI removed.

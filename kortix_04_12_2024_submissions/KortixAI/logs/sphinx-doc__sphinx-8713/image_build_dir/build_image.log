@@ -1,0 +1,328 @@
+2024-12-03 11:59:32,280 - INFO - Building image sweb.eval.x86_64.sphinx-doc__sphinx-8713:latest
+Using dockerfile:
+FROM --platform=linux/x86_64 sweb.env.x86_64.c6d251a05e0af7688b64fd:latest
+
+COPY ./setup_repo.sh /root/
+RUN /bin/bash /root/setup_repo.sh
+
+WORKDIR /testbed/
+
+Adding (1) setup scripts to image build repo
+2024-12-03 11:59:32,280 - INFO - [SETUP SCRIPT] setup_repo.sh:
+#!/bin/bash
+set -euxo pipefail
+git clone -o origin https://github.com/sphinx-doc/sphinx /testbed
+chmod -R 777 /testbed
+cd /testbed
+git reset --hard 3ed7590ed411bd93b26098faab4f23619cdb2267
+git remote remove origin
+source /opt/miniconda3/bin/activate
+conda activate testbed
+echo "Current environment: $CONDA_DEFAULT_ENV"
+sed -i 's/pytest/pytest -rA/' tox.ini
+sed -i 's/Jinja2>=2.3/Jinja2<3.0/' setup.py
+sed -i 's/sphinxcontrib-applehelp/sphinxcontrib-applehelp<=1.0.7/' setup.py
+sed -i 's/sphinxcontrib-devhelp/sphinxcontrib-devhelp<=1.0.5/' setup.py
+sed -i 's/sphinxcontrib-qthelp/sphinxcontrib-qthelp<=1.0.6/' setup.py
+sed -i 's/alabaster>=0.7,<0.8/alabaster>=0.7,<0.7.12/' setup.py
+sed -i "s/'packaging',/'packaging', 'markupsafe<=2.0.1',/" setup.py
+sed -i 's/sphinxcontrib-htmlhelp/sphinxcontrib-htmlhelp<=2.0.4/' setup.py
+sed -i 's/sphinxcontrib-serializinghtml/sphinxcontrib-serializinghtml<=1.1.9/' setup.py
+python -m pip install -e .[test]
+
+2024-12-03 11:59:32,280 - INFO - Building docker image sweb.eval.x86_64.sphinx-doc__sphinx-8713:latest in logs/build_images/instances/sweb.eval.x86_64.sphinx-doc__sphinx-8713__latest with platform linux/x86_64
+2024-12-03 11:59:32,284 - INFO - Step 1/4 : FROM --platform=linux/x86_64 sweb.env.x86_64.c6d251a05e0af7688b64fd:latest
+2024-12-03 11:59:32,284 - INFO - 
+2024-12-03 11:59:32,284 - INFO - ---> 02a3036e7d2b
+2024-12-03 11:59:32,284 - INFO - Step 2/4 : COPY ./setup_repo.sh /root/
+2024-12-03 11:59:32,284 - INFO - 
+2024-12-03 11:59:32,503 - INFO - ---> d488e291cfef
+2024-12-03 11:59:32,503 - INFO - Step 3/4 : RUN /bin/bash /root/setup_repo.sh
+2024-12-03 11:59:32,503 - INFO - 
+2024-12-03 11:59:32,672 - INFO - ---> Running in c633395e9bfc
+2024-12-03 11:59:33,094 - INFO - + git clone -o origin https://github.com/sphinx-doc/sphinx /testbed
+2024-12-03 11:59:33,100 - INFO - Cloning into '/testbed'...
+2024-12-03 11:59:49,752 - INFO - + chmod -R 777 /testbed
+2024-12-03 11:59:49,827 - INFO - + cd /testbed
++ git reset --hard 3ed7590ed411bd93b26098faab4f23619cdb2267
+2024-12-03 11:59:50,522 - INFO - HEAD is now at 3ed7590ed Merge pull request #8696 from tk0miya/refactor_test_quickstart
+2024-12-03 11:59:50,527 - INFO - + git remote remove origin
+2024-12-03 11:59:50,625 - INFO - + source /opt/miniconda3/bin/activate
+2024-12-03 11:59:50,625 - INFO - ++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+2024-12-03 11:59:50,626 - INFO - ++++ dirname /opt/miniconda3/bin
+2024-12-03 11:59:50,626 - INFO - +++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+2024-12-03 11:59:50,627 - INFO - ++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
+2024-12-03 11:59:50,627 - INFO - +++ PS1=
++++ __conda_exe shell.posix activate
+2024-12-03 11:59:50,627 - INFO - +++ /opt/miniconda3/bin/conda shell.posix activate
+2024-12-03 11:59:50,744 - INFO - ++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
+2024-12-03 11:59:50,744 - INFO - +++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+2024-12-03 11:59:50,744 - INFO - ++ __conda_hashr
+2024-12-03 11:59:50,744 - INFO - ++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
+2024-12-03 11:59:50,744 - INFO - + conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
+2024-12-03 11:59:50,744 - INFO - + '[' -n '' ']'
++ local ask_conda
+2024-12-03 11:59:50,745 - INFO - ++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+2024-12-03 11:59:50,745 - INFO - ++ /opt/miniconda3/bin/conda shell.posix activate testbed
+2024-12-03 11:59:50,969 - INFO - + ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+2024-12-03 11:59:50,969 - INFO - ++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ echo 'Current environment: testbed'
++ sed -i 's/pytest/pytest -rA/' tox.ini
+2024-12-03 11:59:50,969 - INFO - Current environment: testbed
+2024-12-03 11:59:50,994 - INFO - + sed -i 's/Jinja2>=2.3/Jinja2<3.0/' setup.py
+2024-12-03 11:59:50,996 - INFO - + sed -i 's/sphinxcontrib-applehelp/sphinxcontrib-applehelp<=1.0.7/' setup.py
+2024-12-03 11:59:50,998 - INFO - + sed -i 's/sphinxcontrib-devhelp/sphinxcontrib-devhelp<=1.0.5/' setup.py
+2024-12-03 11:59:51,002 - INFO - + sed -i 's/sphinxcontrib-qthelp/sphinxcontrib-qthelp<=1.0.6/' setup.py
+2024-12-03 11:59:51,004 - INFO - + sed -i 's/alabaster>=0.7,<0.8/alabaster>=0.7,<0.7.12/' setup.py
+2024-12-03 11:59:51,007 - INFO - + sed -i 's/'\''packaging'\'',/'\''packaging'\'', '\''markupsafe<=2.0.1'\'',/' setup.py
+2024-12-03 11:59:51,009 - INFO - + sed -i 's/sphinxcontrib-htmlhelp/sphinxcontrib-htmlhelp<=2.0.4/' setup.py
+2024-12-03 11:59:51,012 - INFO - + sed -i 's/sphinxcontrib-serializinghtml/sphinxcontrib-serializinghtml<=1.1.9/' setup.py
+2024-12-03 11:59:51,015 - INFO - + python -m pip install -e '.[test]'
+2024-12-03 11:59:51,432 - INFO - Obtaining file:///testbed
+2024-12-03 11:59:51,433 - INFO - Preparing metadata (setup.py): started
+2024-12-03 11:59:51,859 - INFO - Preparing metadata (setup.py): finished with status 'done'
+2024-12-03 11:59:51,938 - INFO - Collecting sphinxcontrib-applehelp<=1.0.7 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:51,951 - INFO - Downloading sphinxcontrib_applehelp-1.0.7-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:52,082 - INFO - Collecting sphinxcontrib-devhelp<=1.0.5 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,087 - INFO - Downloading sphinxcontrib_devhelp-1.0.5-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:52,222 - INFO - Collecting sphinxcontrib-jsmath (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,227 - INFO - Downloading sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl.metadata (1.4 kB)
+2024-12-03 11:59:52,326 - INFO - Collecting sphinxcontrib-htmlhelp<=2.0.4 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,333 - INFO - Downloading sphinxcontrib_htmlhelp-2.0.4-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:52,407 - INFO - Collecting sphinxcontrib-serializinghtml<=1.1.9 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,414 - INFO - Downloading sphinxcontrib_serializinghtml-1.1.9-py3-none-any.whl.metadata (2.3 kB)
+2024-12-03 11:59:52,504 - INFO - Collecting sphinxcontrib-qthelp<=1.0.6 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,508 - INFO - Downloading sphinxcontrib_qthelp-1.0.6-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:52,601 - INFO - Collecting Jinja2<3.0 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,605 - INFO - Downloading Jinja2-2.11.3-py2.py3-none-any.whl.metadata (3.5 kB)
+2024-12-03 11:59:52,780 - INFO - Collecting Pygments>=2.0 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,783 - INFO - Downloading pygments-2.18.0-py3-none-any.whl.metadata (2.5 kB)
+2024-12-03 11:59:52,921 - INFO - Collecting docutils>=0.14 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:52,926 - INFO - Downloading docutils-0.21.2-py3-none-any.whl.metadata (2.8 kB)
+2024-12-03 11:59:53,008 - INFO - Collecting snowballstemmer>=1.1 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,014 - INFO - Downloading snowballstemmer-2.2.0-py2.py3-none-any.whl.metadata (6.5 kB)
+2024-12-03 11:59:53,128 - INFO - Collecting babel>=1.3 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,132 - INFO - Downloading babel-2.16.0-py3-none-any.whl.metadata (1.5 kB)
+2024-12-03 11:59:53,224 - INFO - Collecting alabaster<0.7.12,>=0.7 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,236 - INFO - Downloading alabaster-0.7.11-py2.py3-none-any.whl.metadata (2.0 kB)
+2024-12-03 11:59:53,352 - INFO - Collecting imagesize (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,359 - INFO - Downloading imagesize-1.4.1-py2.py3-none-any.whl.metadata (1.5 kB)
+2024-12-03 11:59:53,474 - INFO - Collecting requests>=2.5.0 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,479 - INFO - Downloading requests-2.32.3-py3-none-any.whl.metadata (4.6 kB)
+2024-12-03 11:59:53,514 - INFO - Requirement already satisfied: setuptools in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from Sphinx==4.0.0.dev20241203) (75.1.0)
+Requirement already satisfied: packaging in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from Sphinx==4.0.0.dev20241203) (24.2)
+2024-12-03 11:59:53,666 - INFO - Collecting markupsafe<=2.0.1 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,671 - INFO - Downloading MarkupSafe-2.0.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl.metadata (3.2 kB)
+2024-12-03 11:59:53,840 - INFO - Collecting pytest (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,844 - INFO - Downloading pytest-8.3.4-py3-none-any.whl.metadata (7.5 kB)
+2024-12-03 11:59:53,940 - INFO - Collecting pytest-cov (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:53,943 - INFO - Downloading pytest_cov-6.0.0-py3-none-any.whl.metadata (27 kB)
+2024-12-03 11:59:54,025 - INFO - Collecting html5lib (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:54,032 - INFO - Downloading html5lib-1.1-py2.py3-none-any.whl.metadata (16 kB)
+2024-12-03 11:59:54,510 - INFO - Collecting cython (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:54,516 - INFO - Downloading Cython-3.0.11-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.2 kB)
+2024-12-03 11:59:54,754 - INFO - Collecting charset-normalizer<4,>=2 (from requests>=2.5.0->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:54,762 - INFO - Downloading charset_normalizer-3.4.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (34 kB)
+2024-12-03 11:59:54,848 - INFO - Collecting idna<4,>=2.5 (from requests>=2.5.0->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:54,850 - INFO - Downloading idna-3.10-py3-none-any.whl.metadata (10 kB)
+2024-12-03 11:59:54,968 - INFO - Collecting urllib3<3,>=1.21.1 (from requests>=2.5.0->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:54,977 - INFO - Downloading urllib3-2.2.3-py3-none-any.whl.metadata (6.5 kB)
+2024-12-03 11:59:55,071 - INFO - Collecting certifi>=2017.4.17 (from requests>=2.5.0->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:55,075 - INFO - Downloading certifi-2024.8.30-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,198 - INFO - INFO: pip is looking at multiple versions of sphinxcontrib-applehelp to determine which version is compatible with other requirements. This could take a while.
+2024-12-03 11:59:55,199 - INFO - Collecting sphinxcontrib-applehelp<=1.0.7 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:55,211 - INFO - Downloading sphinxcontrib_applehelp-1.0.6-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,284 - INFO - Downloading sphinxcontrib_applehelp-1.0.5-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,329 - INFO - Downloading sphinxcontrib_applehelp-1.0.4-py3-none-any.whl.metadata (2.7 kB)
+2024-12-03 11:59:55,412 - INFO - INFO: pip is looking at multiple versions of sphinxcontrib-devhelp to determine which version is compatible with other requirements. This could take a while.
+Collecting sphinxcontrib-devhelp<=1.0.5 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:55,420 - INFO - Downloading sphinxcontrib_devhelp-1.0.4-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,488 - INFO - Downloading sphinxcontrib_devhelp-1.0.3-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,536 - INFO - Downloading sphinxcontrib_devhelp-1.0.2-py2.py3-none-any.whl.metadata (1.4 kB)
+2024-12-03 11:59:55,596 - INFO - INFO: pip is looking at multiple versions of sphinxcontrib-htmlhelp to determine which version is compatible with other requirements. This could take a while.
+2024-12-03 11:59:55,596 - INFO - Collecting sphinxcontrib-htmlhelp<=2.0.4 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:55,607 - INFO - Downloading sphinxcontrib_htmlhelp-2.0.3-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,674 - INFO - Downloading sphinxcontrib_htmlhelp-2.0.2-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,728 - INFO - Downloading sphinxcontrib_htmlhelp-2.0.1-py3-none-any.whl.metadata (2.8 kB)
+2024-12-03 11:59:55,772 - INFO - INFO: pip is looking at multiple versions of sphinxcontrib-qthelp to determine which version is compatible with other requirements. This could take a while.
+2024-12-03 11:59:55,773 - INFO - Collecting sphinxcontrib-qthelp<=1.0.6 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:55,777 - INFO - Downloading sphinxcontrib_qthelp-1.0.5-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,820 - INFO - Downloading sphinxcontrib_qthelp-1.0.4-py3-none-any.whl.metadata (2.2 kB)
+2024-12-03 11:59:55,925 - INFO - Downloading sphinxcontrib_qthelp-1.0.3-py2.py3-none-any.whl.metadata (1.4 kB)
+2024-12-03 11:59:55,982 - INFO - INFO: pip is looking at multiple versions of sphinxcontrib-serializinghtml to determine which version is compatible with other requirements. This could take a while.
+2024-12-03 11:59:55,982 - INFO - Collecting sphinxcontrib-serializinghtml<=1.1.9 (from Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:55,988 - INFO - Downloading sphinxcontrib_serializinghtml-1.1.8-py3-none-any.whl.metadata (2.3 kB)
+2024-12-03 11:59:56,056 - INFO - Downloading sphinxcontrib_serializinghtml-1.1.7-py3-none-any.whl.metadata (2.3 kB)
+2024-12-03 11:59:56,090 - INFO - Downloading sphinxcontrib_serializinghtml-1.1.6-py3-none-any.whl.metadata (2.3 kB)
+2024-12-03 11:59:56,135 - INFO - Downloading sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl.metadata (1.5 kB)
+2024-12-03 11:59:56,242 - INFO - Collecting six>=1.9 (from html5lib->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:56,251 - INFO - Downloading six-1.16.0-py2.py3-none-any.whl.metadata (1.8 kB)
+2024-12-03 11:59:56,316 - INFO - Collecting webencodings (from html5lib->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:56,318 - INFO - Downloading webencodings-0.5.1-py2.py3-none-any.whl.metadata (2.1 kB)
+2024-12-03 11:59:56,449 - INFO - Collecting exceptiongroup>=1.0.0rc8 (from pytest->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:56,454 - INFO - Downloading exceptiongroup-1.2.2-py3-none-any.whl.metadata (6.6 kB)
+2024-12-03 11:59:56,524 - INFO - Collecting iniconfig (from pytest->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:56,531 - INFO - Downloading iniconfig-2.0.0-py3-none-any.whl.metadata (2.6 kB)
+2024-12-03 11:59:56,555 - INFO - Requirement already satisfied: pluggy<2,>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pytest->Sphinx==4.0.0.dev20241203) (1.5.0)
+Requirement already satisfied: tomli>=1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pytest->Sphinx==4.0.0.dev20241203) (2.2.1)
+2024-12-03 11:59:57,164 - INFO - Collecting coverage>=7.5 (from coverage[toml]>=7.5->pytest-cov->Sphinx==4.0.0.dev20241203)
+2024-12-03 11:59:57,173 - INFO - Downloading coverage-7.6.8-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (8.2 kB)
+2024-12-03 11:59:57,261 - INFO - Downloading alabaster-0.7.11-py2.py3-none-any.whl (14 kB)
+2024-12-03 11:59:57,310 - INFO - Downloading babel-2.16.0-py3-none-any.whl (9.6 MB)
+2024-12-03 11:59:58,140 - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.6/9.6 MB 11.3 MB/s eta 0:00:00
+2024-12-03 11:59:58,140 - INFO - 
+2024-12-03 11:59:58,143 - INFO - Downloading docutils-0.21.2-py3-none-any.whl (587 kB)
+2024-12-03 11:59:58,323 - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 587.4/587.4 kB 1.8 MB/s eta 0:00:00
+2024-12-03 11:59:58,323 - INFO - 
+2024-12-03 11:59:58,327 - INFO - Downloading Jinja2-2.11.3-py2.py3-none-any.whl (125 kB)
+2024-12-03 11:59:58,697 - INFO - Downloading MarkupSafe-2.0.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (30 kB)
+2024-12-03 11:59:59,171 - INFO - Downloading pygments-2.18.0-py3-none-any.whl (1.2 MB)
+2024-12-03 11:59:59,248 - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 13.2 MB/s eta 0:00:00
+2024-12-03 11:59:59,253 - INFO - Downloading requests-2.32.3-py3-none-any.whl (64 kB)
+2024-12-03 11:59:59,325 - INFO - Downloading snowballstemmer-2.2.0-py2.py3-none-any.whl (93 kB)
+2024-12-03 11:59:59,385 - INFO - Downloading sphinxcontrib_applehelp-1.0.4-py3-none-any.whl (120 kB)
+2024-12-03 11:59:59,455 - INFO - Downloading sphinxcontrib_devhelp-1.0.2-py2.py3-none-any.whl (84 kB)
+2024-12-03 11:59:59,511 - INFO - Downloading sphinxcontrib_htmlhelp-2.0.1-py3-none-any.whl (99 kB)
+2024-12-03 11:59:59,565 - INFO - Downloading sphinxcontrib_qthelp-1.0.3-py2.py3-none-any.whl (90 kB)
+2024-12-03 11:59:59,641 - INFO - Downloading sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl (94 kB)
+2024-12-03 11:59:59,698 - INFO - Downloading Cython-3.0.11-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.6 MB)
+2024-12-03 11:59:59,844 - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.6/3.6 MB 25.0 MB/s eta 0:00:00
+2024-12-03 11:59:59,847 - INFO - Downloading html5lib-1.1-py2.py3-none-any.whl (112 kB)
+2024-12-03 11:59:59,932 - INFO - Downloading imagesize-1.4.1-py2.py3-none-any.whl (8.8 kB)
+2024-12-03 11:59:59,975 - INFO - Downloading pytest-8.3.4-py3-none-any.whl (343 kB)
+2024-12-03 12:00:00,028 - INFO - Downloading pytest_cov-6.0.0-py3-none-any.whl (22 kB)
+2024-12-03 12:00:00,071 - INFO - Downloading sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl (5.1 kB)
+2024-12-03 12:00:00,132 - INFO - Downloading certifi-2024.8.30-py3-none-any.whl (167 kB)
+2024-12-03 12:00:00,197 - INFO - Downloading charset_normalizer-3.4.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (144 kB)
+2024-12-03 12:00:00,236 - INFO - Downloading coverage-7.6.8-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (234 kB)
+2024-12-03 12:00:00,294 - INFO - Downloading exceptiongroup-1.2.2-py3-none-any.whl (16 kB)
+2024-12-03 12:00:00,346 - INFO - Downloading idna-3.10-py3-none-any.whl (70 kB)
+2024-12-03 12:00:00,422 - INFO - Downloading six-1.16.0-py2.py3-none-any.whl (11 kB)
+2024-12-03 12:00:00,480 - INFO - Downloading urllib3-2.2.3-py3-none-any.whl (126 kB)
+2024-12-03 12:00:00,540 - INFO - Downloading iniconfig-2.0.0-py3-none-any.whl (5.9 kB)
+2024-12-03 12:00:00,582 - INFO - Downloading webencodings-0.5.1-py2.py3-none-any.whl (11 kB)
+2024-12-03 12:00:01,065 - INFO - Installing collected packages: webencodings, snowballstemmer, alabaster, urllib3, sphinxcontrib-serializinghtml, sphinxcontrib-qthelp, sphinxcontrib-jsmath, sphinxcontrib-htmlhelp, sphinxcontrib-devhelp, sphinxcontrib-applehelp, six, Pygments, markupsafe, iniconfig, imagesize, idna, exceptiongroup, docutils, cython, coverage, charset-normalizer, certifi, babel, requests, pytest, Jinja2, html5lib, Sphinx, pytest-cov
+2024-12-03 12:00:09,569 - INFO - DEPRECATION: Legacy editable install of Sphinx[test]==4.0.0.dev20241203 from file:///testbed (setup.py develop) is deprecated. pip 25.0 will enforce this behaviour change. A possible replacement is to add a pyproject.toml or enable --use-pep517, and use setuptools >= 64. If the resulting installation is not behaving as expected, try using --config-settings editable_mode=compat. Please consult the setuptools documentation for more information. Discussion can be found at https://github.com/pypa/pip/issues/11457
+2024-12-03 12:00:09,569 - INFO - Running setup.py develop for Sphinx
+2024-12-03 12:00:10,758 - INFO - Successfully installed Jinja2-2.11.3 Pygments-2.18.0 Sphinx alabaster-0.7.11 babel-2.16.0 certifi-2024.8.30 charset-normalizer-3.4.0 coverage-7.6.8 cython-3.0.11 docutils-0.21.2 exceptiongroup-1.2.2 html5lib-1.1 idna-3.10 imagesize-1.4.1 iniconfig-2.0.0 markupsafe-2.0.1 pytest-8.3.4 pytest-cov-6.0.0 requests-2.32.3 six-1.16.0 snowballstemmer-2.2.0 sphinxcontrib-applehelp-1.0.4 sphinxcontrib-devhelp-1.0.2 sphinxcontrib-htmlhelp-2.0.1 sphinxcontrib-jsmath-1.0.1 sphinxcontrib-qthelp-1.0.3 sphinxcontrib-serializinghtml-1.1.5 urllib3-2.2.3 webencodings-0.5.1
+2024-12-03 12:00:10,759 - INFO - WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+2024-12-03 12:00:17,598 - INFO - ---> Removed intermediate container c633395e9bfc
+2024-12-03 12:00:17,598 - INFO - ---> 851fb560abba
+2024-12-03 12:00:17,598 - INFO - Step 4/4 : WORKDIR /testbed/
+2024-12-03 12:00:17,598 - INFO - 
+2024-12-03 12:00:18,235 - INFO - ---> Running in 8bbd08e68e7b
+2024-12-03 12:00:18,786 - INFO - ---> Removed intermediate container 8bbd08e68e7b
+2024-12-03 12:00:18,786 - INFO - ---> 236c175e2fee
+2024-12-03 12:00:18,787 - INFO - Successfully built 236c175e2fee
+2024-12-03 12:00:18,905 - INFO - Successfully tagged sweb.eval.x86_64.sphinx-doc__sphinx-8713:latest
+2024-12-03 12:00:18,905 - INFO - Image built successfully!

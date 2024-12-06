@@ -1,0 +1,51 @@
+2024-11-20 03:50:37,789 - INFO - Environment image sweb.env.x86_64.a18371b03f944585b4f08c:latest found for django__django-12113
+Building instance image sweb.eval.x86_64.django__django-12113:latest for django__django-12113
+2024-11-20 03:51:20,048 - INFO - Creating container for django__django-12113...
+2024-11-20 03:51:20,079 - INFO - Container for django__django-12113 created: 3004ddd9fd6373db0057af3d07b000e65c82b6b226502ac132d96bf923428572
+2024-11-20 03:51:20,518 - INFO - Container for django__django-12113 started: 3004ddd9fd6373db0057af3d07b000e65c82b6b226502ac132d96bf923428572
+2024-11-20 03:51:20,519 - INFO - Intermediate patch for django__django-12113 written to logs/run_evaluation/KortixAI/KortixAI/django__django-12113/patch.diff, now applying to container...
+2024-11-20 03:51:20,767 - INFO - Failed to apply patch to container, trying again...
+2024-11-20 03:51:20,818 - INFO - >>>>> Applied Patch:
+patching file django/db/backends/sqlite3/base.py
+
+2024-11-20 03:51:21,839 - INFO - Git diff before:
+diff --git a/django/db/backends/sqlite3/base.py b/django/db/backends/sqlite3/base.py
+index a3ae1f048e..063e88610c 100644
+--- a/django/db/backends/sqlite3/base.py
++++ b/django/db/backends/sqlite3/base.py
+@@ -202,6 +202,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
+     @async_unsafe
+     def get_new_connection(self, conn_params):
+         conn = Database.connect(**conn_params)
++        # Configure SQLite for better concurrent access
++        conn.execute('PRAGMA journal_mode=WAL')  # Use Write-Ahead Logging
++        conn.execute('PRAGMA busy_timeout=5000')  # Set busy timeout to 5 seconds
+         conn.create_function("django_date_extract", 2, _sqlite_datetime_extract)
+         conn.create_function("django_date_trunc", 2, _sqlite_date_trunc)
+         conn.create_function('django_datetime_cast_date', 3, _sqlite_datetime_cast_date)
+2024-11-20 03:51:21,839 - INFO - Eval script for django__django-12113 written to logs/run_evaluation/KortixAI/KortixAI/django__django-12113/eval.sh; copying to container...
+2024-11-20 03:51:28,876 - INFO - Test runtime: 6.89 seconds
+2024-11-20 03:51:28,876 - INFO - Test output for django__django-12113 written to logs/run_evaluation/KortixAI/KortixAI/django__django-12113/test_output.txt
+2024-11-20 03:51:28,938 - INFO - Git diff after:
+diff --git a/django/db/backends/sqlite3/base.py b/django/db/backends/sqlite3/base.py
+index a3ae1f048e..063e88610c 100644
+--- a/django/db/backends/sqlite3/base.py
++++ b/django/db/backends/sqlite3/base.py
+@@ -202,6 +202,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
+     @async_unsafe
+     def get_new_connection(self, conn_params):
+         conn = Database.connect(**conn_params)
++        # Configure SQLite for better concurrent access
++        conn.execute('PRAGMA journal_mode=WAL')  # Use Write-Ahead Logging
++        conn.execute('PRAGMA busy_timeout=5000')  # Set busy timeout to 5 seconds
+         conn.create_function("django_date_extract", 2, _sqlite_datetime_extract)
+         conn.create_function("django_date_trunc", 2, _sqlite_date_trunc)
+         conn.create_function('django_datetime_cast_date', 3, _sqlite_datetime_cast_date)
+2024-11-20 03:51:28,938 - INFO - Grading answer for django__django-12113...
+2024-11-20 03:51:28,940 - INFO - report: {'django__django-12113': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_custom_test_name (backends.sqlite.test_creation.TestDbSignatureTests)']}, 'PASS_TO_PASS': {'success': [], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12113: resolved: False
+2024-11-20 03:51:28,941 - INFO - Attempting to stop container sweb.eval.django__django-12113.KortixAI...
+2024-11-20 03:51:44,128 - INFO - Attempting to remove container sweb.eval.django__django-12113.KortixAI...
+2024-11-20 03:51:44,531 - INFO - Container sweb.eval.django__django-12113.KortixAI removed.
+2024-11-20 03:51:44,531 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-12113:latest...
+2024-11-20 03:51:45,778 - INFO - Image sweb.eval.x86_64.django__django-12113:latest removed.

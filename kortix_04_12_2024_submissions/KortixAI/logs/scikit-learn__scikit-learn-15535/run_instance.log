@@ -1,0 +1,140 @@
+2024-12-03 11:49:41,851 - INFO - Environment image sweb.env.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-15535
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-15535:latest for scikit-learn__scikit-learn-15535
+2024-12-03 11:58:56,689 - INFO - Creating container for scikit-learn__scikit-learn-15535...
+2024-12-03 11:58:56,997 - INFO - Container for scikit-learn__scikit-learn-15535 created: 45026985bc5ccebfa632cea9dd3dcacf650fb68fa94c76faada2bf637f568922
+2024-12-03 11:58:57,743 - INFO - Container for scikit-learn__scikit-learn-15535 started: 45026985bc5ccebfa632cea9dd3dcacf650fb68fa94c76faada2bf637f568922
+2024-12-03 11:58:57,743 - INFO - Intermediate patch for scikit-learn__scikit-learn-15535 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-15535/patch.diff, now applying to container...
+2024-12-03 11:58:58,436 - INFO - Failed to apply patch to container, trying again...
+2024-12-03 11:58:58,536 - INFO - >>>>> Applied Patch:
+patching file sklearn/metrics/cluster/_supervised.py
+patching file sklearn/metrics/cluster/tests/test_supervised.py
+
+2024-12-03 11:58:59,105 - INFO - Git diff before:
+diff --git a/sklearn/metrics/cluster/_supervised.py b/sklearn/metrics/cluster/_supervised.py
+index 4bddae35c..86d1fb8f8 100644
+--- a/sklearn/metrics/cluster/_supervised.py
++++ b/sklearn/metrics/cluster/_supervised.py
+@@ -43,10 +43,10 @@ def check_clusterings(labels_true, labels_pred):
+         The predicted labels.
+     """
+     labels_true = check_array(
+-        labels_true, ensure_2d=False, ensure_min_samples=0
++        labels_true, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+     labels_pred = check_array(
+-        labels_pred, ensure_2d=False, ensure_min_samples=0
++        labels_pred, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+ 
+     # input checks
+@@ -966,4 +966,4 @@ def entropy(labels):
+     pi_sum = np.sum(pi)
+     # log(a / b) should be calculated as log(a) - log(b) for
+     # possible loss of precision
+-    return -np.sum((pi / pi_sum) * (np.log(pi) - log(pi_sum)))
++    return -np.sum((pi / pi_sum) * (np.log(pi) - log(pi_sum)))
+\ No newline at end of file
+diff --git a/sklearn/metrics/cluster/tests/test_supervised.py b/sklearn/metrics/cluster/tests/test_supervised.py
+index d2d2dd6fa..7988777fc 100644
+--- a/sklearn/metrics/cluster/tests/test_supervised.py
++++ b/sklearn/metrics/cluster/tests/test_supervised.py
+@@ -256,6 +256,23 @@ def test_contingency_matrix():
+     assert_array_almost_equal(C, C2 + .1)
+ 
+ 
++def test_mutual_info_score_string_labels():
++    # Test mutual_info_score with string labels, including object arrays
++    x = np.array(['a', 'b', 'a', 'c', 'b', 'c']).astype(object)
++    y = np.array(['a', 'b', 'a', 'c', 'b', 'c']).astype(object)
++    assert_almost_equal(mutual_info_score(x, y), 1.0)
++    
++    # Test with regular string arrays
++    x2 = np.array(['a', 'b', 'a', 'c', 'b', 'c'])
++    y2 = np.array(['a', 'b', 'a', 'c', 'b', 'c'])
++    assert_almost_equal(mutual_info_score(x2, y2), 1.0)
++    
++    # Test with mixed labels
++    x3 = np.array(['a', 'b', 'a', 'c', 'b', 'c'])
++    y3 = np.array([1, 2, 1, 3, 2, 3])
++    score = mutual_info_score(x3, y3)
++    assert_almost_equal(score, 1.0)
++
+ def test_contingency_matrix_sparse():
+     labels_a = np.array([1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3])
+     labels_b = np.array([1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 3, 1, 3, 3, 3, 2, 2])
+@@ -336,4 +353,4 @@ def test_fowlkes_mallows_score_properties():
+ 
+     # symmetric and permutation(both together)
+     score_both = fowlkes_mallows_score(labels_b, (labels_a + 2) % 3)
+-    assert_almost_equal(score_both, expected)
++    assert_almost_equal(score_both, expected)
+\ No newline at end of file
+2024-12-03 11:58:59,105 - INFO - Eval script for scikit-learn__scikit-learn-15535 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-15535/eval.sh; copying to container...
+2024-12-03 11:59:06,325 - INFO - Test runtime: 6.90 seconds
+2024-12-03 11:59:06,325 - INFO - Test output for scikit-learn__scikit-learn-15535 written to logs/run_evaluation/KortixAI/KortixAI/scikit-learn__scikit-learn-15535/test_output.txt
+2024-12-03 11:59:06,447 - INFO - Git diff after:
+diff --git a/sklearn/metrics/cluster/_supervised.py b/sklearn/metrics/cluster/_supervised.py
+index 4bddae35c..86d1fb8f8 100644
+--- a/sklearn/metrics/cluster/_supervised.py
++++ b/sklearn/metrics/cluster/_supervised.py
+@@ -43,10 +43,10 @@ def check_clusterings(labels_true, labels_pred):
+         The predicted labels.
+     """
+     labels_true = check_array(
+-        labels_true, ensure_2d=False, ensure_min_samples=0
++        labels_true, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+     labels_pred = check_array(
+-        labels_pred, ensure_2d=False, ensure_min_samples=0
++        labels_pred, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+ 
+     # input checks
+@@ -966,4 +966,4 @@ def entropy(labels):
+     pi_sum = np.sum(pi)
+     # log(a / b) should be calculated as log(a) - log(b) for
+     # possible loss of precision
+-    return -np.sum((pi / pi_sum) * (np.log(pi) - log(pi_sum)))
++    return -np.sum((pi / pi_sum) * (np.log(pi) - log(pi_sum)))
+\ No newline at end of file
+diff --git a/sklearn/metrics/cluster/tests/test_supervised.py b/sklearn/metrics/cluster/tests/test_supervised.py
+index d2d2dd6fa..7988777fc 100644
+--- a/sklearn/metrics/cluster/tests/test_supervised.py
++++ b/sklearn/metrics/cluster/tests/test_supervised.py
+@@ -256,6 +256,23 @@ def test_contingency_matrix():
+     assert_array_almost_equal(C, C2 + .1)
+ 
+ 
++def test_mutual_info_score_string_labels():
++    # Test mutual_info_score with string labels, including object arrays
++    x = np.array(['a', 'b', 'a', 'c', 'b', 'c']).astype(object)
++    y = np.array(['a', 'b', 'a', 'c', 'b', 'c']).astype(object)
++    assert_almost_equal(mutual_info_score(x, y), 1.0)
++    
++    # Test with regular string arrays
++    x2 = np.array(['a', 'b', 'a', 'c', 'b', 'c'])
++    y2 = np.array(['a', 'b', 'a', 'c', 'b', 'c'])
++    assert_almost_equal(mutual_info_score(x2, y2), 1.0)
++    
++    # Test with mixed labels
++    x3 = np.array(['a', 'b', 'a', 'c', 'b', 'c'])
++    y3 = np.array([1, 2, 1, 3, 2, 3])
++    score = mutual_info_score(x3, y3)
++    assert_almost_equal(score, 1.0)
++
+ def test_contingency_matrix_sparse():
+     labels_a = np.array([1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3])
+     labels_b = np.array([1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 3, 1, 3, 3, 3, 2, 2])
+@@ -336,4 +353,4 @@ def test_fowlkes_mallows_score_properties():
+ 
+     # symmetric and permutation(both together)
+     score_both = fowlkes_mallows_score(labels_b, (labels_a + 2) % 3)
+-    assert_almost_equal(score_both, expected)
++    assert_almost_equal(score_both, expected)
+\ No newline at end of file
+2024-12-03 11:59:06,447 - INFO - Grading answer for scikit-learn__scikit-learn-15535...
+2024-12-03 11:59:06,463 - INFO - report: {'scikit-learn__scikit-learn-15535': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[fowlkes_mallows_score]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/metrics/cluster/tests/test_common.py::test_symmetric_non_symmetric_union', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[adjusted_rand_score-y10-y20]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[v_measure_score-y11-y21]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[mutual_info_score-y12-y22]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[adjusted_mutual_info_score-y13-y23]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[normalized_mutual_info_score-y14-y24]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[fowlkes_mallows_score-y15-y25]', 'sklearn/metrics/cluster/tests/test_common.py::test_non_symmetry[homogeneity_score-y10-y20]', 'sklearn/metrics/cluster/tests/test_common.py::test_non_symmetry[completeness_score-y11-y21]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[silhouette_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[silhouette_manhattan]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[calinski_harabasz_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[davies_bouldin_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[silhouette_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[silhouette_manhattan]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[calinski_harabasz_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[davies_bouldin_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[adjusted_mutual_info_score-adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[adjusted_rand_score-adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[completeness_score-completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[homogeneity_score-homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[mutual_info_score-mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[normalized_mutual_info_score-normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[v_measure_score-v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[fowlkes_mallows_score-fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[silhouette_score-silhouette_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[silhouette_manhattan-metric_func9]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[calinski_harabasz_score-calinski_harabasz_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[davies_bouldin_score-davies_bouldin_score]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-15535: resolved: True
+2024-12-03 11:59:06,463 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-15535.KortixAI...
+2024-12-03 11:59:21,991 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-15535.KortixAI...
+2024-12-03 11:59:22,145 - INFO - Container sweb.eval.scikit-learn__scikit-learn-15535.KortixAI removed.
